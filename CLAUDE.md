@@ -1,0 +1,166 @@
+# doc-generator
+
+A deterministic, schema-driven PDF generation tool for business documents (Purchase Orders, Invoices, etc.). It is invocable by **any AI agent** that can execute shell commands — Claude, Cursor, Gemini, Codex, or any other tool. No LLM is involved in rendering. Same input always produces the same PDF.
+
+---
+
+## How to Run Locally
+
+```bash
+# Install dependencies (first time or after pyproject.toml changes)
+uv sync
+
+# Generate a Purchase Order from a JSON payload
+uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json
+
+# Same, but open the PDF immediately after generation
+uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview
+
+# Generate an Invoice
+uv run python scripts/generate.py --doc_type invoice --payload tests/fixtures/sample_invoice.json --preview
+
+# Test validation error output (non-zero exit code, structured error to stdout)
+uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/invalid_po.json
+```
+
+---
+
+## CLI Contract (Platform-Agnostic Interface)
+
+Any agent invoking this tool must use the following interface. This is the **complete** contract — there are no interactive prompts, no assumed environment variables, and no implicit state.
+
+```
+uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`). |
+| `--payload` | Yes | Absolute or relative path to a JSON file containing the document data. **File path only** — not inline JSON. This avoids shell escaping issues and lets agents write a temp file before invoking. |
+| `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
+
+**On success:** Writes the PDF to `output/<doc_type>_YYYYMMDD_XXXX.pdf` and prints the output path to stdout. Exit code `0`.
+
+**On validation error:** Prints a structured, human-readable error to stdout describing which fields failed and why. Exit code `1`. No PDF is written.
+
+**On unknown doc_type:** Prints a list of registered doc types to stdout. Exit code `1`.
+
+Agents should capture stdout and check the exit code to determine success or failure.
+
+---
+
+## Folder Structure
+
+```
+doc-generator/
+│
+├── CLAUDE.md                    ← You are here. Entry point for all AI agents.
+├── SKILL.md                     ← Claude-specific skill instructions (trigger conditions, data collection protocol)
+│
+├── pyproject.toml               ← uv project manifest with dependencies (weasyprint, jinja2, pydantic)
+├── uv.lock                      ← Locked dependency versions (auto-managed by uv)
+│
+├── scripts/
+│   └── generate.py              ← CLI entrypoint: --doc_type, --payload, --preview
+│
+├── schemas/
+│   ├── base.py                  ← Shared base classes and mixins (MoneyMixin, etc.)
+│   ├── purchase_order.py        ← Pydantic v2 model for Purchase Orders (with @computed_field)
+│   └── invoice.py               ← Pydantic v2 model for Invoices
+│
+├── utils/
+│   ├── formatting.py            ← Currency formatting (USD/American: $1,234.56), date formatting
+│   ├── file_naming.py           ← Auto-naming logic: <doc_type>_YYYYMMDD_XXXX.pdf
+│   ├── logo.py                  ← Logo resolver: accepts file path or URL, returns base64 data URI
+│   └── preview.py               ← OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
+│
+├── templates/
+│   ├── base.html                ← Shared page layout — imports style.css, injects theme CSS variables
+│   ├── purchase_order.html      ← PO Jinja2 template extending base.html
+│   └── invoice.html             ← Invoice Jinja2 template extending base.html
+│
+├── assets/
+│   ├── style.css                ← Base stylesheet built entirely on CSS custom properties
+│   └── themes/                  ← Future: named theme override files
+│
+├── references/
+│   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type (see below)
+│   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
+│   └── EXTENDING.md             ← Developer guide: how to add a new document type
+│
+├── tests/
+│   └── fixtures/
+│       ├── sample_po.json       ← Valid complete PO payload (used for local testing)
+│       ├── invalid_po.json      ← PO payload missing required fields (expected: clean error)
+│       ├── sample_invoice.json  ← Valid complete Invoice payload
+│       └── invalid_invoice.json ← Invoice payload missing required fields
+│
+├── output/                      ← Generated PDFs land here (.gitignored)
+│
+└── docs/
+    └── PRD.md                   ← Full product requirements document
+```
+
+---
+
+## Key Design Decisions
+
+**Schema-driven, not template-driven.** Every document type has a Pydantic v2 schema that defines required/optional fields, types, and validation rules. The schema is the contract — templates are just renderers.
+
+**No LLM in the render path.** `scripts/generate.py` is a pure deterministic function. It takes a JSON payload, validates it against a Pydantic schema, renders a Jinja2 template, and writes a PDF via WeasyPrint. No model calls, no network, no side effects.
+
+**No logic in templates.** All computation (subtotals, tax, totals, formatting) happens in Python before the template is rendered. Jinja2 templates receive a fully-resolved context dict and only do display.
+
+**Computed fields via Pydantic `@computed_field`.** Derived values (`subtotal`, `tax_amount`, `grand_total`, line item `total`) are always calculated from the raw inputs. They are never accepted from the payload — Pydantic validates and computes them automatically.
+
+**File-path-only `--payload`.** Agents write the JSON to a temp file and pass the path. This avoids shell quoting issues with inline JSON and works identically across all platforms and agent runtimes.
+
+**CSS custom properties only.** `assets/style.css` uses `--var: value` everywhere. No hardcoded colors, sizes, or fonts outside of `:root`. This makes theming a single override file.
+
+**USD/American formatting in Phase 1.** All monetary values are formatted as `$1,234.56`. Multi-currency support is explicitly backlogged.
+
+**Preview is best-effort.** The `--preview` flag attempts to open the PDF with the OS default viewer. If no display is available (headless CI, SSH session), it silently skips — never errors.
+
+---
+
+## Source-of-Truth Rule: `references/<doc_type>.md`
+
+Before touching a schema file, a template, or a fixture for any document type — **read the corresponding `references/<doc_type>.md` first**.
+
+Each reference file defines:
+- All fields (required/optional), their types, defaults, and descriptions
+- Computed fields (never ask the user for these)
+- Validation rules
+- The Claude data collection protocol for that doc type
+- An example payload with expected computed output
+- Layout notes for the template
+
+The Pydantic model and Jinja2 template are derived from the reference. The reference is never derived from the code.
+
+---
+
+## How to Add a New Document Type
+
+Four steps. No other files change.
+
+```
+1. Add references/<doc_type>.md       → Define all fields, rules, computed fields, layout notes
+2. Add schemas/<doc_type>.py          → Pydantic v2 model derived from the reference
+3. Add templates/<doc_type>.html      → Jinja2 template extending base.html
+4. Register in scripts/generate.py   → Add one entry to the REGISTRY dict
+```
+
+That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type.
+
+---
+
+## The `.ai/` Folder
+
+The `.ai/` folder (gitignored) contains agent planning artifacts. AI agents working on this project should read and update these files:
+
+| File | Purpose |
+|---|---|
+| `.ai/implementation-plan.md` | The current phased implementation plan. Read this before starting any work. |
+| `.ai/current-plan.md` | Active work-in-progress context for the current session. |
+| `.ai/memory.md` | Cross-session notes: patterns discovered, decisions made, gotchas encountered. |
+| `.ai/errors.md` | Log of errors encountered and how they were resolved. Update this when you fix a non-obvious bug. |
