@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="doc-header">
+  {# Left: issuer logo or empty spacer #}
+  <div class="doc-header__logo">
+    {% if issuer.logo %}
+    <img src="{{ issuer.logo }}" alt="{{ issuer.name }} logo">
+    {% else %}
+    <div class="doc-header__logo--placeholder"></div>
+    {% endif %}
+  </div>
+
+  {# Right: document type, number, date #}
+  <div class="doc-header__title">
+    <div class="doc-header__type">Invoice</div>
+    <div class="doc-header__number">{{ invoice_number }}</div>
+    <div class="doc-header__date">{{ issue_date }}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Status strip — paid / partially paid ───────────────── #}
+{% if document_status %}
+<div class="status-strip status-strip--{{ document_status }}">{{ status_label }}</div>
+{% endif %}
+
+{# ── Address block: From (issuer, left) · Bill To (client, right) ── #}
+<div class="address-block">
+
+  <div class="address-block__party">
+    <div class="address-block__label">From</div>
+    <div class="address-block__name">{{ issuer.name }}</div>
+    <div class="address-block__detail">{{ issuer.address | nl2br }}</div>
+    {% if issuer.contact_name or issuer.email or issuer.phone %}
+    <div class="address-block__contact">
+      {% if issuer.contact_name %}{{ issuer.contact_name }}{% endif %}
+      {% if issuer.contact_name and (issuer.email or issuer.phone) %} &nbsp;·&nbsp; {% endif %}
+      {% if issuer.email %}{{ issuer.email }}{% endif %}
+      {% if issuer.email and issuer.phone %} &nbsp;·&nbsp; {% endif %}
+      {% if issuer.phone %}{{ issuer.phone }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="address-block__party">
+    <div class="address-block__label">Bill To</div>
+    <div class="address-block__name">{{ bill_to.name }}</div>
+    <div class="address-block__detail">{{ bill_to.address | nl2br }}</div>
+    {% if bill_to.contact_name or bill_to.email or bill_to.phone %}
+    <div class="address-block__contact">
+      {% if bill_to.contact_name %}{{ bill_to.contact_name }}{% endif %}
+      {% if bill_to.contact_name and (bill_to.email or bill_to.phone) %} &nbsp;·&nbsp; {% endif %}
+      {% if bill_to.email %}{{ bill_to.email }}{% endif %}
+      {% if bill_to.email and bill_to.phone %} &nbsp;·&nbsp; {% endif %}
+      {% if bill_to.phone %}{{ bill_to.phone }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{# ── Meta band: due date, payment terms ──────────────────── #}
+{% if due_date or payment_terms %}
+<div class="meta-band">
+  {% if due_date %}
+  <div class="meta-band__item">
+    <div class="meta-band__label">Due Date</div>
+    <div class="meta-band__value">{{ due_date }}</div>
+  </div>
+  {% endif %}
+  {% if payment_terms %}
+  <div class="meta-band__item">
+    <div class="meta-band__label">Payment Terms</div>
+    <div class="meta-band__value">{{ payment_terms }}</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── Line items table ────────────────────────────────────── #}
+<table class="line-items">
+  <thead>
+    <tr>
+      <th class="num">#</th>
+      {% if has_sku_column %}<th class="sku">SKU</th>{% endif %}
+      <th class="description">Description</th>
+      <th class="unit">Unit</th>
+      <th class="qty">Qty</th>
+      <th class="price">Unit Price</th>
+      <th class="total">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in line_items %}
+    <tr>
+      <td class="num">{{ loop.index }}</td>
+      {% if has_sku_column %}<td class="sku">{{ item.sku or "" }}</td>{% endif %}
+      <td class="description">{{ item.description }}</td>
+      <td class="unit">{{ item.unit }}</td>
+      <td class="qty">{{ item.quantity }}</td>
+      <td class="price">{{ item.unit_price }}</td>
+      <td class="total">{{ item.total }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{# ── Bottom section: notes (left) · totals (right) ──────── #}
+<div class="bottom-section">
+
+  {# Left: Notes — empty column when no notes, totals still right-aligned #}
+  <div class="bottom-section__notes">
+    {% if notes %}
+    <div class="notes__label">Notes</div>
+    <div class="notes__text">{{ notes }}</div>
+    {% endif %}
+  </div>
+
+  {# Right: Totals table — units / financials / balance due #}
+  <div class="bottom-section__totals">
+    <table class="totals__table">
+      {% if show_total_units %}
+      <tr class="totals__units">
+        <td>Total Units</td>
+        <td>{{ total_units }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td>Subtotal</td>
+        <td>{{ subtotal }}</td>
+      </tr>
+      {% if show_tax %}
+      <tr>
+        <td>Tax ({{ tax_rate_pct }})</td>
+        <td>{{ tax_amount }}</td>
+      </tr>
+      {% endif %}
+      {% if show_shipping %}
+      <tr>
+        <td>Shipping</td>
+        <td>{{ shipping_cost }}</td>
+      </tr>
+      {% endif %}
+      <tr class="totals__divider totals__grand">
+        <td>Grand Total</td>
+        <td>{{ grand_total }}</td>
+      </tr>
+      {% if show_amount_paid %}
+      <tr class="totals__amount-paid">
+        <td>Amount Paid</td>
+        <td>{{ amount_paid }}</td>
+      </tr>
+      {% endif %}
+      <tr class="totals__balance">
+        <td>Balance Due</td>
+        <td>{{ balance_due }}</td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+{# ── Payment details block ───────────────────────────────── #}
+{% if payment_details %}
+<div class="payment-details">
+  <div class="payment-details__title">Payment Details</div>
+  <table class="payment-details__table">
+    {% for item in payment_details %}
+    <tr>
+      <td class="payment-details__label">{{ item.label }}</td>
+      <td class="payment-details__value">{{ item.value }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

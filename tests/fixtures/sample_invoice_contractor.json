@@ -1,0 +1,46 @@
+{
+  "invoice_number": "INV-2026-C001",
+  "issue_date": "2026-03-16",
+  "due_date": "2026-04-05",
+  "payment_terms": "Net 20",
+  "tax_rate": 0.00,
+  "notes": "Please process payment within the agreed terms. Reference the invoice number on your transfer.",
+  "issuer": {
+    "name": "Alex Rivera",
+    "address": "45 Freelance St, Apt 3B\nAustin, TX 78701",
+    "email": "alex@alexrivera.dev",
+    "phone": "+1 (512) 555-0144"
+  },
+  "bill_to": {
+    "name": "Natural Cure Labs LLC",
+    "address": "123 Wellness Ave\nLos Angeles, CA 90001",
+    "contact_name": "Julio Cordero",
+    "email": "purchasing@naturalcurelabs.com"
+  },
+  "line_items": [
+    {
+      "description": "E-commerce Platform Development",
+      "quantity": 32,
+      "unit_price": 95.00,
+      "unit": "hrs",
+      "count_units": false
+    },
+    {
+      "description": "API Integration & Testing",
+      "quantity": 12,
+      "unit_price": 95.00,
+      "unit": "hrs",
+      "count_units": false
+    },
+    {
+      "description": "Project Management & Communication",
+      "quantity": 4,
+      "unit_price": 65.00,
+      "unit": "hrs",
+      "count_units": false
+    }
+  ],
+  "payment_details": [
+    { "label": "PayPal", "value": "alex@alexrivera.dev" }
+  ]
+}

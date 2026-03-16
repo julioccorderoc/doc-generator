@@ -1,0 +1,56 @@
+{
+  "invoice_number": "INV-2026-0001",
+  "issue_date": "2026-03-16",
+  "due_date": "2026-04-15",
+  "payment_terms": "Net 30",
+  "tax_rate": 0.10,
+  "shipping_cost": 0.00,
+  "notes": "Thank you for your business. Please include the invoice number in your payment reference.",
+  "paid": true,
+  "amount_paid": 825.00,
+  "issuer": {
+    "name": "Natural Cure Labs LLC",
+    "address": "123 Wellness Ave\nLos Angeles, CA 90001",
+    "contact_name": "Julio Cordero",
+    "email": "billing@naturalcurelabs.com",
+    "phone": "+1 (310) 555-0100",
+    "logo": null
+  },
+  "bill_to": {
+    "name": "Acme Retail Group",
+    "address": "789 Commerce Blvd\nNew York, NY 10001",
+    "contact_name": "Michael Torres",
+    "email": "ap@acmeretailgroup.com",
+    "phone": "+1 (212) 555-0177"
+  },
+  "line_items": [
+    {
+      "description": "Product Formulation Consulting",
+      "quantity": 8,
+      "unit_price": 200.00,
+      "unit": "hrs",
+      "count_units": false
+    },
+    {
+      "description": "Regulatory Compliance Review",
+      "quantity": 3,
+      "unit_price": 250.00,
+      "unit": "hrs",
+      "count_units": false
+    },
+    {
+      "description": "Label Design & Copy (per SKU)",
+      "quantity": 2,
+      "unit_price": 375.00,
+      "unit": "SKUs",
+      "count_units": true
+    }
+  ],
+  "payment_details": [
+    { "label": "Bank", "value": "Chase Bank" },
+    { "label": "Account Name", "value": "Natural Cure Labs LLC" },
+    { "label": "Routing Number", "value": "021000021" },
+    { "label": "Account Number", "value": "0987654321" },
+    { "label": "Reference", "value": "INV-2026-0001" }
+  ]
+}
