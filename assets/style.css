@@ -2,30 +2,32 @@
    doc-generator — Base Stylesheet
    Built entirely on CSS custom properties. No hardcoded values
    in rule bodies. Override any variable to retheme the output.
+   Design source of truth: references/DESIGN_SYSTEM.md
    ============================================================ */
 
 :root {
     /* Palette */
-    --color-primary:       #1a2e4a;
-    --color-accent:        #2563eb;
+    --color-primary:       #1A4021;
+    --color-accent:        #65C08E;
     --color-text:          #111827;
     --color-text-muted:    #6b7280;
     --color-text-inverse:  #ffffff;
     --color-border:        #d1d5db;
     --color-border-light:  #e5e7eb;
     --color-bg-page:       #ffffff;
-    --color-bg-header:     #1a2e4a;
-    --color-bg-table-head: #f3f4f6;
-    --color-bg-table-alt:  #f9fafb;
-    --color-total-row:     #2d5282;
+    --color-bg-header:     #1A4021;
+    --color-bg-table-head: #f0faf4;
+    --color-bg-table-alt:  #f8fdfb;
 
     /* Typography */
     --font-family:         "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-size-base:      10pt;
     --font-size-sm:        8.5pt;
     --font-size-xs:        7.5pt;
-    --font-size-lg:        13pt;
-    --font-size-xl:        20pt;
+    --font-size-lg:        14pt;
+    --font-size-xl:        22pt;
+    --font-size-grand:     11pt;
+    --font-size-balance:   13pt;
     --font-weight-normal:  400;
     --font-weight-medium:  500;
     --font-weight-bold:    700;
@@ -90,6 +92,7 @@ body {
     padding: var(--header-padding);
     margin-bottom: var(--spacing-lg);
     border-radius: var(--radius-sm);
+    border-top: 3pt solid var(--color-accent);
 }
 
 .doc-header__logo img {
@@ -353,18 +356,27 @@ body {
     color: var(--color-primary);
 }
 
-/* Financial rows */
+/* Hairline rule above Grand Total */
 
 .totals__table .totals__divider td {
     border-top: var(--table-border);
-    padding-top: 6pt;
+    padding-top: var(--spacing-sm);
 }
 
+/* Grand Total row — typography-driven, no background fill */
+
 .totals__table .totals__grand td {
-    background: var(--color-total-row);
-    color: var(--color-text-inverse);
     font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-base);
-    padding: 7pt 8pt;
-    border-radius: var(--radius-sm);
+    font-size: var(--font-size-grand);
+    padding-top: var(--spacing-xs);
+    padding-bottom: var(--spacing-sm);
+}
+
+.totals__table .totals__grand td:first-child {
+    color: var(--color-primary);
+}
+
+.totals__table .totals__grand td:last-child {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
 }

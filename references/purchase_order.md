@@ -25,6 +25,7 @@ A Purchase Order (PO) is a commercial document issued by a **buyer** to a **vend
 | `shipping_cost` | number | ❌ | `0.00` | Flat shipping fee to be added to the total. In USD. |
 | `tax_rate` | number | ❌ | `0.00` | Tax rate as a decimal (e.g. `0.08` for 8%). Applied to subtotal. |
 | `notes` | string | ❌ | — | General notes, terms, or instructions. Renders at the bottom of the document. |
+| `primary_color` | string | ❌ | — | Brand color override. Hex string (e.g. `"#7c3aed"`). Overrides the header background and primary accent color for this document. |
 
 ---
 

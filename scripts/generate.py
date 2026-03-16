@@ -108,6 +108,9 @@ def _build_po_context(doc: PurchaseOrder) -> dict:
         "notes": doc.notes,
         # Template infrastructure — mark as safe (trusted paths we generate)
         "css_path": Markup((ASSETS_DIR / "style.css").as_uri()),
+        "theme_css": Markup(
+            f":root {{ --color-primary: {doc.primary_color}; --color-bg-header: {doc.primary_color}; }}\n"
+        ) if doc.primary_color else None,
     }
 
 
@@ -137,16 +140,28 @@ _INVOICE_THEME_CSS = """
     border-left: 3pt solid #f59e0b;
 }
 
-.totals__amount-paid td:first-child { color: #16a34a; }
-.totals__amount-paid td:last-child  { color: #16a34a; font-weight: var(--font-weight-medium); }
+/* Amount Paid row — green text both columns */
+.totals__table .totals__amount-paid td:first-child { color: #16a34a; }
+.totals__table .totals__amount-paid td:last-child  { color: #16a34a; font-weight: var(--font-weight-medium); }
 
-.totals__balance td {
-    background: var(--color-total-row);
-    color: var(--color-text-inverse);
+/* Balance Due — 2pt accent rule above, bold primary, no background fill.
+   Qualified with .totals__table (specificity 0,2,1) to beat the base
+   .totals__table td:first-child rule (specificity 0,1,2). */
+.totals__table .totals__balance td {
+    border-top: 2pt solid var(--color-accent);
     font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-base);
-    padding: 7pt 8pt;
-    border-radius: var(--radius-sm);
+    font-size: var(--font-size-balance);
+    padding-top: var(--spacing-xs);
+    padding-bottom: var(--spacing-sm);
+}
+
+.totals__table .totals__balance td:first-child {
+    color: var(--color-primary);
+}
+
+.totals__table .totals__balance td:last-child {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
 }
 
 .payment-details {
@@ -254,7 +269,12 @@ def _build_invoice_context(doc: Invoice) -> dict:
         "notes": doc.notes,
         # Template infrastructure — mark as safe (trusted paths/CSS we generate)
         "css_path": Markup((ASSETS_DIR / "style.css").as_uri()),
-        "theme_css": Markup(_INVOICE_THEME_CSS),
+        "theme_css": Markup(
+            (
+                f":root {{ --color-primary: {doc.primary_color}; --color-bg-header: {doc.primary_color}; }}\n"
+                if doc.primary_color else ""
+            ) + _INVOICE_THEME_CSS
+        ),
     }
 
 

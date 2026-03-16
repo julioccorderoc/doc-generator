@@ -90,6 +90,7 @@ class PurchaseOrder(DocModel):
     shipping_cost: Money = Decimal("0.00")
     tax_rate: Money = Decimal("0.00")
     notes: Optional[str] = None
+    primary_color: Optional[str] = None
     buyer: Buyer
     vendor: Vendor
     line_items: list[LineItem]

@@ -28,6 +28,7 @@ The issuer is the company sending the invoice. The `bill_to` party is the client
 | `notes` | string | ❌ | — | General notes, additional terms, or instructions. Renders at the bottom of the document. |
 | `paid` | boolean | ❌ | `false` | Whether the invoice has already been paid. If `true`, `amount_paid` should also be provided. |
 | `amount_paid` | number | ❌ | `0.00` | Amount already received. Meaningful only when `paid` is `true`. In USD. Must be zero or positive. |
+| `primary_color` | string | ❌ | — | Brand color override. Hex string (e.g. `"#7c3aed"`). Overrides the header background and primary accent color for this document. |
 
 ---
 

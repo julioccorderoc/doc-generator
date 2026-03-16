@@ -238,6 +238,18 @@ def logo_format(cls, v: Optional[str]) -> Optional[str]:
 
 ## Step 3 — Write `templates/<doc_type>.html`
 
+### 3.0 Read the Design System first
+
+Before writing any markup or CSS, read [`references/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). It defines:
+
+- The full color palette and what each variable is used for
+- The typography hierarchy (font sizes and weights per element)
+- The header accent stripe
+- The totals block layout and the CSS specificity rules required to override row styles
+- How `primary_color` theming works end-to-end
+
+Do not hardcode any color, size, or font value in templates. Everything must reference a `var(--*)` from the design system.
+
 ### 3.1 Extend base.html
 
 Every template must start with:
@@ -292,23 +304,26 @@ These classes are available in all templates. Do not redefine their core styles:
 | `.totals__table` | The totals table |
 | `.totals__units` | Total units row (visually separated) |
 | `.totals__divider` | Row with a top border separator |
-| `.totals__grand` | Grand total row (bold) |
+| `.totals__grand` | Grand total row — bold, `--color-primary` text, hairline rule above via `.totals__divider`, no background fill |
 
 ### 3.3 Adding doc-type-specific styles
 
-Do **not** add new CSS rules to `style.css`. Instead, define a `_MY_THEME_CSS` string constant in `generate.py` and pass it as `theme_css: Markup(...)` in the context builder. The base template injects it as an inline `<style>` block automatically when the variable is defined.
+Do **not** add new CSS rules to `style.css`. Instead, define a `_MY_THEME_CSS` string constant in `generate.py` and pass it as `"theme_css": Markup(...)` in the context builder. The base template injects it as an inline `<style>` block when the variable is defined.
 
 ```python
 # In generate.py:
 _MY_THEME_CSS = """
 .my-component {
-    background: var(--color-header-bg);
+    border-top: 2pt solid var(--color-accent);
     padding: var(--spacing-md);
+    color: var(--color-primary);
 }
 """
 ```
 
-Use CSS custom properties from the `:root` for all values — never hardcode colors, sizes, or fonts.
+All values must use CSS custom properties from the design system — never hardcode colors, sizes, or fonts. See [`references/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) for the full variable reference.
+
+**Specificity note:** The base rule `.totals__table td:first-child` (specificity 0,1,2) sets muted color on all first-column cells. When your doc type adds rows to the totals table that need different styling, always qualify selectors with `.totals__table` to get specificity 0,2,1 and override it. See the Specificity Rules section in `DESIGN_SYSTEM.md`.
 
 ### 3.4 Template rules
 

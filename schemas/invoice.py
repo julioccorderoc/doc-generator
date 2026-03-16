@@ -103,6 +103,7 @@ class Invoice(DocModel):
     notes: Optional[str] = None
     paid: bool = False
     amount_paid: Money = Decimal("0.00")
+    primary_color: Optional[str] = None
     issuer: Issuer
     bill_to: BillTo
     line_items: list[LineItem]
