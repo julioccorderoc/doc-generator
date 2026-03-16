@@ -7,20 +7,30 @@ A deterministic, schema-driven PDF generation tool for business documents (Purch
 ## How to Run Locally
 
 ```bash
-# Install dependencies (first time or after pyproject.toml changes)
+# Install Python dependencies
 uv sync
 
+# macOS system dependency — install once via Homebrew:
+# brew install pango
+# WeasyPrint requires Pango/GObject. On macOS the dylibs are in /opt/homebrew/lib/,
+# which is not on the default dyld search path. Prefix every uv run with:
+# DYLD_LIBRARY_PATH=/opt/homebrew/lib
+
 # Generate a Purchase Order from a JSON payload
-uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+  --doc_type purchase_order --payload tests/fixtures/sample_po.json
 
 # Same, but open the PDF immediately after generation
-uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+  --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview
 
 # Generate an Invoice
-uv run python scripts/generate.py --doc_type invoice --payload tests/fixtures/sample_invoice.json --preview
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+  --doc_type invoice --payload tests/fixtures/sample_invoice.json --preview
 
 # Test validation error output (non-zero exit code, structured error to stdout)
-uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/invalid_po.json
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+  --doc_type purchase_order --payload tests/fixtures/invalid_po.json
 ```
 
 ---
@@ -29,7 +39,7 @@ uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixt
 
 Any agent invoking this tool must use the following interface. This is the **complete** contract — there are no interactive prompts, no assumed environment variables, and no implicit state.
 
-```
+```text
 uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 ```
 
@@ -51,7 +61,7 @@ Agents should capture stdout and check the exit code to determine success or fai
 
 ## Folder Structure
 
-```
+```text
 doc-generator/
 │
 ├── CLAUDE.md                    ← You are here. Entry point for all AI agents.
@@ -128,6 +138,7 @@ doc-generator/
 Before touching a schema file, a template, or a fixture for any document type — **read the corresponding `references/<doc_type>.md` first**.
 
 Each reference file defines:
+
 - All fields (required/optional), their types, defaults, and descriptions
 - Computed fields (never ask the user for these)
 - Validation rules
@@ -143,7 +154,7 @@ The Pydantic model and Jinja2 template are derived from the reference. The refer
 
 Four steps. No other files change.
 
-```
+```text
 1. Add references/<doc_type>.md       → Define all fields, rules, computed fields, layout notes
 2. Add schemas/<doc_type>.py          → Pydantic v2 model derived from the reference
 3. Add templates/<doc_type>.html      → Jinja2 template extending base.html
@@ -151,6 +162,21 @@ Four steps. No other files change.
 ```
 
 That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type.
+
+---
+
+## Technical Decision Records
+
+All non-obvious technical decisions are recorded in `docs/decisions/` using the naming convention `00X-{short-description}.md`. Each file captures: the context that forced the decision, what was decided, and the consequences.
+
+Before changing any architectural pattern or constraint in this codebase, check whether a decision record exists for it. If you're making a new architectural decision, create a record.
+
+Current decisions:
+
+- [001-decimal-for-money](docs/decisions/001-decimal-for-money.md) — Use `Decimal` (not `float`) for all monetary fields
+- [002-python-only-formatting](docs/decisions/002-python-only-formatting.md) — All formatting in Python; templates receive strings
+- [003-file-path-payload](docs/decisions/003-file-path-payload.md) — `--payload` accepts file path only, not inline JSON
+- [004-argparse-only-cli](docs/decisions/004-argparse-only-cli.md) — Use stdlib `argparse`; no CLI framework dependencies
 
 ---
 

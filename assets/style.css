@@ -1,0 +1,370 @@
+/* ============================================================
+   doc-generator — Base Stylesheet
+   Built entirely on CSS custom properties. No hardcoded values
+   in rule bodies. Override any variable to retheme the output.
+   ============================================================ */
+
+:root {
+    /* Palette */
+    --color-primary:       #1a2e4a;
+    --color-accent:        #2563eb;
+    --color-text:          #111827;
+    --color-text-muted:    #6b7280;
+    --color-text-inverse:  #ffffff;
+    --color-border:        #d1d5db;
+    --color-border-light:  #e5e7eb;
+    --color-bg-page:       #ffffff;
+    --color-bg-header:     #1a2e4a;
+    --color-bg-table-head: #f3f4f6;
+    --color-bg-table-alt:  #f9fafb;
+    --color-total-row:     #1a2e4a;
+
+    /* Typography */
+    --font-family:         "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-size-base:      10pt;
+    --font-size-sm:        8.5pt;
+    --font-size-xs:        7.5pt;
+    --font-size-lg:        13pt;
+    --font-size-xl:        20pt;
+    --font-weight-normal:  400;
+    --font-weight-medium:  500;
+    --font-weight-bold:    700;
+
+    /* Spacing */
+    --spacing-xs:          4pt;
+    --spacing-sm:          8pt;
+    --spacing-md:          14pt;
+    --spacing-lg:          22pt;
+    --spacing-xl:          32pt;
+
+    /* Table */
+    --table-cell-padding:  6pt 8pt;
+    --table-border:        1pt solid var(--color-border);
+
+    /* Document header */
+    --header-padding:      16pt 20pt;
+    --header-logo-height:  48pt;
+
+    /* Radius */
+    --radius-sm:           2pt;
+}
+
+/* ── Page setup ──────────────────────────────────────────── */
+
+@page {
+    size: Letter;
+    margin: 1.8cm 1.8cm 2.2cm 1.8cm;
+
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: var(--font-family);
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+    }
+}
+
+/* ── Reset & base ────────────────────────────────────────── */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: var(--color-bg-page);
+    line-height: 1.4;
+}
+
+/* ── Document header ─────────────────────────────────────── */
+
+.doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: var(--color-bg-header);
+    color: var(--color-text-inverse);
+    padding: var(--header-padding);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-sm);
+}
+
+.doc-header__logo img {
+    max-height: var(--header-logo-height);
+    max-width: 140pt;
+    object-fit: contain;
+}
+
+.doc-header__logo--placeholder {
+    width: 140pt;
+}
+
+.doc-header__title {
+    text-align: right;
+}
+
+.doc-header__type {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.doc-header__number {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--spacing-xs);
+    opacity: 0.85;
+}
+
+.doc-header__date {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+    opacity: 0.7;
+}
+
+/* ── Address block ───────────────────────────────────────── */
+
+.address-block {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.address-block__party {
+    flex: 1;
+}
+
+.address-block__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.address-block__name {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: 2pt;
+}
+
+.address-block__detail {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.address-block__contact {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* ── Meta band (delivery / terms / shipping) ─────────────── */
+
+.meta-band {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    border-top: 1pt solid var(--color-border-light);
+    border-bottom: 1pt solid var(--color-border-light);
+    padding: var(--spacing-sm) 0;
+}
+
+.meta-band__item {
+    flex: 1;
+    min-width: 0;
+}
+
+.meta-band__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    margin-bottom: 2pt;
+}
+
+.meta-band__value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ── Line items table ────────────────────────────────────── */
+
+.line-items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+}
+
+.line-items th {
+    background: var(--color-bg-table-head);
+    color: var(--color-text);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: var(--table-cell-padding);
+    border-bottom: var(--table-border);
+    text-align: left;
+}
+
+.line-items th.num,
+.line-items th.qty,
+.line-items th.price,
+.line-items th.total {
+    text-align: right;
+}
+
+.line-items td {
+    padding: var(--table-cell-padding);
+    border-bottom: 1pt solid var(--color-border-light);
+    vertical-align: top;
+}
+
+.line-items tr:nth-child(even) td {
+    background: var(--color-bg-table-alt);
+}
+
+.line-items td.num,
+.line-items td.qty,
+.line-items td.price,
+.line-items td.total {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.line-items td.num {
+    color: var(--color-text-muted);
+    width: 22pt;
+}
+
+.line-items td.sku {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    width: 60pt;
+}
+
+.line-items td.description {
+    min-width: 120pt;
+}
+
+.line-items td.unit {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    width: 28pt;
+}
+
+.line-items td.total {
+    font-weight: var(--font-weight-medium);
+}
+
+/* ── Bottom section: notes (left) + totals (right) ──────── */
+
+.bottom-section {
+    display: flex;
+    gap: var(--spacing-xl);
+    align-items: flex-start;
+    border-top: 1pt solid var(--color-border-light);
+    padding-top: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.bottom-section__notes {
+    flex: 1;
+    min-width: 0;
+}
+
+.bottom-section__totals {
+    flex-shrink: 0;
+    width: 200pt;
+}
+
+/* ── Notes (inside bottom-section__notes) ────────────────── */
+
+.notes__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.notes__text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* ── Totals table ────────────────────────────────────────── */
+
+.totals__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+.totals__table td {
+    padding: 4pt 6pt;
+}
+
+.totals__table td:first-child {
+    color: var(--color-text-muted);
+    text-align: left;
+}
+
+.totals__table td:last-child {
+    text-align: right;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Total Units row — first row, visually separate from financials */
+
+.totals__table .totals__units td {
+    border-bottom: 1pt solid var(--color-border);
+    padding-bottom: 7pt;
+    padding-top: 4pt;
+}
+
+.totals__table .totals__units td:first-child {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+}
+
+.totals__table .totals__units td:last-child {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+/* Financial rows */
+
+.totals__table .totals__divider td {
+    border-top: var(--table-border);
+    padding-top: 6pt;
+}
+
+.totals__table .totals__grand td {
+    background: var(--color-total-row);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-base);
+    padding: 7pt 8pt;
+    border-radius: var(--radius-sm);
+}

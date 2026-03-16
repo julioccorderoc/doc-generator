@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="{{ css_path }}">
+  {% if theme_css is defined and theme_css %}
+  <style>{{ theme_css }}</style>
+  {% endif %}
+</head>
+<body>
+  {% block header %}{% endblock %}
+  {% block content %}{% endblock %}
+</body>
+</html>

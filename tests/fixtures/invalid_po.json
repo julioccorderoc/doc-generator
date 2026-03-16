@@ -1,0 +1,20 @@
+{
+  "po_number": "PO-2026-BAD",
+  "issue_date": "2026-03-16",
+  "tax_rate": 1.5,
+  "buyer": {
+    "name": "",
+    "address": "123 Wellness Ave\nLos Angeles, CA 90001"
+  },
+  "vendor": {
+    "name": "Acme Ingredients Co.",
+    "address": ""
+  },
+  "line_items": [
+    {
+      "description": "Widget",
+      "quantity": -5,
+      "unit_price": 10.00
+    }
+  ]
+}
