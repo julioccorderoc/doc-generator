@@ -7,8 +7,10 @@ A Claude skill and CLI tool for generating professional PDF business documents �
 ## Install as a Claude Skill
 
 ```bash
-npx skills add doc-generator
+npx skills add <github-username>/doc-generator
 ```
+
+Replace `<github-username>` with the GitHub owner of this repo. The [`npx skills`](https://github.com/vercel-labs/skills) CLI clones the repo and installs the skill using a symlink, so it stays connected to the repository. Run `npx skills update` at any time to pull the latest version of `SKILL.md`.
 
 Once installed, Claude will automatically generate purchase orders and invoices when you ask — collecting the required data in a single conversational pass, then invoking the CLI and presenting the output path and key figures.
 
@@ -163,14 +165,16 @@ doc-generator/
 ├── references/
 │   ├── purchase_order.md        ← Source of truth for the purchase_order doc type
 │   ├── invoice.md               ← Source of truth for the invoice doc type
-│   └── EXTENDING.md             ← Developer guide for adding new doc types
+│   ├── EXTENDING.md             ← Developer guide for adding new doc types
+│   └── DESIGN_SYSTEM.md         ← Visual source of truth: palette, typography, totals design, theming
 │
 ├── tests/
 │   └── fixtures/
 │       ├── sample_po.json       ← Valid PO payload
 │       ├── invalid_po.json      ← PO with missing required fields (expected: validation error)
-│       ├── sample_invoice.json  ← Valid Invoice payload
-│       └── invalid_invoice.json ← Invoice with missing required fields
+│       ├── sample_invoice.json             ← Valid Invoice payload
+│       ├── sample_invoice_contractor.json ← Individual contractor invoice (unpaid)
+│       └── invalid_invoice.json           ← Invoice with missing required fields
 │
 ├── output/                      ← Generated PDFs (.gitignored)
 │

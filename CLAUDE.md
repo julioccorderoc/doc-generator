@@ -96,14 +96,16 @@ doc-generator/
 ├── references/
 │   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type (see below)
 │   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
-│   └── EXTENDING.md             ← Developer guide: how to add a new document type
+│   ├── EXTENDING.md             ← Developer guide: how to add a new document type
+│   └── DESIGN_SYSTEM.md         ← Visual source of truth: color palette, typography, totals block design, theming
 │
 ├── tests/
 │   └── fixtures/
 │       ├── sample_po.json       ← Valid complete PO payload (used for local testing)
 │       ├── invalid_po.json      ← PO payload missing required fields (expected: clean error)
-│       ├── sample_invoice.json  ← Valid complete Invoice payload
-│       └── invalid_invoice.json ← Invoice payload missing required fields
+│       ├── sample_invoice.json              ← Valid complete Invoice payload
+│       ├── sample_invoice_contractor.json  ← Invoice from an individual contractor (unpaid)
+│       └── invalid_invoice.json            ← Invoice payload missing required fields
 │
 ├── output/                      ← Generated PDFs land here (.gitignored)
 │
@@ -177,6 +179,7 @@ Current decisions:
 - [002-python-only-formatting](docs/decisions/002-python-only-formatting.md) — All formatting in Python; templates receive strings
 - [003-file-path-payload](docs/decisions/003-file-path-payload.md) — `--payload` accepts file path only, not inline JSON
 - [004-argparse-only-cli](docs/decisions/004-argparse-only-cli.md) — Use stdlib `argparse`; no CLI framework dependencies
+- [005-skill-marketplace-publishing](docs/decisions/005-skill-marketplace-publishing.md) — Skill marketplace publishing: GitHub-first distribution + vercel-labs/agent-skills registry (Option A); npm package documented for future (Option B)
 
 ---
 
