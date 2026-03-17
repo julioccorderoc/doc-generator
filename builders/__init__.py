@@ -20,8 +20,10 @@ from typing import Any, Protocol, Type
 
 from schemas.purchase_order import PurchaseOrder
 from schemas.invoice import Invoice
+from schemas.request_for_quotation import RequestForQuotation
 from builders.purchase_order import build_po_context
 from builders.invoice import build_invoice_context
+from builders.request_for_quotation import build_rfq_context
 
 
 class ContextBuilder(Protocol):
@@ -62,5 +64,10 @@ REGISTRY: dict[str, DocTypeConfig] = {
         model=Invoice,
         template="invoice.html",
         build_context=build_invoice_context,
+    ),
+    "request_for_quotation": DocTypeConfig(
+        model=RequestForQuotation,
+        template="request_for_quotation.html",
+        build_context=build_rfq_context,
     ),
 }

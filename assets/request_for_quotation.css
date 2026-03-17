@@ -1,0 +1,176 @@
+/* ============================================================
+   request_for_quotation.css — RFQ-specific component styles
+   All values use CSS custom properties from style.css.
+   ============================================================ */
+
+/* ── Product summary table ──────────────────────────────── */
+
+.rfq-product-summary {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-base);
+}
+
+.rfq-product-summary th {
+    background: var(--color-bg-table-head);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: var(--table-cell-padding);
+    border: var(--table-border);
+    text-align: center;
+}
+
+.rfq-product-summary th:first-child {
+    text-align: left;
+}
+
+.rfq-product-summary td {
+    padding: var(--table-cell-padding);
+    border: var(--table-border);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.rfq-product-summary td:first-child {
+    text-align: left;
+    font-weight: var(--font-weight-medium);
+    vertical-align: top;
+}
+
+.rfq-product-summary__name {
+    font-weight: var(--font-weight-bold);
+}
+
+.rfq-product-summary__desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: 2pt;
+}
+
+/* ── Spec table ─────────────────────────────────────────── */
+
+.rfq-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-base);
+}
+
+.rfq-spec-table thead th {
+    background: var(--color-bg-table-head);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: var(--table-cell-padding);
+    border: var(--table-border);
+    text-align: left;
+}
+
+.rfq-spec-table td {
+    padding: var(--table-cell-padding);
+    border: var(--table-border);
+    vertical-align: top;
+}
+
+/* Label column — fixed width, muted colour */
+.rfq-spec-table .rfq-spec__label {
+    width: 32%;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Value column — pre-line so \n renders as line breaks */
+.rfq-spec-table .rfq-spec__value {
+    white-space: pre-line;
+}
+
+/* Section header row — spans both columns */
+.rfq-spec-section-header td {
+    background: var(--color-bg-table-head);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    padding: var(--table-cell-padding);
+    text-align: center;
+}
+
+/* ── Annexes ────────────────────────────────────────────── */
+
+.rfq-annexes {
+    margin-bottom: var(--spacing-md);
+}
+
+.rfq-annexes__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.rfq-annexes__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+.rfq-annexes__table td {
+    padding: 4pt 8pt;
+    border-bottom: 1pt solid var(--color-border-light);
+    vertical-align: top;
+}
+
+.rfq-annexes__table td:first-child {
+    width: 40%;
+    color: var(--color-text);
+}
+
+.rfq-annexes__table td:last-child {
+    color: var(--color-text-muted);
+    word-break: break-all;
+}
+
+/* ── Contact block ──────────────────────────────────────── */
+
+.rfq-contact-block {
+    margin-top: var(--spacing-md);
+    text-align: center;
+    border-top: 1pt solid var(--color-border-light);
+    padding-top: var(--spacing-sm);
+}
+
+.rfq-contact-block__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.rfq-contact-block__line {
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    margin-bottom: 2pt;
+}
+
+.rfq-contact-block__website {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+/* ── Valid-until meta band item ─────────────────────────── */
+
+.rfq-meta-valid-until {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}

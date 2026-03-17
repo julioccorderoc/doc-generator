@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="doc-header">
+  {# Left: issuer logo or empty spacer #}
+  <div class="doc-header__logo">
+    {% if logo %}
+    <img src="{{ logo }}" alt="{{ issuer.name }} logo">
+    {% else %}
+    <div class="doc-header__logo--placeholder"></div>
+    {% endif %}
+  </div>
+
+  {# Right: document type, RFQ number, date #}
+  <div class="doc-header__title">
+    <div class="doc-header__type">Request for Quotation</div>
+    <div class="doc-header__number">{{ rfq_number }}</div>
+    <div class="doc-header__date">{{ issue_date }}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Meta band: Valid Until (only if set) ────────────────── #}
+{% if valid_until %}
+<div class="meta-band">
+  <div class="meta-band__item" style="flex: 0 0 auto; margin-left: auto;">
+    <div class="meta-band__label">Valid Until</div>
+    <div class="meta-band__value">{{ valid_until }}</div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Address block: Issuer (left) · Vendor (right, optional) #}
+<div class="address-block">
+
+  <div class="address-block__party">
+    <div class="address-block__label">From</div>
+    <div class="address-block__name">{{ issuer.name }}</div>
+    {% if issuer.address_lines %}
+    <div class="address-block__detail">
+      {% for line in issuer.address_lines %}{{ line }}<br>{% endfor %}
+    </div>
+    {% endif %}
+    {% if issuer.phone or issuer.email %}
+    <div class="address-block__contact">
+      {% if issuer.phone %}{{ issuer.phone }}{% endif %}
+      {% if issuer.phone and issuer.email %} &nbsp;·&nbsp; {% endif %}
+      {% if issuer.email %}{{ issuer.email }}{% endif %}
+    </div>
+    {% endif %}
+    {% if issuer.website %}
+    <div class="address-block__contact">{{ issuer.website }}</div>
+    {% endif %}
+  </div>
+
+  {% if vendor %}
+  <div class="address-block__party">
+    <div class="address-block__label">To</div>
+    <div class="address-block__name">{{ vendor.name }}</div>
+    {% if vendor.address_lines %}
+    <div class="address-block__detail">
+      {% for line in vendor.address_lines %}{{ line }}<br>{% endfor %}
+    </div>
+    {% endif %}
+    {% if vendor.phone or vendor.email %}
+    <div class="address-block__contact">
+      {% if vendor.phone %}{{ vendor.phone }}{% endif %}
+      {% if vendor.phone and vendor.email %} &nbsp;·&nbsp; {% endif %}
+      {% if vendor.email %}{{ vendor.email }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{# ── Product summary table ───────────────────────────────── #}
+<table class="rfq-product-summary">
+  <thead>
+    <tr>
+      <th>Product</th>
+      {% for attr in product_attributes %}
+      <th>{{ attr.header }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <div class="rfq-product-summary__name">{{ product_name }}</div>
+        {% if product_description %}
+        <div class="rfq-product-summary__desc">{{ product_description }}</div>
+        {% endif %}
+      </td>
+      {% for attr in product_attributes %}
+      <td>{{ attr.value }}</td>
+      {% endfor %}
+    </tr>
+  </tbody>
+</table>
+
+{# ── Specification table ──────────────────────────────────── #}
+<table class="rfq-spec-table">
+  <thead>
+    <tr>
+      <th>Specification</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for section in spec_sections %}
+
+    {# Optional section header row #}
+    {% if section.title %}
+    <tr class="rfq-spec-section-header">
+      <td colspan="2">{{ section.title }}</td>
+    </tr>
+    {% endif %}
+
+    {# Spec rows #}
+    {% for row in section.rows %}
+    <tr>
+      <td class="rfq-spec__label">{{ row.label }}</td>
+      <td class="rfq-spec__value">{{ row.value }}</td>
+    </tr>
+    {% endfor %}
+
+    {% endfor %}
+  </tbody>
+</table>
+
+{# ── Notes ───────────────────────────────────────────────── #}
+{% if notes %}
+<div class="bottom-section__notes" style="margin-bottom: var(--spacing-md);">
+  <div class="notes__label">Notes</div>
+  <div class="notes__text">{{ notes }}</div>
+</div>
+{% endif %}
+
+{# ── Annexes / Attachments ───────────────────────────────── #}
+{% if annexes %}
+<div class="rfq-annexes">
+  <div class="rfq-annexes__label">Annexes &amp; Attachments</div>
+  <table class="rfq-annexes__table">
+    {% for annex in annexes %}
+    <tr>
+      <td>{{ annex.title }}</td>
+      {% if annex.url %}
+      <td>{{ annex.url }}</td>
+      {% elif has_any_annex_url %}
+      <td></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{# ── Contact block ───────────────────────────────────────── #}
+{% if contact %}
+<div class="rfq-contact-block">
+  <div class="rfq-contact-block__label">Questions? Please contact:</div>
+  {% if contact.name or contact.email or contact.phone %}
+  <div class="rfq-contact-block__line">
+    {% if contact.name %}{{ contact.name }}{% endif %}
+    {% if contact.name and (contact.email or contact.phone) %} &nbsp;|&nbsp; {% endif %}
+    {% if contact.email %}{{ contact.email }}{% endif %}
+    {% if contact.email and contact.phone %} &nbsp;|&nbsp; {% endif %}
+    {% if contact.phone %}{{ contact.phone }}{% endif %}
+  </div>
+  {% endif %}
+  {% if contact.website %}
+  <div class="rfq-contact-block__website">{{ contact.website }}</div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
