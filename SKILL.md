@@ -1,6 +1,6 @@
 ---
 name: doc-generator
-description: "Generates professional PDF business documents (purchase orders (PO) and invoices) from user-provided data. Handles data collection, validation, and PDF generation via a schema-driven CLI tool. Use this skill whenever the user mentions creating, generating, or sending any of: purchase order, PO, invoice, bill, or any formal commercial document for goods or services, even if phrased casually ('make a PO for Acme', 'need to invoice a client', 'bill someone for work done', 'write up a purchase order'). This skill manages the full workflow: collecting required fields, applying smart defaults, building the JSON payload, running the CLI, and presenting the PDF path and key figures."
+description: "Generates professional PDF business documents (like purchase orders and invoices) from user-provided data. Handles data collection, validation, and PDF generation via a schema-driven CLI tool. Use this skill whenever the user mentions creating, generating, or sending any of: purchase order, PO, invoice, bill, or any formal commercial document for goods or services, even if phrased casually ('make a PO for Acme', 'need to invoice a client', 'bill someone for work done', 'write up a purchase order'). This skill manages the full workflow: collecting required fields, applying smart defaults, building the JSON payload, running the CLI, and presenting the PDF path and key figures"
 ---
 
 # doc-generator
