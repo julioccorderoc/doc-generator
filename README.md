@@ -1,26 +1,67 @@
 # doc-generator
 
-A Claude skill and CLI tool for generating professional PDF business documents — purchase orders, invoices, and more. Claude (or any agent) handles data collection conversationally; the script handles rendering. Same input always produces the same PDF.
+![Python](https://img.shields.io/badge/python-3.11+-blue) ![License](https://img.shields.io/github/license/julioccorderoc/doc-generator) ![Stars](https://img.shields.io/github/stars/julioccorderoc/doc-generator?style=social)
 
----
+A Claude skill and CLI tool that turns a natural language request into a professional PDF business document. Claude handles the conversation; a deterministic script handles rendering. Same input always produces the same PDF.
 
-## Install as a Claude Skill
+<!-- DEMO GIF PLACEHOLDER — record via Loom or QuickTime, see content/screen_recording.md -->
+<!-- ![doc-generator demo](assets/demo.gif) -->
 
 ```bash
+# Install the skill — one command
 npx skills add julioccorderoc/doc-generator
 ```
 
-The [`npx skills`](https://github.com/vercel-labs/skills) CLI installs the skill globally via symlink so `npx skills update -g` always pulls the latest instructions.
+Then just ask Claude:
 
-**To update:**
+> "I need a PO for PureSource — 250kg whey protein at $8.40/kg, net 30, FedEx Ground."
 
-```bash
-npx skills update -g
-```
+Claude collects what it needs, confirms, and drops a clean PDF in your `output/` folder. No forms, no SaaS, no copy-paste.
 
-### Full setup (CLI + skill in one step)
+> New doc type ideas or contributions welcome — adding one requires [five files, nothing else](#extending).
 
-If you also need the PDF generation CLI on your machine (required to actually generate documents), use the installer:
+---
+
+## What it looks like
+
+<!-- SCREENSHOT PLACEHOLDER — clean generated purchase order -->
+<!-- ![Purchase Order](assets/screenshot_po.png) -->
+
+<!-- SCREENSHOT PLACEHOLDER — clean generated invoice -->
+<!-- ![Invoice](assets/screenshot_invoice.png) -->
+
+*Replace placeholders above with screenshots from your `output/` folder once generated.*
+
+---
+
+## Supported Document Types
+
+| Slug | Document | Description |
+| --- | --- | --- |
+| `purchase_order` | Purchase Order | Buyer-to-vendor authorization for goods or services at agreed prices and terms |
+| `invoice` | Invoice | Issuer-to-client payment request for goods delivered or services rendered |
+| `request_for_quotation` | Request for Quotation (RFQ) | Buyer-to-vendor specification document requesting a price; no monetary values |
+
+On the roadmap: delivery notes, diplomas.
+
+---
+
+## How It Works
+
+1. **Claude collects data** — asks for required fields in a single pass, applies smart defaults, never asks for computed values.
+2. **Claude writes a payload file** — JSON at a temp path. No inline JSON, no shell quoting issues.
+3. **Claude invokes the CLI** — `uv run python scripts/generate.py --doc_type <type> --payload <path>`.
+4. **The script renders the PDF** — Pydantic validates, Python computes, Jinja2 renders, WeasyPrint writes. No model in the render path.
+5. **Claude reports the result** — output path, grand total, balance due, or a plain-language validation error.
+
+<!-- SCREENSHOT PLACEHOLDER — Claude success response showing output path and grand total -->
+<!-- ![Claude output](assets/screenshot_result.png) -->
+
+---
+
+## Full Setup (CLI + skill in one step)
+
+The skill alone lets Claude orchestrate the workflow. The CLI is what actually renders the PDF — it needs to be on your machine.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
@@ -33,32 +74,15 @@ git clone https://github.com/julioccorderoc/doc-generator.git
 cd doc-generator && ./install.sh
 ```
 
-The installer clones the repo, installs Python dependencies (`uv sync`), installs Pango on macOS, and writes a path-correct skill to `~/.claude/skills/doc-generator/`. Re-running is idempotent — it updates everything.
+The installer clones the repo, installs Python dependencies (`uv sync`), installs Pango on macOS, and writes a path-correct skill to `~/.claude/skills/doc-generator/`. Re-running is idempotent.
 
-Once installed, Claude will automatically generate purchase orders and invoices when you ask — collecting the required data in a single conversational pass, then invoking the CLI and presenting the output path and key figures.
+**To update the skill after changes:**
 
-> See [SKILL.md](SKILL.md) for the full skill definition: trigger conditions, data collection protocol per document type, and output presentation format.
+```bash
+npx skills update -g
+```
 
----
-
-## Why This Skill Is Safe to Install
-
-| Property | Detail |
-| --- | --- |
-| **Deterministic** | Same JSON input always produces the same PDF. No randomness, no model calls in the render path. |
-| **Fully local** | Runs on your machine. No outbound network calls at generation time. |
-| **No paid services** | WeasyPrint, Jinja2, and Pydantic are all open-source. No API keys required. |
-| **No credential access** | The script reads only the payload file you pass it. It does not touch environment variables, secrets, or system files. |
-| **Auditable** | The render path is a single script: [scripts/generate.py](scripts/generate.py). Templates: [templates/](templates/). Schemas: [schemas/](schemas/). |
-
----
-
-## Supported Document Types
-
-| Slug | Document | Description |
-| --- | --- | --- |
-| `purchase_order` | Purchase Order | Buyer-to-vendor authorization for goods or services at agreed prices and terms |
-| `invoice` | Invoice | Issuer-to-client payment request for goods delivered or services rendered |
+> See [SKILL.md](SKILL.md) for the full skill definition: trigger conditions, data collection protocol, and output presentation format.
 
 ---
 
@@ -73,16 +97,6 @@ Once installed, Claude will automatically generate purchase orders and invoices 
 
 ---
 
-## How It Works
-
-1. **Claude collects data** — asks for required fields in a single pass, applies smart defaults, never asks for computed values.
-2. **Claude writes a payload file** — a JSON file at a temp path. No inline JSON, no shell quoting issues.
-3. **Claude invokes the CLI** — `uv run python scripts/generate.py --doc_type <type> --payload <path>`.
-4. **The script renders the PDF** — Pydantic validates, Python computes, Jinja2 renders, WeasyPrint writes. No model involved.
-5. **Claude reports the result** — output path, grand total, balance due, or a translated validation error.
-
----
-
 ## CLI Reference
 
 For agents or direct use:
@@ -93,7 +107,7 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `--doc_type` | Yes | Document type slug (`purchase_order`, `invoice`). |
+| `--doc_type` | Yes | Document type slug (`purchase_order`, `invoice`, `request_for_quotation`). |
 | `--payload` | Yes | Path to a JSON file. File path only — not inline JSON. |
 | `--preview` | No | Opens the PDF with the OS default viewer after generation. Silent no-op in headless environments. |
 
@@ -143,10 +157,11 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 uv run pytest
 ```
 
-Full field references — all optional fields, validation rules, and example payloads with expected computed output:
+Full field references — all optional fields, validation rules, and example payloads:
 
 - [references/purchase_order.md](references/purchase_order.md)
 - [references/invoice.md](references/invoice.md)
+- [references/request_for_quotation.md](references/request_for_quotation.md)
 
 ---
 
@@ -168,58 +183,33 @@ See [references/EXTENDING.md](references/EXTENDING.md) for the full developer gu
 
 ---
 
+## Why This Skill Is Safe to Install
+
+| Property | Detail |
+| --- | --- |
+| **Deterministic** | Same JSON input always produces the same PDF. No randomness, no model calls in the render path. |
+| **Fully local** | Runs on your machine. No outbound network calls at generation time. |
+| **No paid services** | WeasyPrint, Jinja2, and Pydantic are all open-source. No API keys required. |
+| **No credential access** | The script reads only the payload file you pass it. It does not touch environment variables, secrets, or system files. |
+| **Auditable** | The render path is a single script: [scripts/generate.py](scripts/generate.py). Templates: [templates/](templates/). Schemas: [schemas/](schemas/). |
+
+---
+
 ## Project Structure
+
+Key directories — full detail in [CLAUDE.md](CLAUDE.md):
 
 ```text
 doc-generator/
-│
-├── CLAUDE.md                    ← Agent entry point: CLI contract, conventions, design decisions
-├── SKILL.md                     ← Claude skill definition: triggers, invocation, error relay (delegates data collection detail to references/)
-│
-├── scripts/
-│   └── generate.py              ← CLI entrypoint
-│
-├── schemas/
-│   ├── base.py                  ← Shared types and mixins
-│   ├── purchase_order.py        ← Pydantic v2 schema for Purchase Orders
-│   └── invoice.py               ← Pydantic v2 schema for Invoices
-│
-├── builders/                    ← Context builder package — one module per doc type
-│   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY
-│   ├── _shared.py               ← Shared helpers (build_line_items, build_totals, etc.)
-│   ├── purchase_order.py        ← build_po_context()
-│   └── invoice.py               ← build_invoice_context(); loads CSS from assets/invoice.css
-│
-├── templates/
-│   ├── base.html                ← Shared page layout
-│   ├── purchase_order.html      ← PO Jinja2 template
-│   └── invoice.html             ← Invoice Jinja2 template
-│
-├── assets/
-│   ├── style.css                ← Base stylesheet (CSS custom properties only)
-│   └── invoice.css              ← Invoice-specific component styles
-│
-├── references/
-│   ├── purchase_order.md        ← Source of truth for the purchase_order doc type
-│   ├── invoice.md               ← Source of truth for the invoice doc type
-│   ├── EXTENDING.md             ← Developer guide for adding new doc types
-│   └── DESIGN_SYSTEM.md         ← Visual source of truth: palette, typography, totals design, theming
-│
-├── tests/
-│   ├── test_schemas.py          ← Schema validation and computed field tests (no system deps)
-│   ├── test_builders.py         ← Context builder output shape and type-safety tests
-│   └── fixtures/
-│       ├── sample_po.json       ← Valid PO payload
-│       ├── invalid_po.json      ← PO with missing required fields (expected: validation error)
-│       ├── sample_invoice.json             ← Valid Invoice payload
-│       ├── sample_invoice_contractor.json ← Individual contractor invoice (unpaid)
-│       └── invalid_invoice.json           ← Invoice with missing required fields
-│
-├── output/                      ← Generated PDFs (.gitignored)
-│
-└── docs/
-    ├── PRD.md                   ← Full product requirements
-    └── decisions/               ← Technical decision records (ADRs)
+├── CLAUDE.md          ← Agent entry point: CLI contract, conventions, design decisions
+├── SKILL.md           ← Claude skill definition
+├── scripts/           ← CLI entrypoint (generate.py)
+├── schemas/           ← Pydantic v2 models per doc type
+├── builders/          ← Context builders + REGISTRY
+├── templates/         ← Jinja2 templates extending base.html
+├── assets/            ← style.css + per-doc-type CSS
+├── references/        ← Source-of-truth specs + EXTENDING.md + DESIGN_SYSTEM.md
+└── tests/fixtures/    ← Valid and invalid sample payloads
 ```
 
 ---
@@ -230,6 +220,5 @@ Contributions welcome. The most useful things to add:
 
 - **New document types** — follow the five-step pattern in [references/EXTENDING.md](references/EXTENDING.md). Each doc type is self-contained.
 - **Bug fixes** — check [docs/decisions/](docs/decisions/) before changing any architectural pattern; a decision record may explain the constraint.
-- **New document types for the skill** — add the new doc type to the SKILL.md supported types table and update [references/EXTENDING.md](references/EXTENDING.md) if needed.
 
 When in doubt, read the reference file for the doc type you are modifying first. The reference is the source of truth — not the code.

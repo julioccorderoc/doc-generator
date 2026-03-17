@@ -142,6 +142,20 @@ The general rule `.totals__table td:first-child` (specificity 0,1,2) sets `color
 
 ---
 
+## Footer Design
+
+The document footer is a subtle, full-width bar pinned to the bottom of every page via `position: fixed; bottom: 0`.
+
+- **Background:** `var(--color-bg-page)` (white) — no fill block, just a light separator line
+- **Border:** `1pt solid var(--color-border-light)` on the top edge
+- **Text:** `var(--color-text-muted)` at `var(--font-size-xs)`, centred
+- **Content:** `footer_text` — a single `·`-separated line derived from the issuing party's data: `name · address (single line) · phone · email`. Phone and email are included only when present.
+- **Body padding:** `padding-bottom: 28pt` on `body` reserves space so document content never flows behind the footer.
+
+The footer renders automatically — `base.html`'s default `{% block footer %}` outputs the bar whenever `footer_text` is defined and non-empty in the context. It requires no user-provided fields — `build_footer_text(party)` in `builders._shared` derives everything from the party object already in the context. Override `{% block footer %}` only to suppress or customise the footer.
+
+---
+
 ## `primary_color` Theming Field
 
 Any document type can accept an optional `primary_color: string` field in the payload.

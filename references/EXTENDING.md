@@ -101,7 +101,9 @@ Before writing any markup or CSS, read [`references/DESIGN_SYSTEM.md`](DESIGN_SY
 
 ### 3.1 Extend base.html
 
-Every template starts with `{% extends "base.html" %}`. `base.html` provides the `<html>/<head>/<body>` structure, `style.css` link, optional inline `<style>{{ theme_css }}</style>` block, and two override blocks: `{% block header %}` and `{% block content %}`.
+Every template starts with `{% extends "base.html" %}`. `base.html` provides the `<html>/<head>/<body>` structure, `style.css` link, optional inline `<style>{{ theme_css }}</style>` block, and three override blocks: `{% block header %}`, `{% block content %}`, and `{% block footer %}`.
+
+The footer renders automatically: `base.html` outputs `<div class="doc-footer">{{ footer_text }}</div>` whenever `footer_text` is defined and non-empty in the context. Add `"footer_text": build_footer_text(doc.<issuing_party>)` to the context builder — `build_footer_text` is in `builders._shared`. No `{% block footer %}` override is needed in the child template. Override only to suppress (`{% block footer %}{% endblock %}`) or customise the footer.
 
 ### 3.2 Doc-type-specific styles
 
@@ -114,6 +116,8 @@ _MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
 Pass it as `"theme_css": Markup(_MY_CSS)` (combined with any `primary_color_css` override) in the context builder. All values must use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as the reference implementation.
 
 **Specificity note:** The base rule `.totals__table td:first-child` (specificity 0,1,2) sets muted color on first-column cells. Override by qualifying selectors with `.totals__table` (specificity 0,2,1). See the Specificity Rules section in DESIGN_SYSTEM.md.
+
+**Page breaks:** `style.css` already applies `break-inside: avoid; page-break-inside: avoid` globally to all `tr` elements. Do not add this to doc-type CSS — it is inherited for free.
 
 ### 3.3 Template rules
 

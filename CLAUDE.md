@@ -1,6 +1,6 @@
 # doc-generator
 
-A deterministic, schema-driven PDF generation tool for business documents (Purchase Orders, Invoices, etc.). It is invocable by **any AI agent** that can execute shell commands — Claude, Cursor, Gemini, Codex, or any other tool. No LLM is involved in rendering. Same input always produces the same PDF.
+A deterministic, schema-driven PDF generation tool for business documents (Purchase Orders, Invoices, Requests for Quotation, etc.). It is invocable by **any AI agent** that can execute shell commands — Claude, Cursor, Gemini, Codex, or any other tool. No LLM is involved in rendering. Same input always produces the same PDF.
 
 ---
 
@@ -28,6 +28,10 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --doc_type invoice --payload tests/fixtures/sample_invoice.json --preview
 
+# Generate a Request for Quotation
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+  --doc_type request_for_quotation --payload tests/fixtures/sample_rfq.json --preview
+
 # Test validation error output (non-zero exit code, structured error to stdout)
 DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --doc_type purchase_order --payload tests/fixtures/invalid_po.json
@@ -45,7 +49,7 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 
 | Argument | Required | Description |
 |---|---|---|
-| `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`). |
+| `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`, `request_for_quotation`). |
 | `--payload` | Yes | Absolute or relative path to a JSON file containing the document data. **File path only** — not inline JSON. This avoids shell escaping issues and lets agents write a temp file before invoking. |
 | `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
 
@@ -85,12 +89,14 @@ doc-generator/
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY (single registration point)
 │   ├── _shared.py               ← Shared helpers: build_line_items, build_totals, get_css_path, etc.
 │   ├── purchase_order.py        ← build_po_context(): PO-specific template context
-│   └── invoice.py               ← build_invoice_context(); loads CSS from assets/invoice.css
+│   ├── invoice.py               ← build_invoice_context(); loads CSS from assets/invoice.css
+│   └── request_for_quotation.py ← build_rfq_context(); no monetary fields
 │
 ├── schemas/
 │   ├── base.py                  ← Shared base classes and mixins (MoneyMixin, etc.)
 │   ├── purchase_order.py        ← Pydantic v2 model for Purchase Orders (with @computed_field)
-│   └── invoice.py               ← Pydantic v2 model for Invoices
+│   ├── invoice.py               ← Pydantic v2 model for Invoices
+│   └── request_for_quotation.py ← Pydantic v2 model for RFQs (no computed fields)
 │
 ├── utils/
 │   ├── paths.py                 ← Project root path constants (ROOT, TEMPLATES_DIR, ASSETS_DIR)
@@ -100,29 +106,35 @@ doc-generator/
 │   └── preview.py               ← OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
 │
 ├── templates/
-│   ├── base.html                ← Shared page layout — imports style.css, injects theme CSS variables
-│   ├── purchase_order.html      ← PO Jinja2 template extending base.html
-│   └── invoice.html             ← Invoice Jinja2 template extending base.html
+│   ├── base.html                    ← Shared page layout — imports style.css, injects theme CSS variables
+│   ├── purchase_order.html          ← PO Jinja2 template extending base.html
+│   ├── invoice.html                 ← Invoice Jinja2 template extending base.html
+│   └── request_for_quotation.html   ← RFQ Jinja2 template extending base.html
 │
 ├── assets/
-│   ├── style.css                ← Base stylesheet built entirely on CSS custom properties
-│   ├── invoice.css              ← Invoice-specific component styles (loaded by builders/invoice.py)
-│   └── themes/                  ← Future: named theme override files
+│   ├── style.css                        ← Base stylesheet built entirely on CSS custom properties
+│   ├── invoice.css                      ← Invoice-specific component styles (loaded by builders/invoice.py)
+│   ├── request_for_quotation.css        ← RFQ-specific component styles (loaded by builders/request_for_quotation.py)
+│   └── themes/                          ← Future: named theme override files
 │
 ├── references/
-│   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type (see below)
-│   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
-│   ├── EXTENDING.md             ← Developer guide: how to add a new document type
-│   ├── NEW_DOC_TYPE.md          ← Copy-paste coding agent prompt for implementing a new doc type end-to-end
-│   └── DESIGN_SYSTEM.md         ← Visual source of truth: color palette, typography, totals block design, theming
+│   ├── purchase_order.md            ← SOURCE OF TRUTH for the purchase_order doc type (see below)
+│   ├── invoice.md                   ← SOURCE OF TRUTH for the invoice doc type
+│   ├── request_for_quotation.md     ← SOURCE OF TRUTH for the request_for_quotation doc type
+│   ├── EXTENDING.md                 ← Developer guide: how to add a new document type
+│   ├── NEW_DOC_TYPE.md              ← Copy-paste coding agent prompt for implementing a new doc type end-to-end
+│   └── DESIGN_SYSTEM.md             ← Visual source of truth: color palette, typography, totals block design, theming
 │
 ├── tests/
 │   └── fixtures/
-│       ├── sample_po.json       ← Valid complete PO payload (used for local testing)
-│       ├── invalid_po.json      ← PO payload missing required fields (expected: clean error)
+│       ├── sample_po.json                   ← Valid complete PO payload (used for local testing)
+│       ├── invalid_po.json                  ← PO payload missing required fields (expected: clean error)
 │       ├── sample_invoice.json              ← Valid complete Invoice payload
-│       ├── sample_invoice_contractor.json  ← Invoice from an individual contractor (unpaid)
-│       └── invalid_invoice.json            ← Invoice payload missing required fields
+│       ├── sample_invoice_contractor.json   ← Invoice from an individual contractor (unpaid)
+│       ├── invalid_invoice.json             ← Invoice payload missing required fields
+│       ├── sample_rfq.json                  ← Valid RFQ payload (addressed, with vendor + valid_until)
+│       ├── sample_rfq_broadcast.json        ← Valid RFQ payload (broadcast, no vendor, no valid_until)
+│       └── invalid_rfq.json                 ← RFQ payload with validation errors (expected: clean error)
 │
 ├── output/                      ← Generated PDFs land here (.gitignored)
 │

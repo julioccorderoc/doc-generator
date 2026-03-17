@@ -232,4 +232,4 @@ The PO template should follow this visual structure, top to bottom:
 4. **Line items table** — columns: `#` | `SKU` (if any item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`
 5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both are always present; Notes column is empty when `notes` is absent.
 6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping / **Grand Total**
-7. **Footer** — page number
+7. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from buyer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.

@@ -284,7 +284,7 @@ The invoice template should follow this visual structure, top to bottom:
 5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both always present; Notes column is empty when `notes` is absent.
 6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping (only if > 0) / Grand Total / Amount Paid (only if `paid = true` or `amount_paid > 0`) / **Balance Due** (bold, prominent).
 7. **Payment details block** — full-width section below the bottom row, only rendered if `payment_details` is non-empty. Displays as a two-column key/value table with a distinct background or border. Heading: "Payment Details".
-8. **Footer** — page number.
+8. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from issuer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.
 
 **Balance Due emphasis:** `balance_due` is the most important financial figure on the invoice. It should be visually prominent (bold, slightly larger, or with a distinct background row) — more so than on a PO's grand total.
 
