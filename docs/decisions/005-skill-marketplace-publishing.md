@@ -78,3 +78,25 @@ Option B is documented here and remains a valid future path if the skill is pack
 - The `vercel-labs/agent-skills` registry entry requires a sync PR whenever `SKILL.md` changes. This is addressed in Phase 6 of the implementation plan with a GitHub Actions workflow (`.github/workflows/sync-skill.yml`).
 - Installing the skill only installs the *instructions*. Coworkers still need the full local environment: Python, `uv`, `pango` (macOS), and the repo cloned. The skill does not ship the Python runtime. See `docs/PUBLISHING.md` for the full setup guide.
 - If Option B is pursued in the future, the npm package should contain only `SKILL.md` and a `package.json`. It should not bundle the Python CLI — those are separate concerns.
+
+---
+
+## Implementation Notes
+
+*Added 2026-03-17 — learnings from the actual rollout.*
+
+### `install.sh` mitigates the local environment con
+
+The original con "Coworkers still need the full local environment set up" was addressed by adding `install.sh` — a one-command curl/bash installer that handles cloning, `uv sync`, pango, and SKILL.md installation in one step. This makes Option A as frictionless as Option B for first-time setup.
+
+### `SKILL.md` must use a path placeholder, not a hardcoded path
+
+`npx skills add` installs SKILL.md as-is from the repo. SKILL.md contains the project root path used by Claude to invoke the CLI. A hardcoded path (e.g. `/Users/juliocordero/...`) breaks for any other user. Solution: use `{{PROJECT_ROOT}}` as a placeholder in SKILL.md; `install.sh` substitutes it with the real path on the user's machine when writing to `~/.claude/skills/doc-generator/SKILL.md`. This means `install.sh` is the authoritative install path — `npx skills add` installs an unsubstituted SKILL.md that will not work until the path is patched.
+
+### The GitHub Actions sync requires a classic PAT, not a fine-grained token
+
+Fine-grained Personal Access Tokens are scoped to repositories owned by the token holder. They cannot create pull requests on repositories owned by other accounts — in this case `vercel-labs/agent-skills`. A classic PAT with `repo` scope is required. The secret is named `AGENT_SKILLS_PAT` and is stored in the doc-generator repo's Actions secrets.
+
+### Sync workflow must force-push
+
+The workflow uses a date-based branch name (`sync-doc-generator-YYYYMMDD`). If the workflow runs more than once in a day (e.g. after a fix), a second push to the same branch is rejected as non-fast-forward. Fix: `git push origin HEAD --force`. This is safe because the sync branch is ephemeral and owned by us. If a PR is already open for the branch, `gh pr create` exits with an error — handled with `|| echo` so the step succeeds and the existing PR simply gets the updated commits.
