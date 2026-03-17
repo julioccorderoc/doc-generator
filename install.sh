@@ -55,7 +55,7 @@ fi
 # ── 4. Install the Claude Code skill ─────────────────────────────────────────
 info "Writing skill to $SKILLS_DIR ..."
 mkdir -p "$SKILLS_DIR"
-sed "s|{{PROJECT_ROOT}}|$INSTALL_DIR|g" "$INSTALL_DIR/SKILL.md" > "$SKILLS_DIR/SKILL.md"
+sed "s|~/doc-generator|$INSTALL_DIR|g" "$INSTALL_DIR/SKILL.md" > "$SKILLS_DIR/SKILL.md"
 
 # ── 5. Done ───────────────────────────────────────────────────────────────────
 printf "\n${GREEN}✓ doc-generator installed successfully!${NC}\n\n"

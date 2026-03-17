@@ -100,12 +100,10 @@ Example payload path: `/tmp/doc_payload_<timestamp>.json`
 ### 2. Run the CLI
 
 ```bash
-DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+cd ~/doc-generator && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --doc_type <doc_type_slug> \
   --payload <path_to_payload_file>
 ```
-
-Run from the project root: `{{PROJECT_ROOT}}`
 
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 
