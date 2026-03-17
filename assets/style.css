@@ -55,14 +55,7 @@
 
 @page {
     size: Letter;
-    margin: 1.8cm 1.8cm 2.2cm 1.8cm;
-
-    @bottom-center {
-        content: "Page " counter(page) " of " counter(pages);
-        font-family: var(--font-family);
-        font-size: var(--font-size-xs);
-        color: var(--color-text-muted);
-    }
+    margin: 1.8cm 1.8cm 1.8cm 1.8cm;
 }
 
 /* ── Reset & base ────────────────────────────────────────── */
@@ -79,6 +72,7 @@ body {
     color: var(--color-text);
     background: var(--color-bg-page);
     line-height: 1.4;
+    padding-bottom: 28pt; /* reserve space above the fixed footer */
 }
 
 /* ── Document header ─────────────────────────────────────── */
@@ -199,6 +193,13 @@ body {
     font-size: var(--font-size-sm);
     color: var(--color-text);
     font-weight: var(--font-weight-medium);
+}
+
+/* ── Global table row — never split across pages ─────────── */
+
+tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 /* ── Line items table ────────────────────────────────────── */
@@ -379,4 +380,19 @@ body {
 .totals__table .totals__grand td:last-child {
     color: var(--color-primary);
     font-weight: var(--font-weight-bold);
+}
+
+/* ── Document footer ─────────────────────────────────────── */
+
+.doc-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1pt solid var(--color-border-light);
+    padding: var(--spacing-sm) 0;
+    text-align: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg-page);
 }
