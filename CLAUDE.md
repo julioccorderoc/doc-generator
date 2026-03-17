@@ -65,7 +65,15 @@ Agents should capture stdout and check the exit code to determine success or fai
 doc-generator/
 │
 ├── CLAUDE.md                    ← You are here. Entry point for all AI agents.
-├── SKILL.md                     ← Claude-specific skill instructions (trigger conditions, data collection protocol)
+├── SKILL.md                     ← Claude-specific skill instructions — uses {{PROJECT_ROOT}} placeholder (substituted by install.sh)
+├── install.sh                   ← One-command installer: clones repo, uv sync, pango, patches SKILL.md with real path
+│
+├── .claude/
+│   └── settings.json            ← Pre-approved permissions: Write(/tmp/) + Bash CLI invocation (no prompts for team)
+│
+├── .github/
+│   └── workflows/
+│       └── sync-skill.yml       ← Auto-opens PR to vercel-labs/agent-skills when SKILL.md changes on master
 │
 ├── pyproject.toml               ← uv project manifest with dependencies (weasyprint, jinja2, pydantic)
 ├── uv.lock                      ← Locked dependency versions (auto-managed by uv)

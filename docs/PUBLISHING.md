@@ -28,13 +28,19 @@ Nothing special is needed — the `SKILL.md` at the root is what `npx skills add
 
 ### Step 2 — Share the install command with your team
 
-Once the repo is public, team members can install with:
+Once the repo is public, team members can install the skill with:
 
 ```bash
 npx skills add julioccorderoc/doc-generator
 ```
 
-That's it. Share this command in your team's Slack/Notion/onboarding doc. The `npx skills add` command clones the repo and creates a symlink — no further action needed after that.
+For the full setup (CLI + skill in one step), share `install.sh`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
+```
+
+The installer handles cloning, `uv sync`, pango, and writing a path-correct `SKILL.md` to `~/.claude/skills/doc-generator/`. Re-running is idempotent.
 
 ### Step 3 — Submit to the vercel-labs/agent-skills registry (optional, for public discoverability)
 
@@ -46,14 +52,9 @@ npx skills add agent-skills --skill doc-generator
 
 **To submit:**
 
-1. Fork [github.com/vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills)
+1. Fork [github.com/vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) — done: `julioccorderoc/agent-skills` exists
 2. In your fork, create `skills/doc-generator/SKILL.md` with the contents of this repo's `SKILL.md`
-3. Open a PR to `vercel-labs/agent-skills` with this description:
-
-   > **doc-generator** — Generates professional PDF business documents (purchase orders, invoices) from user-provided data via a local CLI. Claude handles conversational data collection; the CLI handles rendering. Requires local installation of the doc-generator CLI.
-   >
-   > Source repo: `https://github.com/julioccorderoc/doc-generator`
-
+3. Open a PR to `vercel-labs/agent-skills` — automated via `sync-skill.yml` (see Step 4)
 4. Once merged, update the install command in `README.md`:
 
    ```bash
@@ -62,9 +63,21 @@ npx skills add agent-skills --skill doc-generator
 
 ### Step 4 — Keep the registry in sync (after future SKILL.md changes)
 
-The registry entry in `vercel-labs/agent-skills` is a copy, not a live link. When you update `SKILL.md` in this repo, you need to open a new PR to `agent-skills` with the updated content.
+The workflow `.github/workflows/sync-skill.yml` is already live. Every push to `master` that touches `SKILL.md` automatically opens (or updates) a PR to `vercel-labs/agent-skills`.
 
-To automate this, create `.github/workflows/sync-skill.yml`:
+**Required secret:** `AGENT_SKILLS_PAT` in the doc-generator repo → Settings → Secrets → Actions.
+
+**Important:** Use a **classic PAT** (not fine-grained). Fine-grained tokens cannot create PRs on repos owned by other accounts (`vercel-labs`). A classic PAT with `repo` scope works for both pushing to your fork and opening cross-repo PRs.
+
+Token scopes needed:
+
+- Repository access: `julioccorderoc/agent-skills` (your fork)
+- Permission: `repo` (classic) — covers Contents write + Pull requests write
+
+The workflow:
+
+- Force-pushes to a `sync-doc-generator-YYYYMMDD` branch on your fork (safe: ephemeral sync branch)
+- Opens a PR to `vercel-labs/agent-skills`, or skips silently if one already exists for that branch
 
 ```yaml
 name: Sync SKILL.md to agent-skills registry
@@ -89,29 +102,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AGENT_SKILLS_PAT }}
         run: |
-          # Clone your fork of vercel-labs/agent-skills
+          BRANCH="sync-doc-generator-$(date +%Y%m%d)"
+
           git clone https://x-access-token:${GH_TOKEN}@github.com/julioccorderoc/agent-skills.git
           cd agent-skills
 
-          # Create or update the skill file
+          # Create or reset the sync branch from main
+          git checkout -B "$BRANCH"
+
           mkdir -p skills/doc-generator
           cp ../SKILL.md skills/doc-generator/SKILL.md
 
-          # Commit and push to a sync branch
-          git checkout -b sync-doc-generator-$(date +%Y%m%d)
           git add skills/doc-generator/SKILL.md
           git commit -m "sync: update doc-generator SKILL.md from source repo"
-          git push origin HEAD
+          git push origin HEAD --force
 
-          # Open PR using gh CLI
           gh pr create \
             --repo vercel-labs/agent-skills \
             --title "sync: update doc-generator SKILL.md" \
             --body "Automated sync from https://github.com/julioccorderoc/doc-generator" \
-            --head "julioccorderoc:sync-doc-generator-$(date +%Y%m%d)"
+            --head "julioccorderoc:${BRANCH}" \
+            || echo "PR already open for ${BRANCH} — branch updated in place."
 ```
-
-**Required secrets:** Add a `AGENT_SKILLS_PAT` secret in your repo settings — a GitHub Personal Access Token with `repo` scope on your `agent-skills` fork.
 
 ---
 
@@ -121,7 +133,30 @@ Share this section with coworkers. It covers everything needed to go from zero t
 
 ---
 
-### What you need
+### Option A — One-command setup (recommended)
+
+Handles everything: clones the repo, installs Python dependencies, installs Pango on macOS, and writes the skill to Claude Code.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
+```
+
+Or clone and run directly:
+
+```bash
+git clone https://github.com/julioccorderoc/doc-generator.git
+cd doc-generator && ./install.sh
+```
+
+**To update later:** just re-run the same command. It pulls the latest and refreshes the skill.
+
+---
+
+### Option B — Manual setup
+
+Use this if you prefer step-by-step control.
+
+#### What you need
 
 | Requirement | Notes |
 | --- | --- |
@@ -132,24 +167,20 @@ Share this section with coworkers. It covers everything needed to go from zero t
 | **Pango** (macOS only) | System font library required by WeasyPrint. Install once: `brew install pango` |
 | **The repo** | Cloned to your machine (see Step 1 below) |
 
----
-
-### Step 1 — Clone the repo
+#### Step 1 — Clone the repo
 
 ```bash
 git clone https://github.com/julioccorderoc/doc-generator.git
 cd doc-generator
 ```
 
-### Step 2 — Install Python dependencies
+#### Step 2 — Install Python dependencies
 
 ```bash
 uv sync
 ```
 
-This installs WeasyPrint, Jinja2, and Pydantic into a local virtual environment. Takes about 30 seconds on the first run.
-
-### Step 3 — Verify the CLI works
+#### Step 3 — Verify the CLI works
 
 ```bash
 DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
@@ -158,28 +189,35 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --preview
 ```
 
-Expected: a PDF opens in your viewer showing a green-header Purchase Order. If you see output like `output/purchase_order_20260316_0001.pdf`, it worked.
+Expected: a PDF opens showing a green-header Purchase Order.
 
 > **Troubleshooting:** If you get a `libpango` error, run `brew install pango` first.
 
-### Step 4 — Install the skill into Claude Code
+#### Step 4 — Install the skill into Claude Code
 
 ```bash
 npx skills add julioccorderoc/doc-generator
 ```
 
-This clones the repo's `SKILL.md` into your `~/.claude/skills/doc-generator/` directory as a symlink. Claude Code picks it up automatically — no restart required.
-
-Verify the skill is installed:
+Verify:
 
 ```text
 (in Claude Code)
 What skills are available?
 ```
 
-You should see `doc-generator` in the list with its description.
+You should see `doc-generator` in the list.
 
-### Step 5 — Use it
+#### Step 5 — Staying up to date
+
+```bash
+npx skills update          # updates SKILL.md instructions
+git pull origin master     # updates the CLI and templates
+```
+
+---
+
+### Step 6 — Use it
 
 Just describe what you want in natural language. Examples:
 
@@ -197,29 +235,16 @@ Claude will:
 
 The generated PDFs land in `output/` inside the project directory.
 
-### Step 6 — Staying up to date
-
-When the skill's instructions are updated, pull the latest:
-
-```bash
-npx skills update
-```
-
-This runs `git pull` on the cloned `SKILL.md` repo. The PDF templates and CLI are part of the main repo — pull those separately:
-
-```bash
-git pull origin master
-```
-
 ---
 
 ## Quick reference
 
 | Task | Command |
 | --- | --- |
-| Install skill from GitHub | `npx skills add <owner>/doc-generator` |
+| Full setup (one command) | `curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh \| bash` |
+| Install skill only | `npx skills add julioccorderoc/doc-generator` |
+| Update everything | Re-run `install.sh` or `npx skills update` + `git pull origin master` |
 | Check for skill updates | `npx skills check` |
-| Pull latest skill instructions | `npx skills update` |
 | Generate a PO manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type purchase_order --payload <path>` |
 | Generate an invoice manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type invoice --payload <path>` |
 | Open last generated PDF | `open output/$(ls -t output/ \| head -1)` |
