@@ -20,7 +20,7 @@ If you haven't already:
 
 ```bash
 # From the project root
-git remote add origin https://github.com/<your-username>/doc-generator.git
+git remote add origin https://github.com/julioccorderoc/doc-generator.git
 git push -u origin master
 ```
 
@@ -52,7 +52,7 @@ npx skills add agent-skills --skill doc-generator
 
    > **doc-generator** — Generates professional PDF business documents (purchase orders, invoices) from user-provided data via a local CLI. Claude handles conversational data collection; the CLI handles rendering. Requires local installation of the doc-generator CLI.
    >
-   > Source repo: `https://github.com/<your-username>/doc-generator`
+   > Source repo: `https://github.com/julioccorderoc/doc-generator`
 
 4. Once merged, update the install command in `README.md`:
 
@@ -90,7 +90,7 @@ jobs:
           GH_TOKEN: ${{ secrets.AGENT_SKILLS_PAT }}
         run: |
           # Clone your fork of vercel-labs/agent-skills
-          git clone https://x-access-token:${GH_TOKEN}@github.com/<your-username>/agent-skills.git
+          git clone https://x-access-token:${GH_TOKEN}@github.com/julioccorderoc/agent-skills.git
           cd agent-skills
 
           # Create or update the skill file
@@ -107,13 +107,11 @@ jobs:
           gh pr create \
             --repo vercel-labs/agent-skills \
             --title "sync: update doc-generator SKILL.md" \
-            --body "Automated sync from https://github.com/<your-username>/doc-generator" \
-            --head "<your-username>:sync-doc-generator-$(date +%Y%m%d)"
+            --body "Automated sync from https://github.com/julioccorderoc/doc-generator" \
+            --head "julioccorderoc:sync-doc-generator-$(date +%Y%m%d)"
 ```
 
 **Required secrets:** Add a `AGENT_SKILLS_PAT` secret in your repo settings — a GitHub Personal Access Token with `repo` scope on your `agent-skills` fork.
-
-**Placeholders to replace:** `<your-username>` appears three times in the workflow file above.
 
 ---
 
