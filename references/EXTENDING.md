@@ -2,6 +2,8 @@
 
 This is the complete developer guide for adding a new document type to doc-generator.
 
+> **Running this as a coding agent session?** Copy [`references/NEW_DOC_TYPE.md`](NEW_DOC_TYPE.md), fill in the placeholders, and paste it as your opening prompt. It handles orient, implementation order, verification, and the acceptance checklist in one shot.
+
 **Five files. No other existing files change.**
 
 ```text

@@ -113,6 +113,7 @@ doc-generator/
 │   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type (see below)
 │   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
 │   ├── EXTENDING.md             ← Developer guide: how to add a new document type
+│   ├── NEW_DOC_TYPE.md          ← Copy-paste coding agent prompt for implementing a new doc type end-to-end
 │   └── DESIGN_SYSTEM.md         ← Visual source of truth: color palette, typography, totals block design, theming
 │
 ├── tests/
@@ -180,7 +181,7 @@ Five files. No other existing files change.
 5. Register in builders/__init__.py → Add one DocTypeConfig entry to REGISTRY
 ```
 
-That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type. See `references/EXTENDING.md` for full step-by-step guidance.
+That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type. See `references/EXTENDING.md` for full step-by-step guidance. For a single-session coding agent prompt, see `references/NEW_DOC_TYPE.md`.
 
 ---
 
