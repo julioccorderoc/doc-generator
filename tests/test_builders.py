@@ -16,8 +16,10 @@ import pytest
 
 from schemas.purchase_order import PurchaseOrder
 from schemas.invoice import Invoice
+from schemas.request_for_quotation import RequestForQuotation
 from builders.purchase_order import build_po_context
 from builders.invoice import build_invoice_context
+from builders.request_for_quotation import build_rfq_context
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -169,3 +171,79 @@ def test_invoice_document_status_partial():
         ctx = build_invoice_context(doc)
     assert ctx["document_status"] == "partial"
     assert ctx["status_label"] == "Partially Paid"
+
+
+# ── RFQ builder fixture ───────────────────────────────────────────────────────
+
+@pytest.fixture
+def rfq_context():
+    doc = RequestForQuotation(**load("sample_rfq.json"))
+    with patch("builders.request_for_quotation.resolve_logo", return_value=None):
+        return build_rfq_context(doc)
+
+
+# ── RFQ builder: type safety ──────────────────────────────────────────────────
+
+def test_rfq_no_raw_decimals_or_dates(rfq_context):
+    raw = _raw_typed_values(rfq_context)
+    assert raw == [], f"Raw Decimal/date objects found in RFQ context: {raw}"
+
+
+def test_rfq_required_keys_present(rfq_context):
+    for key in ("css_path", "rfq_number", "issue_date", "issuer", "spec_sections"):
+        assert key in rfq_context, f"Missing required context key: {key!r}"
+
+
+# ── RFQ builder: spec sections ────────────────────────────────────────────────
+
+def test_rfq_spec_sections_in_context(rfq_context):
+    assert len(rfq_context["spec_sections"]) == 2
+    first = rfq_context["spec_sections"][0]
+    assert first["title"] is None
+    assert len(first["rows"]) == 6
+    assert first["rows"][0]["label"] == "Formula (per serving)"
+
+
+def test_rfq_spec_section_with_title(rfq_context):
+    packaging = rfq_context["spec_sections"][1]
+    assert packaging["title"] == "Packaging"
+    assert len(packaging["rows"]) == 7
+
+
+# ── RFQ builder: product attributes ──────────────────────────────────────────
+
+def test_rfq_product_attributes_in_context(rfq_context):
+    attrs = rfq_context["product_attributes"]
+    assert len(attrs) == 3
+    assert attrs[0]["header"] == "Capsules per bottle"
+    assert attrs[0]["value"] == "120"
+
+
+# ── RFQ builder: annexes ──────────────────────────────────────────────────────
+
+def test_rfq_annexes_in_context(rfq_context):
+    assert rfq_context["annexes"] is not None
+    assert len(rfq_context["annexes"]) == 3
+    assert rfq_context["has_any_annex_url"] is True
+    assert rfq_context["annexes"][0]["title"] == "Two pack polybag specs"
+
+
+def test_rfq_no_annexes_when_omitted():
+    raw = load("sample_rfq.json")
+    del raw["annexes"]
+    doc = RequestForQuotation(**raw)
+    with patch("builders.request_for_quotation.resolve_logo", return_value=None):
+        ctx = build_rfq_context(doc)
+    assert ctx["annexes"] is None
+    assert ctx["has_any_annex_url"] is False
+
+
+# ── RFQ builder: vendor optional ─────────────────────────────────────────────
+
+def test_rfq_vendor_none_when_omitted():
+    raw = load("sample_rfq.json")
+    del raw["vendor"]
+    doc = RequestForQuotation(**raw)
+    with patch("builders.request_for_quotation.resolve_logo", return_value=None):
+        ctx = build_rfq_context(doc)
+    assert ctx["vendor"] is None

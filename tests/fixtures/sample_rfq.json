@@ -1,0 +1,65 @@
+{
+  "rfq_number": "RFQ-2026-001",
+  "issue_date": "2026-01-15",
+  "valid_until": "2026-02-15",
+  "issuer": {
+    "name": "Natural Cure Labs",
+    "address": "P.O. Box 13945\nSt. Petersburg, FL 33733",
+    "phone": "+1 (800) 303-6214",
+    "email": "info@naturalcurelabs.com"
+  },
+  "vendor": {
+    "name": "Precision Nutraceuticals Inc.",
+    "address": "1200 Industrial Blvd\nTampa, FL 33601",
+    "email": "quotes@precisionnnutra.com"
+  },
+  "product_name": "Level Off",
+  "product_description": "Blood sugar support supplement in veggie capsules",
+  "product_attributes": [
+    { "header": "Capsules per bottle", "value": "120" },
+    { "header": "Serving size", "value": "2 capsules" },
+    { "header": "Volume (bottles)", "value": "4,000" }
+  ],
+  "spec_sections": [
+    {
+      "title": null,
+      "rows": [
+        {
+          "label": "Formula (per serving)",
+          "value": "> 250mg Mulberry Leaf Extract 5% 1-Deoxynojirimycin\n> 250mg Lemon Peel Extract 50% Bioflavonoids\n> 85mg Ceylon Cinnamon 12:1 Extract Bark (Cinnamomum Verum)"
+        },
+        { "label": "Excipient", "value": "Ascorbyl palmitate" },
+        { "label": "Capsule type", "value": "0 veggie" },
+        { "label": "Expiration date", "value": "Minimum 3 years | Include LOT number" },
+        { "label": "Label claims", "value": "Vegan | Gluten Free | Non-GMO | No Preservatives | Made in the USA | GMP Certified" },
+        { "label": "Lab testing", "value": "We send all our products to ISO17025 labs in-line with Amazon testing requirements" }
+      ]
+    },
+    {
+      "title": "Packaging",
+      "rows": [
+        { "label": "Bottle", "value": "250cc white PET bottle" },
+        { "label": "Cap", "value": "45mm White Ribbed HS, with special liner (includes foil)" },
+        { "label": "Neck band", "value": "Printed and perforated SFYP" },
+        { "label": "Desiccant", "value": "Natural (non-toxic) 1g" },
+        { "label": "Void fill", "value": "Cotton / Rayon" },
+        { "label": "Packaging format", "value": "12-Pack Case packed into a Master Shipper 96 bottles (22\" x 17\" x 12\")" },
+        { "label": "Remarks", "value": "Natural Cure Labs will supply: Caps and Label" }
+      ]
+    }
+  ],
+  "notes": "Please include lead time, minimum order quantity, and payment terms in your quote.",
+  "annexes": [
+    { "title": "Two pack polybag specs", "url": "https://example.com/polybag-specs.pdf" },
+    { "title": "Check the packaging", "url": "https://example.com/packaging-check" },
+    { "title": "Download SFP", "url": "https://example.com/sfp-download" }
+  ],
+  "contact": {
+    "name": "Julio Cordero",
+    "email": "julio@naturalcurelabs.com",
+    "phone": "+1 (727) 390-3461",
+    "website": "https://www.naturalcurelabs.com/"
+  },
+  "logo": null,
+  "primary_color": "#1A4021"
+}

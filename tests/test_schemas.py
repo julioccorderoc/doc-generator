@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from schemas.purchase_order import PurchaseOrder
 from schemas.invoice import Invoice
+from schemas.request_for_quotation import RequestForQuotation
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -151,3 +152,48 @@ def test_invalid_invoice_raises_validation_error():
     field_paths = [" → ".join(str(p) for p in e["loc"]) for e in errors]
     assert any("invoice_number" in p for p in field_paths)
     assert any("tax_rate" in p for p in field_paths)
+
+
+# ── Valid fixture: RFQ ────────────────────────────────────────────────────────
+
+def test_sample_rfq_loads():
+    doc = RequestForQuotation(**load("sample_rfq.json"))
+    assert doc.rfq_number == "RFQ-2026-001"
+
+
+def test_rfq_spec_sections_loaded():
+    doc = RequestForQuotation(**load("sample_rfq.json"))
+    assert len(doc.spec_sections) == 2
+    # first section has no title
+    assert doc.spec_sections[0].title is None
+    assert len(doc.spec_sections[0].rows) == 6
+    # second section is "Packaging"
+    assert doc.spec_sections[1].title == "Packaging"
+    assert len(doc.spec_sections[1].rows) == 7
+
+
+def test_rfq_product_attributes():
+    doc = RequestForQuotation(**load("sample_rfq.json"))
+    assert len(doc.product_attributes) == 3
+    assert doc.product_attributes[0].header == "Capsules per bottle"
+    assert doc.product_attributes[0].value == "120"
+
+
+def test_rfq_valid_until_after_date():
+    doc = RequestForQuotation(**load("sample_rfq.json"))
+    assert doc.valid_until > doc.issue_date
+
+
+# ── Invalid fixture: RFQ ──────────────────────────────────────────────────────
+
+def test_invalid_rfq_raises_validation_error():
+    with pytest.raises(ValidationError) as exc_info:
+        RequestForQuotation(**load("invalid_rfq.json"))
+    errors = exc_info.value.errors()
+    field_paths = [" → ".join(str(p) for p in e["loc"]) for e in errors]
+    # empty rfq_number
+    assert any("rfq_number" in p for p in field_paths)
+    # spec_sections is empty
+    assert any("spec_sections" in p for p in field_paths)
+    # rfq_number + spec_sections = at least 2 field errors
+    assert exc_info.value.error_count() >= 2
