@@ -15,6 +15,7 @@ from schemas.invoice import Invoice
 from utils.formatting import format_currency, format_date
 from utils.logo import resolve_logo
 from builders._shared import (
+    build_footer_text,
     build_line_items,
     build_line_items_meta,
     build_totals,
@@ -91,6 +92,10 @@ def build_invoice_context(doc: Invoice) -> dict:
 
         # ── Notes ─────────────────────────────────────────────────────────
         "notes": doc.notes,
+
+        # ── Footer ────────────────────────────────────────────────────────
+        # Derived from issuer info — no additional fields needed
+        "footer_text": build_footer_text(doc.issuer),
 
         # ── Template infrastructure ───────────────────────────────────────
         # theme_css: primary colour override (if any) + invoice component styles

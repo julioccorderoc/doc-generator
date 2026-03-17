@@ -15,6 +15,7 @@ from schemas.purchase_order import PurchaseOrder
 from utils.formatting import format_date
 from utils.logo import resolve_logo
 from builders._shared import (
+    build_footer_text,
     build_line_items,
     build_line_items_meta,
     build_totals,
@@ -63,6 +64,10 @@ def build_po_context(doc: PurchaseOrder) -> dict:
 
         # ── Notes ─────────────────────────────────────────────────────────
         "notes": doc.notes,
+
+        # ── Footer ────────────────────────────────────────────────────────
+        # Derived from buyer info — no additional fields needed
+        "footer_text": build_footer_text(doc.buyer),
 
         # ── Template infrastructure ───────────────────────────────────────
         # css_path: absolute file:// URI for base stylesheet (required by base.html)

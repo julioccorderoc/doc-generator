@@ -10,5 +10,6 @@
 <body>
   {% block header %}{% endblock %}
   {% block content %}{% endblock %}
+  {% block footer %}{% if footer_text is defined and footer_text %}<div class="doc-footer">{{ footer_text }}</div>{% endif %}{% endblock %}
 </body>
 </html>

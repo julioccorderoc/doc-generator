@@ -71,6 +71,26 @@ def build_totals(doc) -> dict:
     }
 
 
+# ── Footer ─────────────────────────────────────────────────────────────────
+
+def build_footer_text(party) -> str:
+    """Build the one-line footer text from a party object (buyer or issuer).
+
+    Collapses multiline addresses to a single line. Phone and email are
+    included only when present. Returns a '·'-separated string for use
+    in the doc-footer bar.
+    """
+    addr_oneline = ", ".join(
+        line.strip() for line in party.address.split("\n") if line.strip()
+    )
+    parts = [party.name, addr_oneline]
+    if party.phone:
+        parts.append(party.phone)
+    if party.email:
+        parts.append(party.email)
+    return " · ".join(parts)
+
+
 # ── Template infrastructure ────────────────────────────────────────────────
 
 def get_css_path() -> Markup:
