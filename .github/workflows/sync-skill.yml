@@ -20,23 +20,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AGENT_SKILLS_PAT }}
         run: |
+          BRANCH="sync-doc-generator-$(date +%Y%m%d)"
+
           # Clone your fork of vercel-labs/agent-skills
           git clone https://x-access-token:${GH_TOKEN}@github.com/julioccorderoc/agent-skills.git
           cd agent-skills
+
+          # Create or reset the sync branch from main
+          git checkout -B "$BRANCH"
 
           # Create or update the skill file
           mkdir -p skills/doc-generator
           cp ../SKILL.md skills/doc-generator/SKILL.md
 
-          # Commit and push to a sync branch
-          git checkout -b sync-doc-generator-$(date +%Y%m%d)
+          # Commit and force-push (safe: this is our own fork's ephemeral sync branch)
           git add skills/doc-generator/SKILL.md
           git commit -m "sync: update doc-generator SKILL.md from source repo"
-          git push origin HEAD
+          git push origin HEAD --force
 
-          # Open PR using gh CLI
+          # Open PR — silently skip if one already exists for this branch
           gh pr create \
             --repo vercel-labs/agent-skills \
             --title "sync: update doc-generator SKILL.md" \
             --body "Automated sync from https://github.com/julioccorderoc/doc-generator" \
-            --head "julioccorderoc:sync-doc-generator-$(date +%Y%m%d)"
+            --head "julioccorderoc:${BRANCH}" \
+            || echo "PR already open for ${BRANCH} — branch updated in place."
