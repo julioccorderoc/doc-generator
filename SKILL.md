@@ -33,6 +33,17 @@ Invoke this skill when the user asks to **create, generate, or produce** any of 
 
 If the user requests a document type not in this table, inform them it is not yet supported and list what is available.
 
+## Reference Files
+
+Before collecting data for any doc type, read the corresponding reference file from the project root:
+
+| Doc type | Reference file |
+| --- | --- |
+| `purchase_order` | `references/purchase_order.md` |
+| `invoice` | `references/invoice.md` |
+
+Each reference file is the source of truth for: all fields (required/optional) with when-to-ask guidance, service line handling, payment status rules (invoice), validation rules, and payload construction notes including a minimal shape and field encoding.
+
 ## Universal Rules
 
 ### Computed fields — never ask
@@ -77,87 +88,6 @@ Identify all missing required fields and ask for them together. Do not ask field
 ### Confirm before generating
 
 Once all required data is collected, show a brief summary (document type, number, parties, number of line items, grand total if calculable) and ask for confirmation before running the CLI.
-
-## Data Collection Protocol — Purchase Order
-
-### Required fields to collect
-
-1. **PO number** — suggest format `PO-YYYY-NNNN` if not provided.
-2. **Buyer** — the company issuing the PO.
-   - `buyer.name` — legal company name.
-   - `buyer.address` — full mailing address (multiline OK, use `\n`).
-3. **Vendor** — the supplier receiving the PO.
-   - `vendor.name` — legal company name.
-   - `vendor.address` — full mailing address.
-4. **Line items** — at least one item:
-   - `description` — what is being ordered.
-   - `quantity` — number ordered (can be decimal; service lines allowed).
-   - `unit_price` — price per unit in USD.
-
-### Optional fields — ask when relevant
-
-| Field | When to ask |
-| --- | --- |
-| `buyer.contact_name`, `buyer.email`, `buyer.phone` | Ask once: "Any contact details for the buyer?" |
-| `vendor.contact_name`, `vendor.email`, `vendor.phone` | Ask once: "Any contact details for the vendor?" |
-| `delivery_date` | Ask if not mentioned. Strongly recommended. |
-| `payment_terms` | Ask if not mentioned (e.g. "Net 30", "Due on receipt"). |
-| `shipping_method` | Ask if the order involves physical goods. |
-| `shipping_cost` | Ask if shipping is at a flat rate. Default: `0.00`. |
-| `tax_rate` | Ask if applicable. Provide as a decimal (e.g. `0.08` for 8%). |
-| `notes` | Ask: "Any notes, instructions, or terms to include?" |
-| `line_item.unit` | Ask per line item if not implied (e.g. `kg`, `hrs`, `boxes`). Default: `units`. |
-| `line_item.sku` | Ask if the buyer or vendor uses SKU/part numbers. |
-| `buyer.logo` | Ask only if the user mentions a logo. Ask for file path or URL. |
-
-### Service lines (`count_units`)
-
-If a line item is clearly a service (labour, consulting, preparation, setup fee, etc.), ask:
-> "Should this line be excluded from the total unit count? (It's a service, not a physical item.)"
-
-If yes: set `count_units: false`. Default is `true` (counted).
-
-## Data Collection Protocol — Invoice
-
-### Required invoice fields
-
-1. **Invoice number** — suggest format `INV-YYYY-NNNN` if not provided.
-2. **Issuer** — the party sending the invoice (the one being paid).
-   - `issuer.name` — **ask: "What is your name or business name?"** — do not assume company; this field accepts both a person's name (contractor) and a company name.
-   - `issuer.address` — full mailing address.
-3. **Bill To** — the client being billed.
-   - `bill_to.name` — legal name of the client (company or individual).
-   - `bill_to.address` — full mailing address.
-4. **Line items** — at least one item:
-   - `description` — what is being invoiced.
-   - `quantity` — hours worked, items delivered, etc. (can be decimal).
-   - `unit_price` — price per unit in USD.
-
-### Optional invoice fields
-
-| Field | When to ask |
-| --- | --- |
-| `issuer.contact_name`, `issuer.email`, `issuer.phone` | Ask once: "Any contact details to show on the invoice?" |
-| `bill_to.contact_name`, `bill_to.email`, `bill_to.phone` | Ask once: "Any contact details for the recipient?" |
-| `due_date` | Ask: "When is payment due?" Strongly recommended. Must be on or after `issue_date`. |
-| `payment_terms` | Ask if not implied by due_date (e.g. "Net 30"). |
-| `tax_rate` | Ask if applicable. Provide as a decimal (e.g. `0.10` for 10%). |
-| `shipping_cost` | Ask if the invoice includes a shipping or delivery fee. |
-| `notes` | Ask: "Any notes or additional terms to include?" |
-| `line_item.unit` | Ask per line item if not implied (e.g. `hrs`, `days`, `units`). |
-| `line_item.sku` | Ask if relevant (product codes, service reference numbers). |
-| `issuer.logo` | Ask only if the user mentions a logo. Ask for file path or URL. |
-| `payment_details` | Ask: "Do you want to include payment instructions (bank details, PayPal, etc.)?" If yes, collect as many `{label, value}` pairs as needed. |
-
-### Payment status
-
-- If the user mentions the invoice has already been paid (fully): set `paid: true`, ask for `amount_paid`.
-- If the user mentions partial payment received: set `paid: false`, set `amount_paid` to the amount received.
-- If no payment mentioned: apply defaults (`paid: false`, `amount_paid: 0.00`) silently.
-
-### Invoice service lines
-
-Same rule as Purchase Order: if a line item is a service, ask whether to exclude it from total units. Set `count_units: false` if yes.
 
 ## Invocation
 
@@ -232,61 +162,3 @@ Validation failed:
 | `must contain at least one line item` | "At least one line item is required." |
 
 After presenting the error, ask the user to correct the problematic values and offer to regenerate.
-
-## Payload Construction Reference
-
-### `purchase_order` minimal payload shape
-
-```json
-{
-  "po_number": "PO-2026-0001",
-  "issue_date": "2026-03-16",
-  "buyer": {
-    "name": "...",
-    "address": "..."
-  },
-  "vendor": {
-    "name": "...",
-    "address": "..."
-  },
-  "line_items": [
-    {
-      "description": "...",
-      "quantity": 1,
-      "unit_price": 10.00
-    }
-  ]
-}
-```
-
-### `invoice` minimal payload shape
-
-```json
-{
-  "invoice_number": "INV-2026-0001",
-  "issue_date": "2026-03-16",
-  "issuer": {
-    "name": "...",
-    "address": "..."
-  },
-  "bill_to": {
-    "name": "...",
-    "address": "..."
-  },
-  "line_items": [
-    {
-      "description": "...",
-      "quantity": 1,
-      "unit_price": 10.00
-    }
-  ]
-}
-```
-
-### Field encoding notes
-
-- **Addresses:** Use `\n` for line breaks within the string (e.g. `"123 Main St\nSuite 4\nNew York, NY"`).
-- **Dates:** Always `"YYYY-MM-DD"` string format.
-- **Money:** Numbers (not strings). `10.00`, not `"$10.00"`. The tool accepts `int`, `float`, or numeric strings.
-- **Computed fields:** Never included. Omit `subtotal`, `tax_amount`, `grand_total`, `balance_due`, and per-line `total` entirely.
-- **Logo:** File path (absolute or relative to project root) or `http(s)://` URL. Omit or set to `null` if not provided.

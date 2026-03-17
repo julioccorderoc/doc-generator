@@ -186,6 +186,42 @@ total_units          = 75           (50 kg + 25 kg; service line excluded)
 
 ---
 
+## Payload Construction
+
+### Minimal payload (required fields only)
+
+```json
+{
+  "po_number": "PO-2026-0001",
+  "issue_date": "2026-03-16",
+  "buyer": {
+    "name": "...",
+    "address": "..."
+  },
+  "vendor": {
+    "name": "...",
+    "address": "..."
+  },
+  "line_items": [
+    {
+      "description": "...",
+      "quantity": 1,
+      "unit_price": 10.00
+    }
+  ]
+}
+```
+
+### Field encoding notes
+
+- **Addresses:** Use `\n` for line breaks (e.g. `"123 Main St\nSuite 4\nNew York, NY"`).
+- **Dates:** Always `"YYYY-MM-DD"` string format.
+- **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
+- **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `total_units`, and per-line `total`.
+- **Logo:** File path (absolute or relative to project root) or `http(s)://` URL. Omit or set to `null` if not provided.
+
+---
+
 ## Document Layout Notes (for template authors)
 
 The PO template should follow this visual structure, top to bottom:

@@ -2,13 +2,14 @@
 
 This is the complete developer guide for adding a new document type to doc-generator.
 
-**Four files. No existing files change.**
+**Five files. No other existing files change.**
 
 ```text
 1. references/<doc_type>.md      → Define all fields, rules, computed fields, layout notes
 2. schemas/<doc_type>.py         → Pydantic v2 model derived from the reference
 3. templates/<doc_type>.html     → Jinja2 template extending base.html
-4. scripts/generate.py           → Two lines: one in REGISTRY, one in CONTEXT_BUILDERS
+4. builders/<doc_type>.py        → Context builder function (build_<doc_type>_context)
+5. builders/__init__.py          → One DocTypeConfig entry added to REGISTRY
 ```
 
 The core engine (`generate.py`), base layout (`base.html`), and stylesheet (`style.css`) are never modified when adding a document type.
@@ -83,7 +84,16 @@ A numbered list of instructions for Claude when collecting data to generate this
 
 A complete, valid JSON example with all significant fields populated. Follow it with the expected computed output showing the math.
 
-### 1.7 Document Layout Notes
+### 1.7 Payload Construction
+
+Two sub-sections:
+
+1. **Minimal payload** — a stripped-down JSON block containing only the required fields with `"..."` placeholders. This is the quick-reference shape Claude uses when building a payload.
+2. **Field encoding notes** — a short bulleted list covering: address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings, computed fields never in the payload, and logo path/URL rules.
+
+Follow the pattern established in `references/purchase_order.md` and `references/invoice.md`.
+
+### 1.8 Document Layout Notes
 
 Numbered list describing the visual structure of the document from top to bottom. Each item is one visual section. This is what the template author implements. Specify:
 
@@ -308,11 +318,11 @@ These classes are available in all templates. Do not redefine their core styles:
 
 ### 3.3 Adding doc-type-specific styles
 
-Do **not** add new CSS rules to `style.css`. Instead, define a `_MY_THEME_CSS` string constant in `generate.py` and pass it as `"theme_css": Markup(...)` in the context builder. The base template injects it as an inline `<style>` block when the variable is defined.
+Do **not** add new CSS rules to `style.css`. Instead, define a `_MY_CSS` string constant at the top of `builders/<doc_type>.py` and pass it as `"theme_css": Markup(...)` in the context builder. The base template injects it as an inline `<style>` block when the variable is defined.
 
 ```python
-# In generate.py:
-_MY_THEME_CSS = """
+# In builders/my_doc_type.py:
+_MY_CSS = """
 .my-component {
     border-top: 2pt solid var(--color-accent);
     padding: var(--spacing-md);
@@ -358,45 +368,47 @@ The `has_sku_column` boolean is computed in the context builder:
 
 ---
 
-## Step 4 — Register in `scripts/generate.py`
+## Step 4 — Write `builders/<doc_type>.py`
 
-Two lines. Nothing else changes.
+Create a context builder module in the `builders/` package. This is the only file in the package that needs to be created — no other existing files change.
 
-### 4.1 Add to REGISTRY
-
-```python
-REGISTRY: dict[str, tuple[type, str]] = {
-    "purchase_order": (PurchaseOrder, "purchase_order.html"),
-    "invoice": (Invoice, "invoice.html"),
-    "my_doc_type": (MyDocType, "my_doc_type.html"),   # ← add this line
-}
-```
-
-### 4.2 Add to CONTEXT_BUILDERS
-
-```python
-CONTEXT_BUILDERS: dict[str, callable] = {
-    "purchase_order": _build_po_context,
-    "invoice": _build_invoice_context,
-    "my_doc_type": _build_my_doc_type_context,   # ← add this line
-}
-```
-
-### 4.3 Context builder conventions
+### 4.1 Context builder conventions
 
 The context builder receives the validated model instance and returns a `dict` of display-ready values. Rules:
 
 - **No raw `Decimal` in the return dict.** All monetary values must be strings: `format_currency(doc.amount)`.
 - **No raw `date` objects.** All dates must be strings: `format_date(doc.issue_date)` or `None`.
 - **Logos must be `Markup` or `None`.** Call `resolve_logo(doc.party.logo)` then wrap: `Markup(logo_data) if logo_data else None`.
-- **`css_path` is always required** (used by `base.html`): `"css_path": Markup((ASSETS_DIR / "style.css").as_uri())`.
+- **`css_path` is always required** (used by `base.html`): call `get_css_path()` from `builders._shared`.
 - **Boolean flags for optional sections** (e.g. `show_tax`, `show_shipping`, `has_sku_column`) are computed here so templates don't contain logic.
-- **`theme_css`** (optional): `"theme_css": Markup(_MY_THEME_CSS)` if the doc type needs component styles beyond `style.css`.
+- **Reuse shared helpers** from `builders._shared` for line items and totals to avoid duplication.
+- **`theme_css`** (optional): `"theme_css": Markup(_MY_CSS)` if the doc type needs component styles beyond `style.css`.
 
-Minimal context builder skeleton:
+### 4.2 Context builder skeleton
 
 ```python
-def _build_my_doc_type_context(doc: MyDocType) -> dict:
+# builders/my_doc_type.py
+"""Context builder for MyDocType documents.
+
+Source of truth: references/my_doc_type.md
+"""
+from __future__ import annotations
+
+from markupsafe import Markup
+
+from schemas.my_doc_type import MyDocType
+from utils.formatting import format_date
+from utils.logo import resolve_logo
+from builders._shared import (
+    build_line_items,
+    build_line_items_meta,
+    build_totals,
+    get_css_path,
+    primary_color_css,
+)
+
+
+def build_my_doc_type_context(doc: MyDocType) -> dict:
     logo_data = resolve_logo(doc.issuer.logo)
 
     return {
@@ -410,27 +422,43 @@ def _build_my_doc_type_context(doc: MyDocType) -> dict:
             "logo": Markup(logo_data) if logo_data else None,
         },
         # Line items
-        "line_items": [
-            {
-                "description": item.description,
-                "quantity": format_quantity(item.quantity),
-                "unit_price": format_currency(item.unit_price),
-                "total": format_currency(item.total),
-            }
-            for item in doc.line_items
-        ],
+        "line_items": build_line_items(doc),
+        **build_line_items_meta(doc),
         # Totals
-        "grand_total": format_currency(doc.grand_total),
+        **build_totals(doc),
         # Template infrastructure
-        "css_path": Markup((ASSETS_DIR / "style.css").as_uri()),
+        "css_path": get_css_path(),
+        "theme_css": Markup(primary_color_css(doc.primary_color)) or None,
     }
 ```
 
 ---
 
-## Step 5 — Write Test Fixtures
+## Step 5 — Register in `builders/__init__.py`
 
-### 5.1 `tests/fixtures/sample_<doc_type>.json`
+One entry. Nothing else changes.
+
+```python
+# builders/__init__.py
+from schemas.my_doc_type import MyDocType
+from builders.my_doc_type import build_my_doc_type_context
+
+REGISTRY: dict[str, DocTypeConfig] = {
+    "purchase_order": DocTypeConfig(...),
+    "invoice":        DocTypeConfig(...),
+    "my_doc_type": DocTypeConfig(           # ← add this entry
+        model=MyDocType,
+        template="my_doc_type.html",
+        build_context=build_my_doc_type_context,
+    ),
+}
+```
+
+---
+
+## Step 6 — Write Test Fixtures
+
+### 6.1 `tests/fixtures/sample_<doc_type>.json`
 
 A complete, valid payload that exercises the key features of the doc type:
 
@@ -441,7 +469,7 @@ A complete, valid payload that exercises the key features of the doc type:
 
 Base the payload on the example in `references/<doc_type>.md`.
 
-### 5.2 `tests/fixtures/invalid_<doc_type>.json`
+### 6.2 `tests/fixtures/invalid_<doc_type>.json`
 
 A payload that triggers multiple validation errors. Cover:
 
@@ -451,7 +479,7 @@ A payload that triggers multiple validation errors. Cover:
 
 Expected behavior: `exit code 1`, structured error printed to stdout, no PDF written.
 
-### 5.3 Additional scenario fixtures (optional)
+### 6.3 Additional scenario fixtures (optional)
 
 Add a second valid fixture for meaningfully different scenarios:
 
@@ -465,10 +493,10 @@ Add a second valid fixture for meaningfully different scenarios:
 
 Before declaring a new doc type complete:
 
-- [ ] `references/<doc_type>.md` exists with all required sections.
+- [ ] `references/<doc_type>.md` exists with all required sections (§1.1–1.8), including Payload Construction (minimal shape + encoding notes).
 - [ ] `schemas/<doc_type>.py` derived from the reference. All computed fields use `round_money()`.
 - [ ] Valid fixture generates a clean, single-page PDF with correct totals.
 - [ ] Invalid fixture exits with code 1 and a readable error (no Python traceback).
-- [ ] Adding the new doc type required zero changes to `base.html`, `style.css`, or `generate.py`'s core engine.
+- [ ] Adding the new doc type required zero changes to `base.html`, `style.css`, or `scripts/generate.py`'s core engine.
 - [ ] No raw `Decimal` or `date` objects in the template context.
 - [ ] No arithmetic or formatting logic in the Jinja2 template.

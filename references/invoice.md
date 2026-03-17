@@ -237,6 +237,42 @@ total_units          = 2           (only the label design line counts)
 
 ---
 
+## Payload Construction
+
+### Minimal payload (required fields only)
+
+```json
+{
+  "invoice_number": "INV-2026-0001",
+  "issue_date": "2026-03-16",
+  "issuer": {
+    "name": "...",
+    "address": "..."
+  },
+  "bill_to": {
+    "name": "...",
+    "address": "..."
+  },
+  "line_items": [
+    {
+      "description": "...",
+      "quantity": 1,
+      "unit_price": 10.00
+    }
+  ]
+}
+```
+
+### Field encoding notes
+
+- **Addresses:** Use `\n` for line breaks (e.g. `"123 Main St\nSuite 4\nNew York, NY"`).
+- **Dates:** Always `"YYYY-MM-DD"` string format.
+- **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
+- **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `balance_due`, `total_units`, and per-line `total`.
+- **Logo:** File path (absolute or relative to project root) or `http(s)://` URL. Omit or set to `null` if not provided.
+
+---
+
 ## Document Layout Notes (for template authors)
 
 The invoice template should follow this visual structure, top to bottom:

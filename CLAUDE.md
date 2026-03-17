@@ -65,7 +65,7 @@ Agents should capture stdout and check the exit code to determine success or fai
 doc-generator/
 │
 ├── CLAUDE.md                    ← You are here. Entry point for all AI agents.
-├── SKILL.md                     ← Claude-specific skill instructions — uses {{PROJECT_ROOT}} placeholder (substituted by install.sh)
+├── SKILL.md                     ← Claude-specific skill instructions (orchestration layer: trigger conditions, invocation, error relay — delegates data collection detail to references/<doc_type>.md) — uses {{PROJECT_ROOT}} placeholder (substituted by install.sh)
 ├── install.sh                   ← One-command installer: clones repo, uv sync, pango, patches SKILL.md with real path
 │
 ├── .claude/
@@ -79,7 +79,13 @@ doc-generator/
 ├── uv.lock                      ← Locked dependency versions (auto-managed by uv)
 │
 ├── scripts/
-│   └── generate.py              ← CLI entrypoint: --doc_type, --payload, --preview
+│   └── generate.py              ← Thin CLI entrypoint: argparse + generation pipeline (~95 lines)
+│
+├── builders/                    ← Context builder package — one module per doc type
+│   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY (single registration point)
+│   ├── _shared.py               ← Shared helpers: build_line_items, build_totals, get_css_path, etc.
+│   ├── purchase_order.py        ← build_po_context(): PO-specific template context
+│   └── invoice.py               ← build_invoice_context() + invoice-specific CSS string
 │
 ├── schemas/
 │   ├── base.py                  ← Shared base classes and mixins (MoneyMixin, etc.)
@@ -87,6 +93,7 @@ doc-generator/
 │   └── invoice.py               ← Pydantic v2 model for Invoices
 │
 ├── utils/
+│   ├── paths.py                 ← Project root path constants (ROOT, TEMPLATES_DIR, ASSETS_DIR)
 │   ├── formatting.py            ← Currency formatting (USD/American: $1,234.56), date formatting
 │   ├── file_naming.py           ← Auto-naming logic: <doc_type>_YYYYMMDD_XXXX.pdf
 │   ├── logo.py                  ← Logo resolver: accepts file path or URL, returns base64 data URI
@@ -162,16 +169,17 @@ The Pydantic model and Jinja2 template are derived from the reference. The refer
 
 ## How to Add a New Document Type
 
-Four steps. No other files change.
+Five files. No other existing files change.
 
 ```text
-1. Add references/<doc_type>.md       → Define all fields, rules, computed fields, layout notes
-2. Add schemas/<doc_type>.py          → Pydantic v2 model derived from the reference
-3. Add templates/<doc_type>.html      → Jinja2 template extending base.html
-4. Register in scripts/generate.py   → Add one entry to the REGISTRY dict
+1. Add references/<doc_type>.md    → Define all fields, rules, computed fields, layout notes
+2. Add schemas/<doc_type>.py       → Pydantic v2 model derived from the reference
+3. Add templates/<doc_type>.html   → Jinja2 template extending base.html
+4. Add builders/<doc_type>.py      → build_<doc_type>_context() function
+5. Register in builders/__init__.py → Add one DocTypeConfig entry to REGISTRY
 ```
 
-That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type.
+That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type. See `references/EXTENDING.md` for full step-by-step guidance.
 
 ---
 

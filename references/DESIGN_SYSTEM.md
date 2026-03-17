@@ -36,7 +36,7 @@ Two user-chosen primaries; all others derived or fixed.
 
 ### Semantic Colors (doc-type-specific, not in style.css)
 
-These values live inside `_INVOICE_THEME_CSS` in `scripts/generate.py`. They are fixed and not overridable via `primary_color`.
+These values live inside `_INVOICE_CSS` in `builders/invoice.py`. They are fixed and not overridable via `primary_color`.
 
 | Usage | Value |
 |---|---|
@@ -187,9 +187,9 @@ Format: any valid CSS color string (hex recommended). No format validation is pe
 
 ## Doc-Type-Specific Styles
 
-New CSS rules for a doc type must **never** be added to `style.css`. Define a `_MY_THEME_CSS` constant in `generate.py` and pass it as `"theme_css": Markup(...)` in the context builder. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts.
+New CSS rules for a doc type must **never** be added to `style.css`. Define a `_MY_CSS` string constant at the top of `builders/<doc_type>.py` and pass it as `"theme_css": Markup(...)` in the context builder. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts.
 
-See `_INVOICE_THEME_CSS` in `scripts/generate.py` as the reference implementation.
+See `_INVOICE_CSS` in `builders/invoice.py` as the reference implementation.
 
 ---
 
@@ -198,6 +198,6 @@ See `_INVOICE_THEME_CSS` in `scripts/generate.py` as the reference implementatio
 | File | Owns |
 |---|---|
 | `assets/style.css` | All base layout, palette variables, shared component styles |
-| `scripts/generate.py` (`_INVOICE_THEME_CSS` etc.) | Doc-type-specific component styles |
+| `builders/<doc_type>.py` (`_INVOICE_CSS` etc.) | Doc-type-specific component styles |
 | `assets/themes/` | Named theme override files (future) |
 | Payload `primary_color` field | Per-document brand color override injected at render time |
