@@ -1,13 +1,11 @@
 ---
 name: doc-generator
-description: "Generates professional PDF business documents — purchase orders (PO) and invoices — from user-provided data. Handles data collection, validation, and PDF generation via a schema-driven CLI tool. Use this skill whenever the user mentions creating, generating, or sending any of: purchase order, PO, invoice, bill, or any formal commercial document for goods or services — even if phrased casually ('make a PO for Acme', 'need to invoice a client', 'bill someone for work done', 'write up a purchase order'). This skill manages the full workflow: collecting required fields, applying smart defaults, building the JSON payload, running the CLI, and presenting the PDF path and key figures."
+description: "Generates professional PDF business documents (purchase orders (PO) and invoices) from user-provided data. Handles data collection, validation, and PDF generation via a schema-driven CLI tool. Use this skill whenever the user mentions creating, generating, or sending any of: purchase order, PO, invoice, bill, or any formal commercial document for goods or services, even if phrased casually ('make a PO for Acme', 'need to invoice a client', 'bill someone for work done', 'write up a purchase order'). This skill manages the full workflow: collecting required fields, applying smart defaults, building the JSON payload, running the CLI, and presenting the PDF path and key figures."
 ---
 
 # doc-generator
 
-Claude's operating instructions for generating business documents using the doc-generator CLI. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation.
-
----
+Claude's operating instructions for generating business documents using the doc-generator CLI. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation
 
 ## Trigger Conditions
 
@@ -26,8 +24,6 @@ Invoke this skill when the user asks to **create, generate, or produce** any of 
 - The user wants to edit an existing PDF that was already generated.
 - The user is asking a general question about POs or invoices without wanting to create one.
 
----
-
 ## Supported Document Types
 
 | `doc_type` slug | Human name | Required fields (minimum) |
@@ -36,8 +32,6 @@ Invoke this skill when the user asks to **create, generate, or produce** any of 
 | `invoice` | Invoice | `invoice_number`, `issuer.name`, `issuer.address`, `bill_to.name`, `bill_to.address`, at least 1 line item with `description`, `quantity`, `unit_price` |
 
 If the user requests a document type not in this table, inform them it is not yet supported and list what is available.
-
----
 
 ## Universal Rules
 
@@ -84,8 +78,6 @@ Identify all missing required fields and ask for them together. Do not ask field
 
 Once all required data is collected, show a brief summary (document type, number, parties, number of line items, grand total if calculable) and ask for confirmation before running the CLI.
 
----
-
 ## Data Collection Protocol — Purchase Order
 
 ### Required fields to collect
@@ -124,8 +116,6 @@ If a line item is clearly a service (labour, consulting, preparation, setup fee,
 > "Should this line be excluded from the total unit count? (It's a service, not a physical item.)"
 
 If yes: set `count_units: false`. Default is `true` (counted).
-
----
 
 ## Data Collection Protocol — Invoice
 
@@ -169,8 +159,6 @@ If yes: set `count_units: false`. Default is `true` (counted).
 
 Same rule as Purchase Order: if a line item is a service, ask whether to exclude it from total units. Set `count_units: false` if yes.
 
----
-
 ## Invocation
 
 ### 1. Write the payload to a temp file
@@ -187,7 +175,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --payload <path_to_payload_file>
 ```
 
-Run from the project root: `/Users/juliocordero/Documents/NCL/doc-generator`
+Run from the project root: `{{PROJECT_ROOT}}`
 
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 
@@ -195,8 +183,6 @@ Run from the project root: `/Users/juliocordero/Documents/NCL/doc-generator`
 
 - **Exit code 0:** stdout contains the output file path (e.g. `output/purchase_order_20260316_0001.pdf`). Generation succeeded.
 - **Exit code 1:** stdout contains an error message. Generation failed.
-
----
 
 ## Output Presentation
 
@@ -224,8 +210,6 @@ Highlight both grand total and balance due:
 
 > That document type is not currently supported. Supported types: `purchase_order`, `invoice`.
 
----
-
 ## Validation Error Relay
 
 If the CLI exits with code 1, stdout contains a structured error from Pydantic in this format:
@@ -248,8 +232,6 @@ Validation failed:
 | `must contain at least one line item` | "At least one line item is required." |
 
 After presenting the error, ask the user to correct the problematic values and offer to regenerate.
-
----
 
 ## Payload Construction Reference
 
