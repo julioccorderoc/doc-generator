@@ -21,97 +21,15 @@ from builders._shared import (
     get_css_path,
     primary_color_css,
 )
+from utils.paths import ASSETS_DIR
 
 
-# Invoice-specific component styles.
-#
+# Invoice-specific component styles loaded from assets/invoice.css.
 # Injected as an inline <style> block via the `theme_css` context variable.
-# Lives here (not in assets/style.css) because these classes are only
-# relevant to this document type. All values reference CSS custom properties
-# from the design system — no hardcoded colours, sizes, or fonts.
-#
+# All values reference CSS custom properties from the design system —
+# no hardcoded colours, sizes, or fonts.
 # See references/DESIGN_SYSTEM.md for the full variable reference.
-_INVOICE_CSS = """
-/* ── Invoice-specific component styles ─────────────────── */
-
-/* Status strip — rendered between header and address block */
-.status-strip {
-    padding: 6pt 20pt;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: var(--spacing-lg);
-    border-radius: var(--radius-sm);
-}
-
-.status-strip--paid {
-    background: #f0fdf4;
-    color: #15803d;
-    border-left: 3pt solid #16a34a;
-}
-
-.status-strip--partial {
-    background: #fffbeb;
-    color: #b45309;
-    border-left: 3pt solid #f59e0b;
-}
-
-/* Amount Paid row — green text both columns */
-.totals__table .totals__amount-paid td:first-child { color: #16a34a; }
-.totals__table .totals__amount-paid td:last-child  { color: #16a34a; font-weight: var(--font-weight-medium); }
-
-/* Balance Due — 2pt accent rule above, bold primary, no background fill.
-   Qualified with .totals__table (specificity 0,2,1) to beat the base
-   .totals__table td:first-child rule (specificity 0,1,2). */
-.totals__table .totals__balance td {
-    border-top: 2pt solid var(--color-accent);
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-balance);
-    padding-top: var(--spacing-xs);
-    padding-bottom: var(--spacing-sm);
-}
-
-.totals__table .totals__balance td:first-child {
-    color: var(--color-primary);
-}
-
-.totals__table .totals__balance td:last-child {
-    color: var(--color-primary);
-    font-weight: var(--font-weight-bold);
-}
-
-.payment-details {
-    margin-top: var(--spacing-md);
-    border-top: 1pt solid var(--color-border-light);
-    padding-top: var(--spacing-md);
-}
-
-.payment-details__title {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-    margin-bottom: var(--spacing-sm);
-}
-
-.payment-details__table { border-collapse: collapse; }
-
-.payment-details__label {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    padding: 3pt var(--spacing-md) 3pt 0;
-    white-space: nowrap;
-}
-
-.payment-details__value {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-    padding: 3pt 0;
-}
-"""
+_INVOICE_CSS: str = (ASSETS_DIR / "invoice.css").read_text(encoding="utf-8")
 
 
 def build_invoice_context(doc: Invoice) -> dict:

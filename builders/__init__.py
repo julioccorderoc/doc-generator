@@ -16,12 +16,21 @@ Usage in the pipeline (scripts/generate.py):
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Type
+from typing import Any, Protocol, Type
 
 from schemas.purchase_order import PurchaseOrder
 from schemas.invoice import Invoice
 from builders.purchase_order import build_po_context
 from builders.invoice import build_invoice_context
+
+
+class ContextBuilder(Protocol):
+    """Protocol for context builder callables.
+
+    Any function with signature ``(doc: Any) -> dict`` satisfies this protocol.
+    Provides better IDE support and static analysis than bare ``Callable``.
+    """
+    def __call__(self, doc: Any) -> dict: ...
 
 
 @dataclass(frozen=True)
@@ -36,7 +45,7 @@ class DocTypeConfig:
     """
     model: Type
     template: str
-    build_context: Callable
+    build_context: ContextBuilder
 
 
 # ── Document type registry ─────────────────────────────────────────────────

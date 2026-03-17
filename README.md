@@ -137,6 +137,12 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
   --payload tests/fixtures/invalid_po.json
 ```
 
+**Run the test suite** (no Pango or display needed):
+
+```bash
+uv run pytest
+```
+
 Full field references — all optional fields, validation rules, and example payloads with expected computed output:
 
 - [references/purchase_order.md](references/purchase_order.md)
@@ -182,7 +188,7 @@ doc-generator/
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY
 │   ├── _shared.py               ← Shared helpers (build_line_items, build_totals, etc.)
 │   ├── purchase_order.py        ← build_po_context()
-│   └── invoice.py               ← build_invoice_context() + invoice-specific CSS
+│   └── invoice.py               ← build_invoice_context(); loads CSS from assets/invoice.css
 │
 ├── templates/
 │   ├── base.html                ← Shared page layout
@@ -190,7 +196,8 @@ doc-generator/
 │   └── invoice.html             ← Invoice Jinja2 template
 │
 ├── assets/
-│   └── style.css                ← Base stylesheet (CSS custom properties only)
+│   ├── style.css                ← Base stylesheet (CSS custom properties only)
+│   └── invoice.css              ← Invoice-specific component styles
 │
 ├── references/
 │   ├── purchase_order.md        ← Source of truth for the purchase_order doc type
@@ -199,6 +206,8 @@ doc-generator/
 │   └── DESIGN_SYSTEM.md         ← Visual source of truth: palette, typography, totals design, theming
 │
 ├── tests/
+│   ├── test_schemas.py          ← Schema validation and computed field tests (no system deps)
+│   ├── test_builders.py         ← Context builder output shape and type-safety tests
 │   └── fixtures/
 │       ├── sample_po.json       ← Valid PO payload
 │       ├── invalid_po.json      ← PO with missing required fields (expected: validation error)

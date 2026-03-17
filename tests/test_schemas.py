@@ -1,0 +1,153 @@
+"""Tests for Pydantic schema validation and computed fields.
+
+No system dependencies — no WeasyPrint, no Pango, no display.
+Loads fixtures from tests/fixtures/ and validates against the schemas.
+"""
+from __future__ import annotations
+
+import json
+from decimal import Decimal
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
+from schemas.purchase_order import PurchaseOrder
+from schemas.invoice import Invoice
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def load(name: str) -> dict:
+    return json.loads((FIXTURES / name).read_text())
+
+
+# ── Valid fixtures load without errors ────────────────────────────────────────
+
+def test_sample_po_loads():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    assert doc.po_number == "PO-2026-0001"
+
+
+def test_sample_invoice_loads():
+    doc = Invoice(**load("sample_invoice.json"))
+    assert doc.invoice_number == "INV-2026-0001"
+
+
+def test_sample_invoice_contractor_loads():
+    doc = Invoice(**load("sample_invoice_contractor.json"))
+    assert doc.invoice_number == "INV-2026-C001"
+
+
+# ── Computed fields: Purchase Order ───────────────────────────────────────────
+
+def test_po_line_item_totals():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    # Organic Ashwagandha: 50 × 24.00 = 1200.00
+    assert doc.line_items[0].total == Decimal("1200.00")
+    # Magnesium Glycinate: 25 × 18.50 = 462.50
+    assert doc.line_items[1].total == Decimal("462.50")
+    # Capsule Filling: 10 × 85.00 = 850.00
+    assert doc.line_items[2].total == Decimal("850.00")
+
+
+def test_po_subtotal():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    # 1200.00 + 462.50 + 850.00 = 2512.50
+    assert doc.subtotal == Decimal("2512.50")
+
+
+def test_po_tax_amount():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    # 2512.50 × 0.08 = 201.00
+    assert doc.tax_amount == Decimal("201.00")
+
+
+def test_po_grand_total():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    # 2512.50 + 201.00 + 15.00 = 2728.50
+    assert doc.grand_total == Decimal("2728.50")
+
+
+def test_po_total_units_excludes_service_lines():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    # items[0]=50 + items[1]=25; items[2] has count_units=False
+    assert doc.total_units == Decimal("75")
+
+
+# ── Computed fields: Invoice ──────────────────────────────────────────────────
+
+def test_invoice_line_item_totals():
+    doc = Invoice(**load("sample_invoice.json"))
+    # Product Formulation: 8 × 200.00 = 1600.00
+    assert doc.line_items[0].total == Decimal("1600.00")
+    # Regulatory Compliance: 3 × 250.00 = 750.00
+    assert doc.line_items[1].total == Decimal("750.00")
+    # Label Design: 2 × 375.00 = 750.00
+    assert doc.line_items[2].total == Decimal("750.00")
+
+
+def test_invoice_subtotal():
+    doc = Invoice(**load("sample_invoice.json"))
+    # 1600.00 + 750.00 + 750.00 = 3100.00
+    assert doc.subtotal == Decimal("3100.00")
+
+
+def test_invoice_tax_amount():
+    doc = Invoice(**load("sample_invoice.json"))
+    # 3100.00 × 0.10 = 310.00
+    assert doc.tax_amount == Decimal("310.00")
+
+
+def test_invoice_grand_total():
+    doc = Invoice(**load("sample_invoice.json"))
+    # 3100.00 + 310.00 + 0.00 = 3410.00
+    assert doc.grand_total == Decimal("3410.00")
+
+
+def test_invoice_balance_due():
+    doc = Invoice(**load("sample_invoice.json"))
+    # 3410.00 - 825.00 = 2585.00
+    assert doc.balance_due == Decimal("2585.00")
+
+
+def test_invoice_contractor_no_tax():
+    doc = Invoice(**load("sample_invoice_contractor.json"))
+    assert doc.tax_rate == Decimal("0.00")
+    assert doc.tax_amount == Decimal("0.00")
+
+
+def test_invoice_contractor_grand_total():
+    doc = Invoice(**load("sample_invoice_contractor.json"))
+    # 3040.00 + 1140.00 + 260.00 = 4440.00
+    assert doc.grand_total == Decimal("4440.00")
+
+
+def test_invoice_contractor_balance_due_equals_grand_total():
+    doc = Invoice(**load("sample_invoice_contractor.json"))
+    # amount_paid defaults to 0
+    assert doc.balance_due == doc.grand_total
+
+
+# ── Invalid fixtures raise ValidationError ───────────────────────────────────
+
+def test_invalid_po_raises_validation_error():
+    with pytest.raises(ValidationError) as exc_info:
+        PurchaseOrder(**load("invalid_po.json"))
+    errors = exc_info.value.errors()
+    field_paths = [" → ".join(str(p) for p in e["loc"]) for e in errors]
+    assert any("tax_rate" in p for p in field_paths)
+    assert any("name" in p for p in field_paths)
+    assert any("address" in p for p in field_paths)
+    assert any("quantity" in p for p in field_paths)
+
+
+def test_invalid_invoice_raises_validation_error():
+    with pytest.raises(ValidationError) as exc_info:
+        Invoice(**load("invalid_invoice.json"))
+    errors = exc_info.value.errors()
+    # missing invoice_number + tax_rate out of range + bill_to.address missing
+    assert exc_info.value.error_count() >= 2
+    field_paths = [" → ".join(str(p) for p in e["loc"]) for e in errors]
+    assert any("invoice_number" in p for p in field_paths)
+    assert any("tax_rate" in p for p in field_paths)

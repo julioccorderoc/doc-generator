@@ -36,7 +36,7 @@ Two user-chosen primaries; all others derived or fixed.
 
 ### Semantic Colors (doc-type-specific, not in style.css)
 
-These values live inside `_INVOICE_CSS` in `builders/invoice.py`. They are fixed and not overridable via `primary_color`.
+These values live in `assets/invoice.css`. They are fixed and not overridable via `primary_color`.
 
 | Usage | Value |
 |---|---|
@@ -94,7 +94,7 @@ The document header is a full-width dark bar.
 
 ### Row anatomy (top to bottom)
 
-```
+```text
 Total Units            [n]          ← 10pt bold primary; bottom border separates from financials
 ──────────────────────────────────  ← (units border)
 Subtotal             $xxx.xx        ← 8.5pt, muted label / medium value
@@ -111,7 +111,7 @@ Balance Due          $x,xxx.xx      ← 13pt bold --color-primary — biggest nu
 ### CSS responsibility split
 
 - **`style.css`** owns: `.totals__units`, `.totals__divider`, `.totals__grand`
-- **`_INVOICE_THEME_CSS`** owns: `.totals__amount-paid`, `.totals__balance`
+- **`assets/invoice.css`** owns: `.totals__amount-paid`, `.totals__balance`
 
 ### Specificity rules
 
@@ -147,10 +147,12 @@ The general rule `.totals__table td:first-child` (specificity 0,1,2) sets `color
 Any document type can accept an optional `primary_color: string` field in the payload.
 
 **What it overrides:**
+
 - `--color-primary` — affects: company names in address block, Grand Total / Balance Due text
 - `--color-bg-header` — header bar background
 
 **What it does not override:**
+
 - `--color-accent` — stays `#65C08E`
 - Status strip colors, Amount Paid green, and any other semantic fixed colors
 
@@ -166,8 +168,8 @@ if doc.primary_color:
 # For PO (no other theme CSS):
 "theme_css": Markup(color_override) if color_override else None
 
-# For Invoice (combined with invoice-specific CSS):
-"theme_css": Markup(color_override + _INVOICE_THEME_CSS)
+# For Invoice (combined with invoice-specific CSS from assets/invoice.css):
+"theme_css": Markup(color_override + _INVOICE_CSS)
 ```
 
 The `:root` block is injected after `style.css` loads, so it takes precedence.
@@ -187,9 +189,15 @@ Format: any valid CSS color string (hex recommended). No format validation is pe
 
 ## Doc-Type-Specific Styles
 
-New CSS rules for a doc type must **never** be added to `style.css`. Define a `_MY_CSS` string constant at the top of `builders/<doc_type>.py` and pass it as `"theme_css": Markup(...)` in the context builder. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts.
+New CSS rules for a doc type must **never** be added to `style.css`. Place them in `assets/<doc_type>.css` and load the file at module level in `builders/<doc_type>.py`:
 
-See `_INVOICE_CSS` in `builders/invoice.py` as the reference implementation.
+```python
+_MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
+```
+
+Then pass it as `"theme_css": Markup(...)` in the context builder. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts.
+
+See `assets/invoice.css` + `builders/invoice.py` as the reference implementation.
 
 ---
 
@@ -198,6 +206,6 @@ See `_INVOICE_CSS` in `builders/invoice.py` as the reference implementation.
 | File | Owns |
 |---|---|
 | `assets/style.css` | All base layout, palette variables, shared component styles |
-| `builders/<doc_type>.py` (`_INVOICE_CSS` etc.) | Doc-type-specific component styles |
+| `assets/<doc_type>.css` (e.g. `invoice.css`) | Doc-type-specific component styles — loaded at module level in `builders/<doc_type>.py` |
 | `assets/themes/` | Named theme override files (future) |
 | Payload `primary_color` field | Per-document brand color override injected at render time |

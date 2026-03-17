@@ -16,18 +16,6 @@ The core engine (`generate.py`), base layout (`base.html`), and stylesheet (`sty
 
 ---
 
-## Table of Contents
-
-- [Step 1 — Reference file](#step-1--write-referencesdoc_typemd)
-- [Step 2 — Schema](#step-2--write-schemasdoc_typepy)
-- [Step 3 — Template](#step-3--write-templatesdoc_typehtml)
-- [Step 4 — Context builder](#step-4--write-buildersdoc_typepy)
-- [Step 5 — Registration](#step-5--register-in-builders__init__py)
-- [Step 6 — Test fixtures](#step-6--write-test-fixtures)
-- [Acceptance checklist](#acceptance-checklist)
-
----
-
 ## Step 1 — Write `references/<doc_type>.md`
 
 The reference file is the **source of truth**. Write it first. The schema and template are derived from it. Never derive the reference from the code.
@@ -115,7 +103,13 @@ Every template starts with `{% extends "base.html" %}`. `base.html` provides the
 
 ### 3.2 Doc-type-specific styles
 
-Never add to `style.css`. Define a `_MY_CSS` string constant at the top of `builders/<doc_type>.py` and pass it as `"theme_css": Markup(...)` in the context builder. All values must use `var(--)` from DESIGN_SYSTEM.md.
+Never add to `style.css`. Place doc-type-specific CSS in `assets/<doc_type>.css` and load it at module level in `builders/<doc_type>.py`:
+
+```python
+_MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
+```
+
+Pass it as `"theme_css": Markup(_MY_CSS)` (combined with any `primary_color_css` override) in the context builder. All values must use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as the reference implementation.
 
 **Specificity note:** The base rule `.totals__table td:first-child` (specificity 0,1,2) sets muted color on first-column cells. Override by qualifying selectors with `.totals__table` (specificity 0,2,1). See the Specificity Rules section in DESIGN_SYSTEM.md.
 

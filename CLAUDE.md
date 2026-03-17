@@ -85,7 +85,7 @@ doc-generator/
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY (single registration point)
 │   ├── _shared.py               ← Shared helpers: build_line_items, build_totals, get_css_path, etc.
 │   ├── purchase_order.py        ← build_po_context(): PO-specific template context
-│   └── invoice.py               ← build_invoice_context() + invoice-specific CSS string
+│   └── invoice.py               ← build_invoice_context(); loads CSS from assets/invoice.css
 │
 ├── schemas/
 │   ├── base.py                  ← Shared base classes and mixins (MoneyMixin, etc.)
@@ -106,6 +106,7 @@ doc-generator/
 │
 ├── assets/
 │   ├── style.css                ← Base stylesheet built entirely on CSS custom properties
+│   ├── invoice.css              ← Invoice-specific component styles (loaded by builders/invoice.py)
 │   └── themes/                  ← Future: named theme override files
 │
 ├── references/

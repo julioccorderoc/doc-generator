@@ -12,6 +12,7 @@ wheels/
 # local folders
 .ai/
 output/
+content/
 
 # local files
 NCL_LOGO_WHITE_BLUE_.png
