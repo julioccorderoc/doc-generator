@@ -7,6 +7,22 @@ A Claude skill and CLI tool for generating professional PDF business documents �
 ## Install as a Claude Skill
 
 ```bash
+npx skills add julioccorderoc/doc-generator
+```
+
+The [`npx skills`](https://github.com/vercel-labs/skills) CLI installs the skill via symlink so `npx skills update` always pulls the latest instructions.
+
+**To update:**
+
+```bash
+npx skills update
+```
+
+### Full setup (CLI + skill in one step)
+
+If you also need the PDF generation CLI on your machine (required to actually generate documents), use the installer:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
 ```
 
@@ -17,15 +33,7 @@ git clone https://github.com/julioccorderoc/doc-generator.git
 cd doc-generator && ./install.sh
 ```
 
-The installer clones the repo to `~/doc-generator`, installs Python dependencies, installs Pango on macOS, and writes a path-correct `SKILL.md` to `~/.claude/skills/doc-generator/`. Claude Code picks it up automatically — no restart required.
-
-**To update to the latest version:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
-```
-
-Running the installer again is idempotent — it pulls the latest and refreshes the skill.
+The installer clones the repo, installs Python dependencies (`uv sync`), installs Pango on macOS, and writes a path-correct skill to `~/.claude/skills/doc-generator/`. Re-running is idempotent — it updates everything.
 
 Once installed, Claude will automatically generate purchase orders and invoices when you ask — collecting the required data in a single conversational pass, then invoking the CLI and presenting the output path and key figures.
 
