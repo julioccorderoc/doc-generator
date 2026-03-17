@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Write(/tmp/doc_payload_*.json)",
+      "Bash(DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py:*)"
+    ]
+  }
+}

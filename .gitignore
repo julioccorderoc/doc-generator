@@ -15,6 +15,7 @@ output/
 
 # local files
 NCL_LOGO_WHITE_BLUE_.png
+.claude/settings.local.json
 
 # uv / macOS
 .python-version

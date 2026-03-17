@@ -184,7 +184,7 @@ You should see `doc-generator` in the list with its description.
 Just describe what you want in natural language. Examples:
 
 > "Make a purchase order for Acme Ingredients — 50 kg of Ashwagandha at $24/kg and 25 kg of Magnesium Glycinate at $18.50/kg. Net 30 terms, FedEx Ground."
-
+>
 > "Invoice our client Acme Retail for 8 hours of consulting at $200/hr and a label design for 2 SKUs at $375 each. Due April 15."
 
 Claude will:

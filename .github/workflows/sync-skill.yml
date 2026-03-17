@@ -1,0 +1,42 @@
+name: Sync SKILL.md to agent-skills registry
+
+on:
+  push:
+    branches: [master]
+    paths: [SKILL.md]
+
+jobs:
+  open-sync-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Clone agent-skills fork and update
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_SKILLS_PAT }}
+        run: |
+          # Clone your fork of vercel-labs/agent-skills
+          git clone https://x-access-token:${GH_TOKEN}@github.com/julioccorderoc/agent-skills.git
+          cd agent-skills
+
+          # Create or update the skill file
+          mkdir -p skills/doc-generator
+          cp ../SKILL.md skills/doc-generator/SKILL.md
+
+          # Commit and push to a sync branch
+          git checkout -b sync-doc-generator-$(date +%Y%m%d)
+          git add skills/doc-generator/SKILL.md
+          git commit -m "sync: update doc-generator SKILL.md from source repo"
+          git push origin HEAD
+
+          # Open PR using gh CLI
+          gh pr create \
+            --repo vercel-labs/agent-skills \
+            --title "sync: update doc-generator SKILL.md" \
+            --body "Automated sync from https://github.com/julioccorderoc/doc-generator" \
+            --head "julioccorderoc:sync-doc-generator-$(date +%Y%m%d)"

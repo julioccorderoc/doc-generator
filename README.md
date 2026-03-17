@@ -7,10 +7,16 @@ A Claude skill and CLI tool for generating professional PDF business documents â
 ## Install as a Claude Skill
 
 ```bash
-npx skills add <github-username>/doc-generator
+npx skills add julioccorderoc/doc-generator
 ```
 
-Replace `<github-username>` with the GitHub owner of this repo. The [`npx skills`](https://github.com/vercel-labs/skills) CLI clones the repo and installs the skill using a symlink, so it stays connected to the repository. Run `npx skills update` at any time to pull the latest version of `SKILL.md`.
+The [`npx skills`](https://github.com/vercel-labs/skills) CLI clones the repo and installs the skill using a symlink, so it stays connected to this repository.
+
+**To update to the latest version at any time:**
+
+```bash
+npx skills update
+```
 
 Once installed, Claude will automatically generate purchase orders and invoices when you ask â€” collecting the required data in a single conversational pass, then invoking the CLI and presenting the output path and key figures.
 
