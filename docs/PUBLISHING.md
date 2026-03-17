@@ -211,7 +211,7 @@ You should see `doc-generator` in the list.
 #### Step 5 — Staying up to date
 
 ```bash
-npx skills update          # updates SKILL.md instructions
+npx skills update -g       # updates SKILL.md instructions (installed globally)
 git pull origin master     # updates the CLI and templates
 ```
 
@@ -243,7 +243,7 @@ The generated PDFs land in `output/` inside the project directory.
 | --- | --- |
 | Full setup (one command) | `curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh \| bash` |
 | Install skill only | `npx skills add julioccorderoc/doc-generator` |
-| Update everything | Re-run `install.sh` or `npx skills update` + `git pull origin master` |
+| Update everything | Re-run `install.sh` or `npx skills update -g` + `git pull origin master` |
 | Check for skill updates | `npx skills check` |
 | Generate a PO manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type purchase_order --payload <path>` |
 | Generate an invoice manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type invoice --payload <path>` |

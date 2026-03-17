@@ -10,12 +10,12 @@ A Claude skill and CLI tool for generating professional PDF business documents �
 npx skills add julioccorderoc/doc-generator
 ```
 
-The [`npx skills`](https://github.com/vercel-labs/skills) CLI installs the skill via symlink so `npx skills update` always pulls the latest instructions.
+The [`npx skills`](https://github.com/vercel-labs/skills) CLI installs the skill globally via symlink so `npx skills update -g` always pulls the latest instructions.
 
 **To update:**
 
 ```bash
-npx skills update
+npx skills update -g
 ```
 
 ### Full setup (CLI + skill in one step)
@@ -146,16 +146,17 @@ Full field references — all optional fields, validation rules, and example pay
 
 ## Extending
 
-Adding a new document type requires four files — nothing else changes:
+Adding a new document type requires five files — nothing else changes:
 
 ```text
 1. references/<doc_type>.md      — field definitions, validation rules, computed fields, layout notes
 2. schemas/<doc_type>.py         — Pydantic v2 model derived from the reference
 3. templates/<doc_type>.html     — Jinja2 template extending base.html
-4. scripts/generate.py           — one entry added to the REGISTRY dict
+4. builders/<doc_type>.py        — context builder function
+5. builders/__init__.py          — one DocTypeConfig entry added to REGISTRY
 ```
 
-`base.html`, `style.css`, and the core generation engine are never modified when adding a doc type.
+`generate.py`, `base.html`, `style.css`, and the core generation engine are never modified when adding a doc type.
 
 See [references/EXTENDING.md](references/EXTENDING.md) for the full developer guide.
 
@@ -167,15 +168,21 @@ See [references/EXTENDING.md](references/EXTENDING.md) for the full developer gu
 doc-generator/
 │
 ├── CLAUDE.md                    ← Agent entry point: CLI contract, conventions, design decisions
-├── SKILL.md                     ← Claude skill definition: triggers, data collection, invocation
+├── SKILL.md                     ← Claude skill definition: triggers, invocation, error relay (delegates data collection detail to references/)
 │
 ├── scripts/
-│   └── generate.py              ← CLI entrypoint — the full render path in one file
+│   └── generate.py              ← CLI entrypoint
 │
 ├── schemas/
 │   ├── base.py                  ← Shared types and mixins
 │   ├── purchase_order.py        ← Pydantic v2 schema for Purchase Orders
 │   └── invoice.py               ← Pydantic v2 schema for Invoices
+│
+├── builders/                    ← Context builder package — one module per doc type
+│   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY
+│   ├── _shared.py               ← Shared helpers (build_line_items, build_totals, etc.)
+│   ├── purchase_order.py        ← build_po_context()
+│   └── invoice.py               ← build_invoice_context() + invoice-specific CSS
 │
 ├── templates/
 │   ├── base.html                ← Shared page layout
@@ -212,8 +219,8 @@ doc-generator/
 
 Contributions welcome. The most useful things to add:
 
-- **New document types** — follow the four-step pattern in [references/EXTENDING.md](references/EXTENDING.md). Each doc type is self-contained.
+- **New document types** — follow the five-step pattern in [references/EXTENDING.md](references/EXTENDING.md). Each doc type is self-contained.
 - **Bug fixes** — check [docs/decisions/](docs/decisions/) before changing any architectural pattern; a decision record may explain the constraint.
-- **New document types for the skill** — update [SKILL.md](SKILL.md) trigger conditions and data collection protocol alongside the new doc type.
+- **New document types for the skill** — add the new doc type to the SKILL.md supported types table and update [references/EXTENDING.md](references/EXTENDING.md) if needed.
 
 When in doubt, read the reference file for the doc type you are modifying first. The reference is the source of truth — not the code.
