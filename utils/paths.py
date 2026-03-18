@@ -9,3 +9,4 @@ from pathlib import Path
 ROOT: Path = Path(__file__).parent.parent
 TEMPLATES_DIR: Path = ROOT / "templates"
 ASSETS_DIR: Path = ROOT / "assets"
+OUTPUT_DIR: Path = ROOT / "output"

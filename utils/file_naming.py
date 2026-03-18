@@ -10,8 +10,7 @@ import re
 from datetime import date
 from pathlib import Path
 
-# output/ lives at the project root, two levels above this file
-_OUTPUT_DIR = Path(__file__).parent.parent / "output"
+from utils.paths import OUTPUT_DIR
 
 
 def next_output_filename(doc_type: str, name: str | None = None) -> Path:
@@ -21,26 +20,32 @@ def next_output_filename(doc_type: str, name: str | None = None) -> Path:
     Otherwise uses auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf.
 
     Creates output/ if it does not exist.
+
+    Raises ValueError if `name` contains path separators or traversal sequences.
     """
-    _OUTPUT_DIR.mkdir(exist_ok=True)
+    OUTPUT_DIR.mkdir(exist_ok=True)
 
     if name:
-        sanitized = name.strip().replace("/", "").replace("\\", "").replace("..", "")
+        if "/" in name or "\\" in name or ".." in name:
+            raise ValueError(
+                "output_name must be a plain filename stem with no path separators."
+            )
+        sanitized = name.strip()
         if not sanitized:
             raise ValueError(
                 "output_name must be a plain filename stem with no path separators."
             )
-        return _OUTPUT_DIR / f"{doc_type}_{sanitized}.pdf"
+        return OUTPUT_DIR / f"{doc_type}_{sanitized}.pdf"
 
     today = date.today().strftime("%Y%m%d")
     prefix = f"{doc_type}_{today}_"
     pattern = re.compile(rf"^{re.escape(prefix)}(\d{{4}})\.pdf$")
 
     existing_numbers = []
-    for f in _OUTPUT_DIR.iterdir():
+    for f in OUTPUT_DIR.iterdir():
         m = pattern.match(f.name)
         if m:
             existing_numbers.append(int(m.group(1)))
 
     next_num = max(existing_numbers) + 1 if existing_numbers else 1
-    return _OUTPUT_DIR / f"{prefix}{next_num:04d}.pdf"
+    return OUTPUT_DIR / f"{prefix}{next_num:04d}.pdf"
