@@ -9,6 +9,7 @@ derived automatically — they must never appear in the input payload.
 """
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from typing import Optional
@@ -59,9 +60,8 @@ class Issuer(DocModel):
     def logo_format(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        if v.startswith("http://") or v.startswith("https://"):
-            return v
-        # Treat as a file path — existence is validated at render time by utils/logo.py
+        if not v.startswith("data:image/"):
+            raise ValueError("logo must be a data URI (data:image/...;base64,...)")
         return v
 
 
@@ -114,6 +114,15 @@ class Invoice(DocModel):
     def invoice_number_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("must not be empty")
+        return v
+
+    @field_validator("primary_color", mode="after")
+    @classmethod
+    def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
+            raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
         return v
 
     @field_validator("line_items", mode="after")

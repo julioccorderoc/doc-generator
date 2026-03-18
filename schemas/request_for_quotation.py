@@ -9,6 +9,7 @@ computed fields — it is purely descriptive.
 """
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Optional
 
@@ -98,6 +99,24 @@ class RequestForQuotation(DocModel):
     def rfq_number_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("must not be empty")
+        return v
+
+    @field_validator("logo", mode="after")
+    @classmethod
+    def logo_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if not v.startswith("data:image/"):
+            raise ValueError("logo must be a data URI (data:image/...;base64,...)")
+        return v
+
+    @field_validator("primary_color", mode="after")
+    @classmethod
+    def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
+            raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
         return v
 
     @field_validator("product_name", mode="after")
