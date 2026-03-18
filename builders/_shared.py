@@ -102,8 +102,7 @@ def parse_terms_sections(text: str) -> list[dict]:
     """Parse markdown T&C text into [{title, body}] for the template.
 
     Recognises ## N. Title headings. If no headings are found, the whole
-    text is returned as a single untitled section. Body is capped at 200
-    characters to help guarantee single-page fit.
+    text is returned as a single untitled section.
     """
     import re
     pattern = re.compile(
@@ -111,12 +110,12 @@ def parse_terms_sections(text: str) -> list[dict]:
     )
     matches = list(pattern.finditer(text))
     if not matches:
-        return [{"title": None, "body": text.strip()[:400]}]
+        return [{"title": None, "body": text.strip()}]
     sections = []
     for m in matches:
         title = m.group(1).strip()
         body_lines = [l.strip() for l in m.group(2).strip().splitlines() if l.strip()]
-        body = " ".join(body_lines)[:200]
+        body = " ".join(body_lines)
         sections.append({"title": title, "body": body})
     return sections
 
