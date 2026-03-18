@@ -2,6 +2,16 @@
    purchase_order.css — PO-specific component styles
    ============================================================ */
 
+/* ── PO-only identifier columns ─────────────────────────────── */
+
+.line-items td.vendor-id,
+.line-items td.barcode {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    width: 55pt;
+}
+
 /* ── T&C annex page ─────────────────────────────────────────── */
 
 .po-terms {

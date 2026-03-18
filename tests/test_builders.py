@@ -130,6 +130,41 @@ def test_po_show_total_units(po_context):
     assert po_context["show_total_units"] is True
 
 
+# ── PO builder: identifier column flags ──────────────────────────────────────
+
+def test_po_has_buyer_id_column_true(po_context):
+    # sample_po has buyer_id on two items
+    assert po_context["has_buyer_id_column"] is True
+
+
+def test_po_has_vendor_id_column_false_by_default(po_context):
+    # sample_po has no vendor_id on any item
+    assert po_context["has_vendor_id_column"] is False
+
+
+def test_po_has_barcode_column_false_by_default(po_context):
+    # sample_po has no barcode on any item
+    assert po_context["has_barcode_column"] is False
+
+
+def test_po_has_vendor_id_column_true_when_present():
+    raw = load("sample_po.json")
+    raw["line_items"][0]["vendor_id"] = "VND-001"
+    doc = PurchaseOrder(**raw)
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert ctx["has_vendor_id_column"] is True
+
+
+def test_po_has_barcode_column_true_when_present():
+    raw = load("sample_po.json")
+    raw["line_items"][0]["barcode"] = "1234567890123"
+    doc = PurchaseOrder(**raw)
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert ctx["has_barcode_column"] is True
+
+
 # ── Invoice builder: type safety ──────────────────────────────────────────────
 
 def test_invoice_no_raw_decimals_or_dates(invoice_context):

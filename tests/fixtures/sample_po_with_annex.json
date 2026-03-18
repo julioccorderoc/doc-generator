@@ -29,7 +29,7 @@
       "quantity": 50,
       "unit_price": 24.00,
       "unit": "kg",
-      "sku": "ACM-ASH-001",
+      "buyer_id": "ACM-ASH-001",
       "count_units": true
     },
     {
@@ -37,7 +37,7 @@
       "quantity": 25,
       "unit_price": 18.50,
       "unit": "kg",
-      "sku": "ACM-MAG-007",
+      "buyer_id": "ACM-MAG-007",
       "count_units": true
     },
     {

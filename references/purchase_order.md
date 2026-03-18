@@ -65,7 +65,9 @@ Each entry in `line_items` is an object with the following fields:
 | `quantity` | number | ✅ | — | Quantity ordered. Must be greater than zero. Can be decimal (e.g. `2.5` for 2.5 hours). |
 | `unit_price` | number | ✅ | — | Price per unit in USD. |
 | `unit` | string | ❌ | `units` | Unit label displayed next to quantity. e.g. `units`, `hrs`, `kg`, `boxes`. |
-| `sku` | string | ❌ | — | Vendor or buyer SKU/part number. Displayed in the line item row if provided. |
+| `buyer_id` | string | ❌ | — | Buyer's internal part number or identifier. Displayed as "Buyer ID" column if provided on any item. Ask explicitly — do not assume. |
+| `vendor_id` | string | ❌ | — | Supplier's part number or identifier. Displayed as "Vendor ID" column if provided on any item. **Ask explicitly** — only collect if the user mentions it. Users may call this "part number", "supplier code", "item code", "ref number", etc. |
+| `barcode` | string | ❌ | — | Product barcode (EAN, UPC, etc.). Displayed as "Barcode" column if provided on any item. **Ask explicitly** — only collect if the user mentions it. |
 | `count_units` | boolean | ❌ | `true` | Whether to include this item's quantity in `total_units`. Set to `false` for service lines (labour, prep, setup fees) that should not count toward the physical unit total. |
 
 **Minimum:** 1 line item required.
@@ -150,7 +152,7 @@ When a user asks to generate a Purchase Order, Claude should:
       "quantity": 50,
       "unit_price": 24.00,
       "unit": "kg",
-      "sku": "ACM-ASH-001",
+      "buyer_id": "ACM-ASH-001",
       "count_units": true
     },
     {
@@ -158,7 +160,7 @@ When a user asks to generate a Purchase Order, Claude should:
       "quantity": 25,
       "unit_price": 18.50,
       "unit": "kg",
-      "sku": "ACM-MAG-007",
+      "buyer_id": "ACM-MAG-007",
       "count_units": true
     },
     {
@@ -230,7 +232,7 @@ The PO template should follow this visual structure, top to bottom:
 1. **Header row** — buyer logo (if provided) on the left, document title "PURCHASE ORDER" + PO number + issue date on the right
 2. **Address block** — two columns: "Vendor" on the left, "Buyer" on the right. Contact name displayed below address without any prefix.
 3. **Meta row** — delivery date, payment terms, shipping method in a compact horizontal band
-4. **Line items table** — columns: `#` | `SKU` (if any item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`
+4. **Line items table** — columns: `#` | `Buyer ID` (if any item has one) | `Vendor ID` (if any item has one) | `Barcode` (if any item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`
 5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both are always present; Notes column is empty when `notes` is absent.
 6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping / **Grand Total**
 7. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from buyer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.

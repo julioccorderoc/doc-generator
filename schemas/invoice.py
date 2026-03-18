@@ -24,7 +24,7 @@ class LineItem(DocModel):
     quantity: Money
     unit_price: Money
     unit: str = "units"
-    sku: Optional[str] = None
+    buyer_id: Optional[str] = None
     count_units: bool = True
 
     @field_validator("quantity", "unit_price", mode="after")

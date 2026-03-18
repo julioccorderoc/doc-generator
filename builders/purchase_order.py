@@ -26,6 +26,24 @@ from builders._shared import (
 )
 
 _PO_CSS: str = (ASSETS_DIR / "purchase_order.css").read_text(encoding="utf-8")
+
+
+def _build_po_line_items(doc: PurchaseOrder) -> list[dict]:
+    """Extend the shared line items with PO-only identifier columns."""
+    items = build_line_items(doc)
+    for item_dict, item in zip(items, doc.line_items):
+        item_dict["vendor_id"] = item.vendor_id
+        item_dict["barcode"] = item.barcode
+    return items
+
+
+def _build_po_line_items_meta(doc: PurchaseOrder) -> dict:
+    """Extend the shared meta flags with PO-only column visibility flags."""
+    return {
+        **build_line_items_meta(doc),
+        "has_vendor_id_column": any(item.vendor_id for item in doc.line_items),
+        "has_barcode_column": any(item.barcode for item in doc.line_items),
+    }
 _TERMS_PRESET: str = (ROOT / "references" / "po_terms_conditions.md").read_text(
     encoding="utf-8"
 )
@@ -63,8 +81,8 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         "shipping_method": doc.shipping_method,
 
         # ── Line items ────────────────────────────────────────────────────
-        "line_items": build_line_items(doc),
-        **build_line_items_meta(doc),
+        "line_items": _build_po_line_items(doc),
+        **_build_po_line_items_meta(doc),
 
         # ── Totals ────────────────────────────────────────────────────────
         **build_totals(doc),

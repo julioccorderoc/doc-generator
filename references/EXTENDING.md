@@ -132,7 +132,7 @@ Not permitted: arithmetic, string formatting, custom filters beyond `nl2br`.
 
 ### 3.4 Conditional columns
 
-Omit a column entirely when no row needs it. Compute the gate boolean in the context builder (e.g. `"has_sku_column": any(item.sku for item in doc.line_items)`) and guard both `<th>` and each `<td>` with `{% if has_sku_column %}`. See the SKU column in `templates/purchase_order.html` for the reference pattern.
+Omit a column entirely when no row needs it. Compute the gate boolean in the context builder (e.g. `"has_buyer_id_column": any(item.buyer_id for item in doc.line_items)`) and guard both `<th>` and each `<td>` with `{% if has_buyer_id_column %}`. See the `buyer_id` / `vendor_id` / `barcode` columns in `templates/purchase_order.html` for the reference pattern.
 
 ---
 
@@ -144,7 +144,7 @@ Model your file on `builders/purchase_order.py` as the reference implementation.
 - **No raw `date`** — all dates must be strings: `format_date(doc.issue_date)` or `None`.
 - **Logos** — `Markup(resolve_logo(doc.party.logo))` or `None`.
 - **`css_path`** — always required: `get_css_path()` from `builders._shared`.
-- **Boolean flags** — compute `show_tax`, `show_shipping`, `has_sku_column`, etc. here so templates contain no logic.
+- **Boolean flags** — compute `show_tax`, `show_shipping`, `has_buyer_id_column`, etc. here so templates contain no logic.
 - **Shared helpers** — use `build_line_items`, `build_line_items_meta`, `build_totals` from `builders._shared` to avoid duplication.
 - **`theme_css`** — `Markup(_MY_CSS)` if the doc type needs custom styles beyond `style.css`.
 

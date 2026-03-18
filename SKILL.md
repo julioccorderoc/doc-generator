@@ -109,6 +109,12 @@ The `primary_color` field is **optional**. Omit it unless:
 
 If neither condition is met, do not include `primary_color` — the tool's default (`#1A4021`) will be used.
 
+### PO optional identifier columns — ask explicitly
+
+Purchase Order line items support three optional identifier columns (`buyer_id`, `vendor_id`, `barcode`). **Do not include them unless the user provides the values or explicitly asks for them.** See `references/purchase_order.md` for per-field when-to-collect guidance and synonym recognition.
+
+A column only appears in the document if **at least one line item** has a value for it.
+
 ### Ask for required fields in one pass
 
 Identify all missing required fields and ask for them together. Do not ask field by field in separate turns.

@@ -21,8 +21,8 @@ from utils.paths import ASSETS_DIR
 def build_line_items(doc) -> list[dict]:
     """Return a display-ready list of line item dicts for any doc type.
 
-    Every monetary value is a pre-formatted string. `sku` is included
-    unconditionally; templates gate the column with `has_sku_column`.
+    Every monetary value is a pre-formatted string. `buyer_id` is included
+    unconditionally; templates gate the column with `has_buyer_id_column`.
     """
     return [
         {
@@ -31,7 +31,7 @@ def build_line_items(doc) -> list[dict]:
             "unit": item.unit,
             "unit_price": format_currency(item.unit_price),
             "total": format_currency(item.total),
-            "sku": item.sku,
+            "buyer_id": item.buyer_id,
         }
         for item in doc.line_items
     ]
@@ -43,8 +43,8 @@ def build_line_items_meta(doc) -> dict:
     Intended to be unpacked into the context: `**build_line_items_meta(doc)`.
     """
     return {
-        # Show the SKU column only when at least one item has a SKU
-        "has_sku_column": any(item.sku for item in doc.line_items),
+        # Show the Buyer ID column only when at least one item has a buyer_id
+        "has_buyer_id_column": any(item.buyer_id for item in doc.line_items),
         # Show total units row only when at least one item has count_units=True
         "show_total_units": any(item.count_units for item in doc.line_items),
         "total_units": format_quantity(doc.total_units),

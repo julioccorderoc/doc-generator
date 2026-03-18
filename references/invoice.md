@@ -67,7 +67,7 @@ Each entry in `line_items` is an object with the following fields:
 | `quantity` | number | ✅ | — | Quantity delivered or hours worked. Must be greater than zero. Can be decimal (e.g. `2.5` for 2.5 hours). |
 | `unit_price` | number | ✅ | — | Price per unit in USD. Must be greater than zero. |
 | `unit` | string | ❌ | `units` | Unit label displayed next to quantity. e.g. `units`, `hrs`, `kg`, `days`. |
-| `sku` | string | ❌ | — | Product code, SKU, or service reference code. Displayed in the line item row if provided. |
+| `buyer_id` | string | ❌ | — | Buyer's internal product code or reference identifier. Displayed as "Buyer ID" column if provided on any item. |
 | `count_units` | boolean | ❌ | `true` | Whether to include this item's quantity in `total_units`. Set to `false` for service lines (labour, consulting, setup fees) that should not count toward the physical unit total. |
 
 **Minimum:** 1 line item required.
@@ -280,7 +280,7 @@ The invoice template should follow this visual structure, top to bottom:
 1. **Header row** — issuer logo (if provided) on the left; document title "INVOICE" + invoice number + issue date on the right. If `paid = true`, render a "PAID" stamp/banner overlaid on or near the header.
 2. **Address block** — two columns: "From" (issuer) on the left, "Bill To" (client) on the right. Contact name displayed below address without any prefix.
 3. **Meta row** — due date, payment terms in a compact horizontal band (only rendered if at least one is present).
-4. **Line items table** — columns: `#` | `SKU` (column omitted entirely if no item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`.
+4. **Line items table** — columns: `#` | `Buyer ID` (column omitted entirely if no item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`.
 5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both always present; Notes column is empty when `notes` is absent.
 6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping (only if > 0) / Grand Total / Amount Paid (only if `paid = true` or `amount_paid > 0`) / **Balance Due** (bold, prominent).
 7. **Payment details block** — full-width section below the bottom row, only rendered if `payment_details` is non-empty. Displays as a two-column key/value table with a distinct background or border. Heading: "Payment Details".

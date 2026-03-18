@@ -86,7 +86,9 @@
   <thead>
     <tr>
       <th class="num">#</th>
-      {% if has_sku_column %}<th class="sku">SKU</th>{% endif %}
+      {% if has_buyer_id_column %}<th class="buyer-id">Buyer ID</th>{% endif %}
+      {% if has_vendor_id_column %}<th class="vendor-id">Vendor ID</th>{% endif %}
+      {% if has_barcode_column %}<th class="barcode">Barcode</th>{% endif %}
       <th class="description">Description</th>
       <th class="unit">Unit</th>
       <th class="qty">Qty</th>
@@ -98,7 +100,9 @@
     {% for item in line_items %}
     <tr>
       <td class="num">{{ loop.index }}</td>
-      {% if has_sku_column %}<td class="sku">{{ item.sku or "" }}</td>{% endif %}
+      {% if has_buyer_id_column %}<td class="buyer-id">{{ item.buyer_id or "" }}</td>{% endif %}
+      {% if has_vendor_id_column %}<td class="vendor-id">{{ item.vendor_id or "" }}</td>{% endif %}
+      {% if has_barcode_column %}<td class="barcode">{{ item.barcode or "" }}</td>{% endif %}
       <td class="description">{{ item.description }}</td>
       <td class="unit">{{ item.unit }}</td>
       <td class="qty">{{ item.quantity }}</td>

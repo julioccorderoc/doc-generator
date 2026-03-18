@@ -253,7 +253,7 @@ tr {
     width: 22pt;
 }
 
-.line-items td.sku {
+.line-items td.buyer-id {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
     white-space: nowrap;
