@@ -77,6 +77,24 @@ def test_po_required_keys_present(po_context):
         assert key in po_context, f"Missing required context key: {key!r}"
 
 
+# ── PO builder: terms_sections ───────────────────────────────────────────────
+
+def test_po_context_includes_terms_sections():
+    doc = PurchaseOrder(**load("sample_po_with_annex.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    sections = ctx["terms_sections"]
+    assert isinstance(sections, list)
+    assert len(sections) > 0
+    for s in sections:
+        assert "title" in s
+        assert "body" in s
+
+
+def test_po_context_no_terms_when_absent(po_context):
+    assert po_context["terms_sections"] is None
+
+
 # ── PO builder: show_tax ──────────────────────────────────────────────────────
 
 def test_po_show_tax_true_when_nonzero(po_context):

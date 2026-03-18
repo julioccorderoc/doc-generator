@@ -26,6 +26,7 @@ A Purchase Order (PO) is a commercial document issued by a **buyer** to a **vend
 | `tax_rate` | number | ❌ | `0.00` | Tax rate as a decimal (e.g. `0.08` for 8%). Applied to subtotal. |
 | `notes` | string | ❌ | — | General notes, terms, or instructions. Renders at the bottom of the document. |
 | `primary_color` | string | ❌ | — | Brand color override. Hex string (e.g. `"#7c3aed"`). Overrides the header background and primary accent color for this document. |
+| `annex_terms` | `bool` or `string` | ❌ | `null` | `true` = include standard T&C preset from `references/po_terms_conditions.md`; any string = custom T&C text (markdown with `## N. Title` headings, or plain text); `null`/omitted = no T&C page. |
 
 ---
 
@@ -233,3 +234,4 @@ The PO template should follow this visual structure, top to bottom:
 5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both are always present; Notes column is empty when `notes` is absent.
 6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping / **Grand Total**
 7. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from buyer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.
+8. **T&C annex** — renders on a new page (forced page break) after the bottom section. Only rendered when `annex_terms` is set. Displays a compact two-column list of sections at 7pt font designed to fit within one page.

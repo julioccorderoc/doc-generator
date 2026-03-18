@@ -132,6 +132,29 @@ def test_invoice_contractor_balance_due_equals_grand_total():
 
 # ── Invalid fixtures raise ValidationError ───────────────────────────────────
 
+# ── annex_terms field: Purchase Order ────────────────────────────────────────
+
+def test_po_annex_terms_true_valid():
+    doc = PurchaseOrder(**load("sample_po_with_annex.json"))
+    assert doc.annex_terms is True
+
+
+def test_po_annex_terms_false_normalised():
+    raw = load("sample_po.json")
+    raw["annex_terms"] = False
+    doc = PurchaseOrder(**raw)
+    assert doc.annex_terms is None
+
+
+def test_po_annex_terms_custom_string():
+    raw = load("sample_po.json")
+    raw["annex_terms"] = "1. Payment\nAll invoices are due net 30."
+    doc = PurchaseOrder(**raw)
+    assert doc.annex_terms == "1. Payment\nAll invoices are due net 30."
+
+
+# ── Invalid fixtures raise ValidationError ───────────────────────────────────
+
 def test_invalid_po_raises_validation_error():
     with pytest.raises(ValidationError) as exc_info:
         PurchaseOrder(**load("invalid_po.json"))

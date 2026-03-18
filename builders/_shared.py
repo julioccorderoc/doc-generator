@@ -98,6 +98,29 @@ def get_css_path() -> Markup:
     return Markup((ASSETS_DIR / "style.css").as_uri())
 
 
+def parse_terms_sections(text: str) -> list[dict]:
+    """Parse markdown T&C text into [{title, body}] for the template.
+
+    Recognises ## N. Title headings. If no headings are found, the whole
+    text is returned as a single untitled section. Body is capped at 200
+    characters to help guarantee single-page fit.
+    """
+    import re
+    pattern = re.compile(
+        r"##\s+(?:\d+\.\s+)?(.+?)\n+(.*?)(?=\n##\s|\Z)", re.DOTALL
+    )
+    matches = list(pattern.finditer(text))
+    if not matches:
+        return [{"title": None, "body": text.strip()[:400]}]
+    sections = []
+    for m in matches:
+        title = m.group(1).strip()
+        body_lines = [l.strip() for l in m.group(2).strip().splitlines() if l.strip()]
+        body = " ".join(body_lines)[:200]
+        sections.append({"title": title, "body": body})
+    return sections
+
+
 def primary_color_css(color: str | None) -> str:
     """Return a CSS :root block overriding the primary colour variables.
 

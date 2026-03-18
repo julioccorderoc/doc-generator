@@ -154,4 +154,21 @@
 
 </div>
 
+{% if terms_sections %}
+<div class="po-terms">
+  <h2 class="po-terms__heading">Terms &amp; Conditions</h2>
+  <hr class="po-terms__rule">
+  {% for s in terms_sections %}
+  <div class="po-terms__section">
+    {% if s.title %}<p class="po-terms__title">{{ loop.index }}. {{ s.title }}</p>{% endif %}
+    <p class="po-terms__body">{{ s.body }}</p>
+  </div>
+  {% endfor %}
+  <p class="po-terms__footer">
+    These Terms are effective as of the date of the Purchase Order to which
+    they are attached or referenced.
+  </p>
+</div>
+{% endif %}
+
 {% endblock %}

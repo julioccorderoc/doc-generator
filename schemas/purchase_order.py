@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import Field, computed_field, field_validator, model_validator
 
@@ -91,6 +91,7 @@ class PurchaseOrder(DocModel):
     tax_rate: Money = Decimal("0.00")
     notes: Optional[str] = None
     primary_color: Optional[str] = None
+    annex_terms: Optional[Union[bool, str]] = None
     buyer: Buyer
     vendor: Vendor
     line_items: list[LineItem]
@@ -100,6 +101,13 @@ class PurchaseOrder(DocModel):
     def po_number_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("must not be empty")
+        return v
+
+    @field_validator("annex_terms", mode="before")
+    @classmethod
+    def normalise_annex_terms(cls, v):
+        if v is False:
+            return None
         return v
 
     @field_validator("line_items", mode="after")

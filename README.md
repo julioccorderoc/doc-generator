@@ -42,7 +42,7 @@ Claude collects what it needs, confirms, and drops a clean PDF in your `output/`
 | `invoice` | Invoice | Issuer-to-client payment request for goods delivered or services rendered |
 | `request_for_quotation` | Request for Quotation (RFQ) | Buyer-to-vendor specification document requesting a price; no monetary values |
 
-On the roadmap: delivery notes, diplomas.
+On the roadmap: delivery notes, packing slip, quotes.
 
 ---
 

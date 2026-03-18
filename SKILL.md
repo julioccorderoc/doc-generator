@@ -98,7 +98,7 @@ Identify all missing required fields and ask for them together. Do not ask field
 
 Once all required data is collected, show a brief summary and ask for confirmation before running the CLI:
 
-- **PO / Invoice:** document type, number, parties, number of line items, grand total if calculable
+- **PO / Invoice:** document type, number, parties, number of line items, grand total if calculable; for PO also note whether T&C annex will be included
 - **RFQ:** document type, number, issuer, product name, number of spec sections, total number of spec rows
 
 ## Invocation
