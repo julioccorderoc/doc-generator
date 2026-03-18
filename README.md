@@ -117,7 +117,7 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 
 | Outcome | Exit code | stdout |
 | --- | --- | --- |
-| Success | `0` | Output path, e.g. `output/purchase_order_20260316_0001.pdf` |
+| Success | `0` | Absolute output path, e.g. `/path/to/doc-generator/output/purchase_order_20260316_0001.pdf` |
 | Validation error | `1` | Structured error — which fields failed and why |
 | Unknown `doc_type` | `1` | List of registered doc type slugs |
 

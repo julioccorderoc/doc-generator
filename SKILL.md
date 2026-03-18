@@ -100,6 +100,15 @@ If the user has not provided a document number, **suggest one** based on the cur
 
 Ask the user to confirm the suggested number before generating.
 
+### Header color — keep the default unless told otherwise
+
+The `primary_color` field is **optional**. Omit it unless:
+
+- The user explicitly requests a different color (e.g. "use blue", "make the header #2d6a4f"), or
+- The user's context includes a brand guide or style specification with a specific color to use.
+
+If neither condition is met, do not include `primary_color` — the tool's default (`#1A4021`) will be used.
+
 ### Ask for required fields in one pass
 
 Identify all missing required fields and ask for them together. Do not ask field by field in separate turns.
@@ -131,13 +140,13 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-gene
   --output_name <doc_number>
 ```
 
-Pass the document number as `--output_name` so the output file is named after the document (e.g. `--output_name NS39` → `output/purchase_order_NS39.pdf`). Use the same identifier the user provided or the one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
+Pass the document number as `--output_name` so the output file is named after the document (e.g. `--output_name NS39` → filename stem `purchase_order_NS39.pdf`). Use the same identifier the user provided or the one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
 
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 
 ### 3. Capture stdout and exit code
 
-- **Exit code 0:** stdout contains the output file path (e.g. `output/purchase_order_20260316_0001.pdf`). Generation succeeded.
+- **Exit code 0:** stdout contains the **absolute** output file path (e.g. `~/.agents/skills/doc-generator/output/purchase_order_NS39.pdf`). Use this path directly — do **not** prepend the working directory or any other path.
 - **Exit code 1:** stdout contains an error message. Generation failed.
 
 ## Output Presentation
@@ -152,19 +161,19 @@ Tell the user:
 
 Example response (PO):
 > Purchase Order **PO-2026-0001** generated successfully.
-> Output: `output/purchase_order_20260316_0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/purchase_order_PO-2026-0001.pdf`
 > Grand total: $2,728.50 (75 units · Net 30 · FedEx Ground)
 
 Example response (RFQ):
 > Request for Quotation **RFQ-2026-0001** generated successfully.
-> Output: `output/request_for_quotation_20260316_0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/request_for_quotation_RFQ-2026-0001.pdf`
 > Product: Level Off · 2 spec sections · 13 rows
 
 ### On success with partial payment (invoice)
 
 Highlight both grand total and balance due:
 > Invoice **INV-2026-0001** generated.
-> Output: `output/invoice_20260316_0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/invoice_INV-2026-0001.pdf`
 > Grand total: $3,410.00 · Amount paid: $825.00 · **Balance due: $2,585.00**
 
 ### On unknown doc_type

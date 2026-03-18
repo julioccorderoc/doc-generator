@@ -116,7 +116,7 @@ Claude validates payload against Pydantic schema
 Claude calls: python scripts/generate.py --doc_type purchase_order --payload '{...}'
      │
      ▼
-generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → output/po_YYYYMMDD_XXXX.pdf
+generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → <project_root>/output/po_YYYYMMDD_XXXX.pdf (absolute path printed to stdout)
      │
      ▼
 Claude presents the file to the user
