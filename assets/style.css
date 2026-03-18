@@ -256,7 +256,6 @@ tr {
 .line-items td.buyer-id {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
-    white-space: nowrap;
     width: 60pt;
 }
 

@@ -82,7 +82,7 @@
 {% endif %}
 
 {# ── Line items table ───────────────────────────────────── #}
-<table class="line-items">
+<table class="line-items{% if active_id_cols >= 3 %} line-items--dense{% elif active_id_cols >= 2 %} line-items--compact{% endif %}">
   <thead>
     <tr>
       <th class="num">#</th>

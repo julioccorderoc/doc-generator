@@ -39,10 +39,15 @@ def _build_po_line_items(doc: PurchaseOrder) -> list[dict]:
 
 def _build_po_line_items_meta(doc: PurchaseOrder) -> dict:
     """Extend the shared meta flags with PO-only column visibility flags."""
+    shared = build_line_items_meta(doc)
+    has_vendor_id = any(item.vendor_id for item in doc.line_items)
+    has_barcode = any(item.barcode for item in doc.line_items)
+    active_id_cols = sum([shared["has_buyer_id_column"], has_vendor_id, has_barcode])
     return {
-        **build_line_items_meta(doc),
-        "has_vendor_id_column": any(item.vendor_id for item in doc.line_items),
-        "has_barcode_column": any(item.barcode for item in doc.line_items),
+        **shared,
+        "has_vendor_id_column": has_vendor_id,
+        "has_barcode_column": has_barcode,
+        "active_id_cols": active_id_cols,
     }
 _TERMS_PRESET: str = (ROOT / "references" / "po_terms_conditions.md").read_text(
     encoding="utf-8"

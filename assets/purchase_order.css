@@ -8,8 +8,41 @@
 .line-items td.barcode {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
-    white-space: nowrap;
     width: 55pt;
+}
+
+/* ── Compact table: 2 identifier columns active ──────────────── */
+
+.line-items--compact {
+    font-size: var(--font-size-xs); /* 7.5pt vs 8.5pt base */
+}
+
+.line-items--compact th,
+.line-items--compact td {
+    padding: 4pt 6pt;
+}
+
+.line-items--compact td.buyer-id,
+.line-items--compact td.vendor-id,
+.line-items--compact td.barcode {
+    width: 48pt;
+}
+
+/* ── Dense table: 3 identifier columns active ────────────────── */
+
+.line-items--dense {
+    font-size: 7pt;
+}
+
+.line-items--dense th,
+.line-items--dense td {
+    padding: 3pt 4pt;
+}
+
+.line-items--dense td.buyer-id,
+.line-items--dense td.vendor-id,
+.line-items--dense td.barcode {
+    width: 44pt;
 }
 
 /* ── T&C annex page ─────────────────────────────────────────── */
