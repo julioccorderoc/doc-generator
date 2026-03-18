@@ -15,6 +15,7 @@ Quotation (`request_for_quotation`). RFQ has no monetary fields and is unaffecte
 this change.
 
 **Current state (as of Phase 8):**
+
 - `format_currency()` in `utils/formatting.py:11` is hardcoded to `$X,XXX.XX` (USD only).
 - Both `PurchaseOrder` (`schemas/purchase_order.py:87`) and `Invoice` (`schemas/invoice.py`)
   have a `currency: str = "USD"` field, but it is accepted by the schema and immediately
@@ -66,7 +67,7 @@ strings. This means **zero template changes** for this feature.
 
 ### How currency flows today (payload → PDF)
 
-```
+```text
 JSON payload
   └─ "currency": "EUR"  ← accepted by schema, defaults to "USD"
         │
@@ -85,7 +86,7 @@ JSON payload
 
 **After this plan:**
 
-```
+```text
   Pydantic model
   └─ doc.currency = "EUR"  ← validated against SUPPORTED_CURRENCIES
         │
