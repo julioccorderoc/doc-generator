@@ -70,8 +70,7 @@ Agents should capture stdout and check the exit code to determine success or fai
 doc-generator/
 │
 ├── CLAUDE.md                    ← You are here. Entry point for all AI agents.
-├── SKILL.md                     ← Claude-specific skill instructions (orchestration layer: trigger conditions, invocation, error relay — delegates data collection detail to references/<doc_type>.md) — uses ~/doc-generator as the default project root; install.sh substitutes the real path at install time
-├── install.sh                   ← One-command installer: clones repo, uv sync, pango, patches SKILL.md with real path
+├── SKILL.md                     ← Claude-specific skill instructions (orchestration layer: trigger conditions, invocation, error relay — delegates data collection detail to references/<doc_type>.md) — uses ~/.agents/skills/doc-generator as the canonical install path
 │
 ├── .claude/
 │   └── settings.json            ← Pre-approved permissions: Write(/tmp/) + Bash CLI invocation (no prompts for team)

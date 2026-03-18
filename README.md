@@ -59,30 +59,32 @@ On the roadmap: delivery notes, packing slip, quotes.
 
 ---
 
-## Full Setup (CLI + skill in one step)
+## Claude Code Skill
 
-The skill alone lets Claude orchestrate the workflow. The CLI is what actually renders the PDF — it needs to be on your machine.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
-```
-
-Or clone and run directly:
+Install the skill so Claude can orchestrate the workflow:
 
 ```bash
-git clone https://github.com/julioccorderoc/doc-generator.git
-cd doc-generator && ./install.sh
+npx skills add julioccorderoc/doc-generator
 ```
 
-The installer clones the repo, installs Python dependencies (`uv sync`), installs Pango on macOS, and writes a path-correct skill to `~/.claude/skills/doc-generator/`. Re-running is idempotent.
-
-**To update the skill after changes:**
+**To update after changes:**
 
 ```bash
 npx skills update -g
 ```
 
 > See [SKILL.md](SKILL.md) for the full skill definition: trigger conditions, data collection protocol, and output presentation format.
+
+## Manual Setup
+
+The CLI is what actually renders the PDF — it needs to be on your machine.
+
+```bash
+git clone https://github.com/julioccorderoc/doc-generator.git
+cd doc-generator
+uv sync
+brew install pango   # macOS only — required by WeasyPrint
+```
 
 ---
 

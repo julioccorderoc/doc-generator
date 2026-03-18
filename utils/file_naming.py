@@ -25,7 +25,12 @@ def next_output_filename(doc_type: str, name: str | None = None) -> Path:
     _OUTPUT_DIR.mkdir(exist_ok=True)
 
     if name:
-        return _OUTPUT_DIR / f"{doc_type}_{name}.pdf"
+        sanitized = name.strip().replace("/", "").replace("\\", "").replace("..", "")
+        if not sanitized:
+            raise ValueError(
+                "output_name must be a plain filename stem with no path separators."
+            )
+        return _OUTPUT_DIR / f"{doc_type}_{sanitized}.pdf"
 
     today = date.today().strftime("%Y%m%d")
     prefix = f"{doc_type}_{today}_"
