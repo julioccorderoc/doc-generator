@@ -108,7 +108,12 @@ def main() -> None:
     # ── 2. Load payload JSON ───────────────────────────────────────────────
     payload_path = Path(args.payload)
     if not payload_path.exists():
-        print(f"Payload file not found: {payload_path}")
+        print(f"Payload file not found: {args.payload}")
+        sys.exit(1)
+
+    _MAX_PAYLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+    if payload_path.stat().st_size > _MAX_PAYLOAD_BYTES:
+        print("Payload file exceeds the 10 MB limit.")
         sys.exit(1)
 
     try:
@@ -122,6 +127,15 @@ def main() -> None:
         doc = config.model(**raw)
     except ValidationError as exc:
         print(_format_validation_errors(exc))
+        sys.exit(1)
+
+    # ── 3a. Reject unsupported currencies ─────────────────────────────────────
+    currency = getattr(doc, "currency", None)
+    if currency is not None and currency != "USD":
+        print(
+            f"Currency '{currency}' is not yet supported. "
+            "Only USD is currently supported."
+        )
         sys.exit(1)
 
     # ── 4. Build template context ──────────────────────────────────────────
