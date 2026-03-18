@@ -26,8 +26,8 @@ A Request for Quotation is a document issued by a buyer to one or more vendors, 
 | `notes` | string | ❌ | — | Free-form notes printed below the spec table |
 | `annexes` | array | ❌ | — | Named references/attachments — see below |
 | `contact` | object | ❌ | — | Contact person for questions — see Contact table below |
-| `logo` | string | ❌ | — | File path or https:// URL for the issuer logo |
-| `primary_color` | string | ❌ | — | Hex color to override the document header color (e.g. "#1A4021") |
+| `logo` | string | ❌ | — | Base64 data URI (`data:image/png;base64,...`) for the issuer logo. Claude reads and encodes the file — never pass a file path or URL. |
+| `primary_color` | string | ❌ | — | Color to override the document header. Must be a hex color in `#RRGGBB` or `#RGB` format, or a single-word CSS color name (e.g. `"#1A4021"`, `"#fff"`, `"green"`). |
 
 ### Issuer (object)
 
@@ -248,8 +248,8 @@ Use this form when the RFQ is directed at one vendor and a quote-by date is requ
 - **`vendor`:** omit entirely for broadcast RFQs
 - **`spec_sections[*].title`:** omit or set to `null` for an unnamed section (no section header row rendered)
 - **`annexes[*].url`:** omit if no URL; title still renders without a URL column
-- **Logo:** absolute path or `https://` URL; omit for no logo
-- **`primary_color`:** hex string e.g. `"#1A4021"`; omit to use the default green
+- **Logo:** `data:image/...;base64,...` data URI; Claude reads and encodes the file before building the payload. Omit for no logo.
+- **`primary_color`:** hex color (`#RRGGBB` or `#RGB`) or single-word CSS color name (e.g. `"#1A4021"`, `"green"`); omit to use the default
 
 ---
 

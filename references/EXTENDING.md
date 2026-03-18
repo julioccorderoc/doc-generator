@@ -69,7 +69,7 @@ Complete valid JSON with all significant fields populated, followed by the expec
 Two sub-sections:
 
 1. **Minimal payload** — required fields only, with `"..."` placeholders. Quick-reference shape for Claude when building a payload.
-2. **Field encoding notes** — address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings, computed fields excluded, logo path/URL rules.
+2. **Field encoding notes** — address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings, computed fields excluded, logo must be a base64 data URI.
 
 Follow the pattern in `references/purchase_order.md` and `references/invoice.md`.
 
@@ -89,7 +89,7 @@ Model your file on `schemas/purchase_order.py` as the reference implementation. 
 - **`@field_validator(mode="after")`** — for single-field constraints. Always `@classmethod`.
 - **`@model_validator(mode="after")`** — for cross-field constraints (e.g. `due_date >= issue_date`).
 - **Defaults** — `Field(default_factory=date.today)` for today; `Decimal("0.00")` (not `0.0`) for monetary defaults.
-- **Logo** — accept any string; validate only for `http(s)://` prefix or treat as file path; delegate existence checking to `utils/logo.py` at render time.
+- **Logo** — accept `Optional[str]`; add a `@field_validator` that enforces the value starts with `data:image/` (or is `None`). See `schemas/purchase_order.py` `Buyer.logo_format` for the reference implementation. `utils/logo.py` also validates at render time as defense-in-depth, but the schema is the primary enforcement point.
 
 ---
 

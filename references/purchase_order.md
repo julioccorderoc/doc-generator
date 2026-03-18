@@ -25,8 +25,8 @@ A Purchase Order (PO) is a commercial document issued by a **buyer** to a **vend
 | `shipping_cost` | number | ❌ | `0.00` | Flat shipping fee to be added to the total. In USD. |
 | `tax_rate` | number | ❌ | `0.00` | Tax rate as a decimal (e.g. `0.08` for 8%). Applied to subtotal. |
 | `notes` | string | ❌ | — | General notes, terms, or instructions. Renders at the bottom of the document. |
-| `primary_color` | string | ❌ | — | Brand color override. Hex string (e.g. `"#7c3aed"`). Overrides the header background and primary accent color for this document. |
-| `annex_terms` | `bool` or `string` | ❌ | `null` | `true` = include standard T&C preset from `references/po_terms_conditions.md`; any string = custom T&C text (markdown with `## N. Title` headings, or plain text); `null`/omitted = no T&C page. |
+| `primary_color` | string | ❌ | — | Brand color override. Must be a hex color in `#RRGGBB` or `#RGB` format, or a single-word CSS color name (e.g. `"#7c3aed"`, `"#fff"`, `"purple"`). Overrides the header background and primary accent color. |
+| `annex_terms` | `bool` or `string` | ❌ | `null` | `true` = include standard T&C preset; any string = custom T&C text (markdown with `## N. Title` headings, or plain text; **max 50,000 characters**); `null`/omitted = no T&C page. |
 
 ---
 
@@ -39,7 +39,7 @@ A Purchase Order (PO) is a commercial document issued by a **buyer** to a **vend
 | `buyer.contact_name` | string | ❌ | Name of the purchasing contact at the buyer company. Displayed below the address. |
 | `buyer.email` | string | ❌ | Contact email. |
 | `buyer.phone` | string | ❌ | Contact phone number. |
-| `buyer.logo` | string | ❌ | File path (absolute or relative) or URL to the company logo image. Claude resolves this before passing to the renderer. Renders in the document header if provided. Supported formats: PNG, JPG, SVG. |
+| `buyer.logo` | string | ❌ | Base64 data URI (`data:image/png;base64,...`). Claude reads the file and encodes it before building the payload — never pass a file path or URL. Renders in the document header if provided. Supported formats: PNG, JPG, SVG. |
 
 ---
 
@@ -98,7 +98,7 @@ All monetary values are rounded to 2 decimal places.
 - `quantity` and `unit_price` must be positive numbers greater than zero.
 - `shipping_cost` and `tax_rate` must be zero or positive. `tax_rate` must be between `0.0` and `1.0`.
 - `buyer.name`, `buyer.address`, `vendor.name`, `vendor.address` are all required and must be non-empty strings.
-- `buyer.logo`, if provided, must be either a valid absolute file path to an existing file, or a valid URL starting with `http://` or `https://`.
+- `buyer.logo`, if provided, must be a `data:image/...;base64,...` string. File paths and URLs are rejected — Claude must read and encode the file before building the payload.
 - `count_units` has no validation beyond being a boolean. Defaults to `true`.
 
 ---
@@ -111,7 +111,7 @@ When a user asks to generate a Purchase Order, Claude should:
 2. **Ask for required fields in one pass** — do not ask field by field. Group all missing required fields into a single request.
 3. **Use smart defaults** — apply `issue_date = today` and `currency = USD` silently without asking. Suggest `po_number` format if missing.
 4. **Never ask for computed fields** — do not ask for subtotal, tax_amount, grand_total, total_units, or line item totals.
-5. **Handle logo gracefully** — if the user mentions a logo, ask for the file path or URL. If they don't mention it, do not ask.
+5. **Handle logo gracefully** — if the user mentions a logo, ask for the file path. Use the Read tool to read the file and encode it as a base64 data URI (`data:image/...;base64,...`) before including it in the payload. If they don't mention a logo, do not ask.
 6. **Ask about `count_units` for service lines** — if a line item is clearly a service (labour, prep, setup), ask if it should be excluded from the unit total. Default is `true` (counted); set to `false` to exclude.
 7. **Confirm before generating** — once all required data is collected, show a brief summary and ask for confirmation before invoking the script.
 
@@ -135,7 +135,7 @@ When a user asks to generate a Purchase Order, Claude should:
     "contact_name": "Julio Cordero",
     "email": "purchasing@naturalcurelabs.com",
     "phone": "+1 (310) 555-0100",
-    "logo": "/Users/julio/assets/ncl_logo.png"
+    "logo": "data:image/png;base64,..."
   },
   "vendor": {
     "name": "Acme Ingredients Co.",
@@ -219,7 +219,7 @@ total_units          = 75           (50 kg + 25 kg; service line excluded)
 - **Dates:** Always `"YYYY-MM-DD"` string format.
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
 - **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `total_units`, and per-line `total`.
-- **Logo:** File path (absolute or relative to project root) or `http(s)://` URL. Omit or set to `null` if not provided.
+- **Logo:** Must be a base64 data URI (`data:image/...;base64,...`). Claude reads the image file and encodes it before writing the payload — never include a file path or URL. Omit or set to `null` if not provided.
 
 ---
 

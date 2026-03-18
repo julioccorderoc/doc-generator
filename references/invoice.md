@@ -28,7 +28,7 @@ The issuer is the company sending the invoice. The `bill_to` party is the client
 | `notes` | string | ❌ | — | General notes, additional terms, or instructions. Renders at the bottom of the document. |
 | `paid` | boolean | ❌ | `false` | Whether the invoice has already been paid. If `true`, `amount_paid` should also be provided. |
 | `amount_paid` | number | ❌ | `0.00` | Amount already received. Meaningful only when `paid` is `true`. In USD. Must be zero or positive. |
-| `primary_color` | string | ❌ | — | Brand color override. Hex string (e.g. `"#7c3aed"`). Overrides the header background and primary accent color for this document. |
+| `primary_color` | string | ❌ | — | Brand color override. Must be a hex color in `#RRGGBB` or `#RGB` format, or a single-word CSS color name (e.g. `"#7c3aed"`, `"#fff"`, `"purple"`). Overrides the header background and primary accent color. |
 
 ---
 
@@ -41,7 +41,7 @@ The issuer is the company sending the invoice. The `bill_to` party is the client
 | `issuer.contact_name` | string | ❌ | Name of the billing contact at the issuer. Displayed below the address. |
 | `issuer.email` | string | ❌ | Contact or billing email. |
 | `issuer.phone` | string | ❌ | Contact phone number. |
-| `issuer.logo` | string | ❌ | File path (absolute or relative) or URL to the company logo image. Renders in the document header if provided. Supported formats: PNG, JPG, SVG. |
+| `issuer.logo` | string | ❌ | Base64 data URI (`data:image/png;base64,...`). Claude reads the file and encodes it before building the payload — never pass a file path or URL. Renders in the document header if provided. Supported formats: PNG, JPG, SVG. |
 
 ---
 
@@ -138,7 +138,7 @@ All monetary values are rounded to 2 decimal places.
 - `tax_rate` must be between `0.0` and `1.0`.
 - `amount_paid` must be zero or positive. If `paid = true` and `amount_paid` is not provided, it defaults to `0.00` (valid, but Claude should ask).
 - `issuer.name`, `issuer.address`, `bill_to.name`, `bill_to.address` are all required and must be non-empty strings.
-- `issuer.logo`, if provided, must be either a valid absolute file path to an existing file, or a valid URL starting with `http://` or `https://`.
+- `issuer.logo`, if provided, must be a `data:image/...;base64,...` string. File paths and URLs are rejected — Claude must read and encode the file before building the payload.
 - `payment_details` entries must each have a non-empty `label` and `value`.
 
 ---
@@ -151,7 +151,7 @@ When a user asks to generate an Invoice, Claude should:
 2. **Ask for required fields in one pass** — do not ask field by field. Group all missing required fields into a single request.
 3. **Use smart defaults** — apply `issue_date = today`, `currency = USD`, `paid = false`, `amount_paid = 0.00`, `tax_rate = 0.00`, `shipping_cost = 0.00` silently without asking. Suggest `invoice_number` format if missing.
 4. **Never ask for computed fields** — do not ask for `subtotal`, `tax_amount`, `grand_total`, `balance_due`, `total_units`, or per-line `total`.
-5. **Handle logo gracefully** — if the user mentions a logo, ask for the file path or URL. If they don't mention it, do not ask.
+5. **Handle logo gracefully** — if the user mentions a logo, ask for the file path. Use the Read tool to read the file and encode it as a base64 data URI (`data:image/...;base64,...`) before including it in the payload. If they don't mention a logo, do not ask.
 6. **Ask about `count_units` for service lines** — if a line item is clearly a service (consulting, setup, labour), ask if it should be excluded from the unit total. Default is `true` (counted); set to `false` to exclude.
 7. **Ask about payment details** — prompt the user to provide bank details or other payment instructions if they want them included. If not mentioned, do not force the issue.
 8. **Ask about payment status** — if the user indicates partial or full payment has already been received, collect `paid` and `amount_paid` values.
@@ -178,7 +178,7 @@ When a user asks to generate an Invoice, Claude should:
     "contact_name": "Julio Cordero",
     "email": "billing@naturalcurelabs.com",
     "phone": "+1 (310) 555-0100",
-    "logo": "NCL_LOGO_WHITE_BLUE_.png"
+    "logo": "data:image/png;base64,..."
   },
   "bill_to": {
     "name": "Acme Retail Group",
@@ -269,7 +269,7 @@ total_units          = 2           (only the label design line counts)
 - **Dates:** Always `"YYYY-MM-DD"` string format.
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
 - **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `balance_due`, `total_units`, and per-line `total`.
-- **Logo:** File path (absolute or relative to project root) or `http(s)://` URL. Omit or set to `null` if not provided.
+- **Logo:** Must be a base64 data URI (`data:image/...;base64,...`). Claude reads the image file and encodes it before writing the payload — never include a file path or URL. Omit or set to `null` if not provided.
 
 ---
 
