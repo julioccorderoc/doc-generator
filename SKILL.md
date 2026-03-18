@@ -79,6 +79,9 @@ Apply these without asking the user:
 | `shipping_cost` | `0.00` | `purchase_order`, `invoice` only |
 | `paid` | `false` | `invoice` only |
 | `amount_paid` | `0.00` | `invoice` only |
+| `delivery_date` / `due_date` / `valid_until` | Compute from duration | If user says "12 weeks", "3 months", etc., add to `issue_date` and use `YYYY-MM-DD` |
+
+> **Duration expressions:** If the user provides a relative time for any date field ("12 weeks", "in 3 months", "end of Q2"), compute the exact `YYYY-MM-DD` by adding the duration to `issue_date`. Never pass a duration string to the payload — the schema only accepts `YYYY-MM-DD`.
 
 ### Document numbering
 
@@ -112,10 +115,14 @@ Example payload path: `/tmp/doc_payload_<timestamp>.json`
 ### 2. Run the CLI
 
 ```bash
-cd ~/doc-generator && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
+DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator \
+  python scripts/generate.py \
   --doc_type <doc_type_slug> \
-  --payload <path_to_payload_file>
+  --payload <path_to_payload_file> \
+  --output_name <doc_number>
 ```
+
+Pass the document number as `--output_name` so the output file is named after the document (e.g. `--output_name NS39` → `output/purchase_order_NS39.pdf`). Use the same identifier the user provided or the one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
 
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 

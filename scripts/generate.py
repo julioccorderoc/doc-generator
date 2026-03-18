@@ -86,6 +86,14 @@ def main() -> None:
         action="store_true",
         help="Open the PDF in the system viewer after generation.",
     )
+    parser.add_argument(
+        "--output_name",
+        default=None,
+        help=(
+            "Custom filename stem (e.g. 'NS39' produces purchase_order_NS39.pdf). "
+            "Defaults to auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf."
+        ),
+    )
     args = parser.parse_args()
 
     # ── 1. Validate doc_type ───────────────────────────────────────────────
@@ -128,7 +136,7 @@ def main() -> None:
     html = env.get_template(config.template).render(**context)
 
     # ── 6. Write PDF ───────────────────────────────────────────────────────
-    output_path = next_output_filename(args.doc_type)
+    output_path = next_output_filename(args.doc_type, args.output_name)
     weasyprint.HTML(string=html).write_pdf(str(output_path))
 
     print(str(output_path))

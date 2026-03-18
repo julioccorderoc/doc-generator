@@ -23,18 +23,22 @@ def format_date(value: date_type | str) -> str:
 
 
 def format_quantity(value: Decimal | float) -> str:
-    """Format a quantity, removing unnecessary trailing zeros.
+    """Format a quantity with thousand separators, removing unnecessary trailing zeros.
 
-    50   → "50"
-    2.5  → "2.5"
-    2.50 → "2.5"
+    50     → "50"
+    1500   → "1,500"
+    2.5    → "2.5"
+    2.50   → "2.5"
+    1500.5 → "1,500.5"
     """
     d = Decimal(str(value))
     normalized = d.normalize()
-    # If the exponent is negative (has decimal places), keep them; else show as int
     if normalized == normalized.to_integral_value():
-        return str(int(normalized))
-    return str(normalized)
+        return f"{int(normalized):,}"
+    # For decimals: format integer part with commas, keep decimal digits as-is
+    int_part = int(normalized.to_integral_value(rounding="ROUND_DOWN"))
+    dec_part = str(normalized) if int_part == 0 else str(normalized)[len(str(int_part)):]
+    return f"{int_part:,}{dec_part}"
 
 
 def format_tax_rate(value: Decimal | float) -> str:

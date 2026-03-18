@@ -52,6 +52,7 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 | `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`, `request_for_quotation`). |
 | `--payload` | Yes | Absolute or relative path to a JSON file containing the document data. **File path only** — not inline JSON. This avoids shell escaping issues and lets agents write a temp file before invoking. |
 | `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
+| `--output_name` | No | Custom filename stem. If provided, output is `<doc_type>_<name>.pdf` in `output/`. Defaults to date + sequential counter auto-naming. |
 
 **On success:** Writes the PDF to `output/<doc_type>_YYYYMMDD_XXXX.pdf` and prints the output path to stdout. Exit code `0`.
 

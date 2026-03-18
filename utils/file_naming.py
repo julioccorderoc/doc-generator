@@ -14,12 +14,18 @@ from pathlib import Path
 _OUTPUT_DIR = Path(__file__).parent.parent / "output"
 
 
-def next_output_filename(doc_type: str) -> Path:
-    """Return the next sequential output path for the given doc_type.
+def next_output_filename(doc_type: str, name: str | None = None) -> Path:
+    """Return the output path for the given doc_type.
+
+    If `name` is provided, returns <doc_type>_<name>.pdf (no sequence counter).
+    Otherwise uses auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf.
 
     Creates output/ if it does not exist.
     """
     _OUTPUT_DIR.mkdir(exist_ok=True)
+
+    if name:
+        return _OUTPUT_DIR / f"{doc_type}_{name}.pdf"
 
     today = date.today().strftime("%Y%m%d")
     prefix = f"{doc_type}_{today}_"
