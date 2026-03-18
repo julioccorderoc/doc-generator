@@ -102,7 +102,7 @@ doc-generator/
 │   ├── paths.py                 ← Project root path constants (ROOT, TEMPLATES_DIR, ASSETS_DIR)
 │   ├── formatting.py            ← Currency formatting (USD/American: $1,234.56), date formatting
 │   ├── file_naming.py           ← Auto-naming logic: <doc_type>_YYYYMMDD_XXXX.pdf
-│   ├── logo.py                  ← Logo resolver: accepts file path or URL, returns base64 data URI
+│   ├── logo.py                  ← Logo resolver: validates data URI (data:image/...;base64,...); rejects file paths and URLs
 │   └── preview.py               ← OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
 │
 ├── templates/
@@ -123,7 +123,8 @@ doc-generator/
 │   ├── request_for_quotation.md     ← SOURCE OF TRUTH for the request_for_quotation doc type
 │   ├── EXTENDING.md                 ← Developer guide: how to add a new document type
 │   ├── NEW_DOC_TYPE.md              ← Copy-paste coding agent prompt for implementing a new doc type end-to-end
-│   └── DESIGN_SYSTEM.md             ← Visual source of truth: color palette, typography, totals block design, theming
+│   ├── DESIGN_SYSTEM.md             ← Visual source of truth: color palette, typography, totals block design, theming
+│   └── ERRORS.md                    ← All CLI error patterns and recovery steps (validation errors + setup failures)
 │
 ├── tests/
 │   └── fixtures/
@@ -210,6 +211,7 @@ Current decisions:
 - [003-file-path-payload](docs/decisions/003-file-path-payload.md) — `--payload` accepts file path only, not inline JSON
 - [004-argparse-only-cli](docs/decisions/004-argparse-only-cli.md) — Use stdlib `argparse`; no CLI framework dependencies
 - [005-skill-marketplace-publishing](docs/decisions/005-skill-marketplace-publishing.md) — Skill marketplace publishing: GitHub-first distribution + vercel-labs/agent-skills registry (Option A); npm package documented for future (Option B)
+- [006-logo-data-uri-only](docs/decisions/006-logo-data-uri-only.md) — Logo field accepts only base64 data URIs; file paths and URLs rejected at the CLI level to prevent path traversal and SSRF
 
 ---
 

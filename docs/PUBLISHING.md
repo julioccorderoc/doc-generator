@@ -34,13 +34,7 @@ Once the repo is public, team members can install the skill with:
 npx skills add julioccorderoc/doc-generator
 ```
 
-For the full setup (CLI + skill in one step), share `install.sh`:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
-```
-
-The installer handles cloning, `uv sync`, pango, and writing a path-correct `SKILL.md` to `~/.claude/skills/doc-generator/`. Re-running is idempotent.
+For the full setup (CLI + skill), share the manual setup steps in Part 2 below.
 
 ### Step 3 — Submit to the vercel-labs/agent-skills registry (optional, for public discoverability)
 
@@ -133,28 +127,7 @@ Share this section with coworkers. It covers everything needed to go from zero t
 
 ---
 
-### Option A — One-command setup (recommended)
-
-Handles everything: clones the repo, installs Python dependencies, installs Pango on macOS, and writes the skill to Claude Code.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh | bash
-```
-
-Or clone and run directly:
-
-```bash
-git clone https://github.com/julioccorderoc/doc-generator.git
-cd doc-generator && ./install.sh
-```
-
-**To update later:** just re-run the same command. It pulls the latest and refreshes the skill.
-
----
-
-### Option B — Manual setup
-
-Use this if you prefer step-by-step control.
+### Manual setup
 
 #### What you need
 
@@ -241,9 +214,9 @@ The generated PDFs land in `output/` inside the project directory.
 
 | Task | Command |
 | --- | --- |
-| Full setup (one command) | `curl -fsSL https://raw.githubusercontent.com/julioccorderoc/doc-generator/master/install.sh \| bash` |
-| Install skill only | `npx skills add julioccorderoc/doc-generator` |
-| Update everything | Re-run `install.sh` or `npx skills update -g` + `git pull origin master` |
+| Install skill | `npx skills add julioccorderoc/doc-generator` |
+| Update skill | `npx skills update -g` |
+| Update CLI | `git pull origin master` (inside your clone) |
 | Check for skill updates | `npx skills check` |
 | Generate a PO manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type purchase_order --payload <path>` |
 | Generate an invoice manually | `DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py --doc_type invoice --payload <path>` |
