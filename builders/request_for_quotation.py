@@ -23,14 +23,9 @@ _RFQ_CSS: str = (ASSETS_DIR / "request_for_quotation.css").read_text(encoding="u
 
 def _build_party(party: RFQParty) -> dict:
     """Convert an RFQParty model to a display-ready dict."""
-    address_lines = []
-    if party.address:
-        address_lines = [
-            line.strip() for line in party.address.split("\n") if line.strip()
-        ]
     return {
         "name": party.name,
-        "address_lines": address_lines,
+        "address": party.address,
         "phone": party.phone,
         "email": party.email,
         "website": party.website,
@@ -119,7 +114,7 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
         "footer_text": _build_footer_text(doc.issuer),
 
         # ── Logo ──────────────────────────────────────────────────────────
-        "logo": Markup(logo_data) if logo_data else None,
+        "logo": logo_data,
 
         # ── Template infrastructure ───────────────────────────────────────
         "css_path": get_css_path(),

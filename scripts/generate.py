@@ -129,14 +129,7 @@ def main() -> None:
         print(_format_validation_errors(exc))
         sys.exit(1)
 
-    # ── 3a. Reject unsupported currencies ─────────────────────────────────────
-    currency = getattr(doc, "currency", None)
-    if currency is not None and currency != "USD":
-        print(
-            f"Currency '{currency}' is not yet supported. "
-            "Only USD is currently supported."
-        )
-        sys.exit(1)
+
 
     # ── 4. Build template context ──────────────────────────────────────────
     try:

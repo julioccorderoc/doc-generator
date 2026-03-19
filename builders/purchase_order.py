@@ -71,7 +71,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
             "contact_name": doc.buyer.contact_name,
             "email": doc.buyer.email,
             "phone": doc.buyer.phone,
-            "logo": Markup(logo_data) if logo_data else None,
+            "logo": logo_data,
         },
         "vendor": {
             "name": doc.vendor.name,

@@ -61,7 +61,7 @@ def build_invoice_context(doc: Invoice) -> dict:
             "contact_name": doc.issuer.contact_name,
             "email": doc.issuer.email,
             "phone": doc.issuer.phone,
-            "logo": Markup(logo_data) if logo_data else None,
+            "logo": logo_data,
         },
         "bill_to": {
             "name": doc.bill_to.name,

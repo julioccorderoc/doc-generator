@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from datetime import date
 from decimal import Decimal
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import Field, computed_field, field_validator, model_validator
 
@@ -62,7 +62,7 @@ class Buyer(DocModel):
     def logo_format(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        if not v.startswith("data:image/"):
+        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
             raise ValueError("logo must be a data URI (data:image/...;base64,...)")
         return v
 
@@ -86,7 +86,7 @@ class PurchaseOrder(DocModel):
     po_number: str
     issue_date: date = Field(default_factory=date.today)
     delivery_date: Optional[date] = None
-    currency: str = "USD"
+    currency: Literal["USD"] = "USD"
     payment_terms: Optional[str] = None
     shipping_method: Optional[str] = None
     shipping_cost: Money = Decimal("0.00")

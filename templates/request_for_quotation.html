@@ -38,10 +38,8 @@
   <div class="address-block__party">
     <div class="address-block__label">From</div>
     <div class="address-block__name">{{ issuer.name }}</div>
-    {% if issuer.address_lines %}
-    <div class="address-block__detail">
-      {% for line in issuer.address_lines %}{{ line }}<br>{% endfor %}
-    </div>
+    {% if issuer.address %}
+    <div class="address-block__detail">{{ issuer.address | nl2br }}</div>
     {% endif %}
     {% if issuer.phone or issuer.email %}
     <div class="address-block__contact">
@@ -59,10 +57,8 @@
   <div class="address-block__party">
     <div class="address-block__label">To</div>
     <div class="address-block__name">{{ vendor.name }}</div>
-    {% if vendor.address_lines %}
-    <div class="address-block__detail">
-      {% for line in vendor.address_lines %}{{ line }}<br>{% endfor %}
-    </div>
+    {% if vendor.address %}
+    <div class="address-block__detail">{{ vendor.address | nl2br }}</div>
     {% endif %}
     {% if vendor.phone or vendor.email %}
     <div class="address-block__contact">

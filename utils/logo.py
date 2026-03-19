@@ -7,6 +7,9 @@ Raises ValueError for file paths, URLs, or any other format.
 """
 
 
+import re
+
+
 def resolve_logo(source: str | None) -> str | None:
     """Validate and return a logo data URI.
 
@@ -22,7 +25,7 @@ def resolve_logo(source: str | None) -> str | None:
     if source is None:
         return None
 
-    if source.startswith("data:image/"):
+    if source and re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", source):
         return source
 
     raise ValueError(

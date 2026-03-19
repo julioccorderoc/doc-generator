@@ -106,7 +106,7 @@ class RequestForQuotation(DocModel):
     def logo_format(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        if not v.startswith("data:image/"):
+        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
             raise ValueError("logo must be a data URI (data:image/...;base64,...)")
         return v
 
@@ -136,5 +136,5 @@ class RequestForQuotation(DocModel):
     @model_validator(mode="after")
     def valid_until_after_date(self) -> RequestForQuotation:
         if self.valid_until and self.valid_until <= self.issue_date:
-            raise ValueError("valid_until must be after date")
+            raise ValueError("valid_until must be after issue_date")
         return self
