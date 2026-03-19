@@ -23,11 +23,11 @@ def open_preview(path: Path) -> None:
     """
     try:
         if sys.platform == "darwin":
-            subprocess.run(["open", str(path)], check=False)
+            subprocess.Popen(["open", str(path)])
         elif sys.platform.startswith("linux"):
             if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
                 return  # headless — no-op
-            subprocess.run(["xdg-open", str(path)], check=False)
+            subprocess.Popen(["xdg-open", str(path)])
         elif sys.platform == "win32":
             os.startfile(str(path))  # type: ignore[attr-defined]
         # Unknown platform: no-op
