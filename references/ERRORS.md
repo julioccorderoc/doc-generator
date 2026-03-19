@@ -7,21 +7,7 @@ validation errors and setup failures.
 
 ## Validation Errors
 
-When the CLI exits with code 1 and stdout starts with `Validation failed:`, translate
-the raw Pydantic output into plain language. Do not show the raw error directly.
-After presenting the error, ask the user to correct the values and offer to regenerate.
-
-| Raw error pattern | User-facing message |
-| --- | --- |
-| `field → must not be empty` | "The [field label] is required and cannot be blank." |
-| `must be greater than zero` | "Quantity and unit price must be greater than zero." |
-| `tax_rate → must be between 0.0 and 1.0` | "Tax rate must be a decimal between 0 and 1 (e.g. `0.08` for 8%)." |
-| `delivery_date must be on or after issue_date` | "The delivery date cannot be before the issue date." |
-| `due_date must be on or after issue_date` | "The due date cannot be before the issue date." |
-| `must contain at least one line item` | "At least one line item is required." |
-| `valid_until must be after issue_date` | "The quote-by date must be after the issue date." |
-| `spec_sections must contain at least one entry` | "At least one specification section with at least one row is required." |
-| `Currency '...' is not yet supported` | "Only USD is supported at the moment. Please use USD for all monetary values." |
+When the CLI exits with code 1 and stdout starts with `Validation failed:`, output the error string exactly as it appears in the terminal. The scripts output safe, user-friendly language. Ask the user to correct the specified fields and offer to regenerate.
 
 ---
 

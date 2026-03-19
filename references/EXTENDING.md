@@ -7,8 +7,8 @@ This is the complete developer guide for adding a new document type to doc-gener
 **Five files. No other existing files change.**
 
 ```text
-1. references/<doc_type>.md      → Define all fields, rules, computed fields, layout notes
-2. schemas/<doc_type>.py         → Pydantic v2 model derived from the reference
+1. schemas/<doc_type>.py         → Pydantic v2 model (The Single Source of Truth)
+2. references/<doc_type>.md      → Tiny quirk list and minimal JSON shape
 3. templates/<doc_type>.html     → Jinja2 template extending base.html
 4. builders/<doc_type>.py        → Context builder function (build_<doc_type>_context)
 5. builders/__init__.py          → One DocTypeConfig entry added to REGISTRY
@@ -18,65 +18,38 @@ The core engine (`generate.py`), base layout (`base.html`), and stylesheet (`sty
 
 ---
 
-## Step 1 — Write `references/<doc_type>.md`
+## Step 1 — Write `schemas/<doc_type>.py`
 
-The reference file is the **source of truth**. Write it first. The schema and template are derived from it. Never derive the reference from the code.
-
-A reference file must contain exactly these sections, in this order:
-
-### 1.1 Field Reference
-
-One table per top-level object (document-level fields, party A, party B, line items array). Column set: `| Field | Type | Required | Default | Description |`. Omit `Default` for sub-object tables where it doesn't apply.
-
-- Use `✅` / `❌` for required/optional.
-- For dates: note `YYYY-MM-DD` format and whether the field defaults to today.
-- For money: type `number`, note the currency.
-- For optional arrays: document the array and its entry shape in their own sub-section.
-- Document `count_units` on line items if the doc type has a physical vs. service line distinction.
-
-### 1.2 Validation Rules
-
-Bulleted list of every constraint: required strings non-empty, date ordering, numeric ranges, array minimums, cross-field rules.
-
-### 1.3 Claude Data Collection Protocol
-
-Numbered instructions for Claude. Follow the pattern in `purchase_order.md` and `invoice.md`:
-
-1. Identify what the user has already provided.
-2. Ask for all missing required fields in one pass (not field by field).
-3. List which defaults to apply silently.
-4. State explicitly: never ask for computed fields.
-5. Logo: ask only if the user mentions it.
-6. `count_units` for service lines: ask if a line item is clearly a service.
-7. Any doc-type-specific data collection rules (e.g. payment status, payment details).
-8. Confirm before generating.
-
-### 1.4 Example Payload
-
-Complete valid JSON with all significant fields populated.
-
-### 1.5 Payload Construction
-
-Two sub-sections:
-
-1. **Minimal payload** — required fields only, with `"..."` placeholders. Quick-reference shape for Claude when building a payload.
-2. **Field encoding notes** — address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings, computed fields excluded, logo must be a base64 data URI.
-
-Follow the pattern in `references/purchase_order.md` and `references/invoice.md`.
-
----
-
-## Step 2 — Write `schemas/<doc_type>.py`
-
+The Pydantic schema is the **Single Source of Truth**. Write it first.
 Model your file on `schemas/purchase_order.py` as the reference implementation. Key rules:
 
 - **`DocModel` base class** — all classes (including nested) inherit from `DocModel`, not `BaseModel`. `DocModel` sets `populate_by_name = True`.
 - **`Money` type** — use for every monetary field; never `float` or bare `Decimal`. Accepts `int`, `float`, `str`, or `Decimal` from JSON. See [001-decimal-for-money](../docs/decisions/001-decimal-for-money.md).
+- **Descriptions as documentation** — Every field must have a `Field(..., description="...")`. Describe what the field means, its constraints, and when the payload generator should ask for it.
+- **Friendly Validation Errors** — `ValueError` messages raised by your validators will be fed directly to the user by Claude. Make them conversational (e.g. `"The delivery date cannot be before the issue date."`).
 - **`@computed_field` + `@property`** — always call `round_money()` on monetary results; add `# type: ignore[prop-decorator]`. Computed fields are silently ignored when present in the payload — they can never be injected.
 - **`@field_validator(mode="after")`** — for single-field constraints. Always `@classmethod`.
 - **`@model_validator(mode="after")`** — for cross-field constraints (e.g. `due_date >= issue_date`).
-- **Defaults** — `Field(default_factory=date.today)` for today; `Decimal("0.00")` (not `0.0`) for monetary defaults.
+- **Defaults** — `Field(default_factory=date.today, ...)` for today; `Field(default=Decimal("0.00"), ...)` (not `0.0`) for monetary defaults.
 - **Logo** — accept `Optional[str]`; add a `@field_validator` that enforces the value starts with `data:image/` (or is `None`). See `schemas/purchase_order.py` `Buyer.logo_format` for the reference implementation. `utils/logo.py` also validates at render time as defense-in-depth, but the schema is the primary enforcement point.
+
+---
+
+## Step 2 — Write `references/<doc_type>.md`
+
+A tiny, supplementary reference file to teach the AI payload generator about document quirks and the expected JSON shape.
+Follow the pattern in `references/purchase_order.md`. It must contain exactly these sections:
+
+### Document Quirks
+
+List any behavioral quirks that don't fit into Pydantic field descriptions. Examples: How to handle service lines vs physical lines, rules around optional identifier columns appearing, or whether a terms attachment is included by default.
+
+### Payload Construction
+
+Two sub-sections:
+
+1. **Minimal payload** — required fields only, with `"..."` placeholders. Quick-reference shape for Claude when building a payload.
+2. **Field encoding notes** — address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings.
 
 ---
 
@@ -196,8 +169,8 @@ Add a second valid fixture for meaningfully different scenarios:
 
 Before declaring a new doc type complete:
 
-- [ ] `references/<doc_type>.md` exists with all required sections (§1.1–1.5), including Payload Construction (minimal shape + encoding notes).
-- [ ] `schemas/<doc_type>.py` derived from the reference. All computed fields use `round_money()`.
+- [ ] `schemas/<doc_type>.py` is heavily documented with `Field(description=...)` and friendly error strings.
+- [ ] `references/<doc_type>.md` exists with document quirks and minimal payload shape.
 - [ ] Valid fixture generates a clean, single-page PDF with correct totals.
 - [ ] Invalid fixture exits with code 1 and a readable error (no Python traceback).
 - [ ] Adding the new doc type required zero changes to `base.html`, `style.css`, or `scripts/generate.py`'s core engine.

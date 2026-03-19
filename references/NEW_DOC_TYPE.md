@@ -49,21 +49,25 @@ If any of these fail, stop and investigate before proceeding.
 
 ## Files to create (in this exact order)
 
-### 1. `references/[doc_type_slug].md`
+### 1. `schemas/[doc_type_slug].py`
 
-The source of truth. Write it first — the schema and template are derived from it, never the reverse.
+The Single Source of Truth for the payload structure. Write this first.
+Pydantic v2 model. Follow `schemas/purchase_order.py` exactly for conventions:
 
-Required sections (follow the structure of `references/purchase_order.md`):
+- `DocModel` base class
+- `Money` type on all monetary fields
+- `@computed_field` + `@property` for derived values, `round_money()` on every monetary result
+- `Field(default_factory=date.today)` for today's date
+- Use `Field(description="...")` extensively to document exactly what Claude should ask the user for and how to format it.
+- Use `@field_validator(mode="after")` to raise user-friendly `ValueError` strings that Claude will pass directly to the user.
 
-- §1.1 Field Reference (one table per top-level object)
-- §1.2 Validation Rules
-- §1.3 Claude Data Collection Protocol
-- §1.4 Example Payload (complete JSON)
-- §1.5 Payload Construction (minimal shape + field encoding notes)
+### 2. `references/[doc_type_slug].md`
 
-### 2. `schemas/[doc_type_slug].py`
+A tiny supplementary reference file for Claude. It should define:
 
-Pydantic v2 model derived directly from the reference file. Follow `schemas/purchase_order.py` exactly for conventions: `DocModel` base class, `Money` type on all monetary fields, `@computed_field` + `@property` for derived values, `round_money()` on every monetary result, `Field(default_factory=date.today)` for today's date.
+- **Document Quirks:** edge cases that don't fit in Pydantic descriptions.
+- **Payload Construction:** A minimal JSON payload shape example and any field encoding notes.
+Look at `references/purchase_order.md` for the minimal template.
 
 ### 3. `assets/[doc_type_slug].css`
 
@@ -147,8 +151,8 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 
 ## Acceptance checklist
 
-- [ ] `references/[doc_type_slug].md` exists with all sections (§1.1–1.5)
-- [ ] `schemas/[doc_type_slug].py` derived from the reference; all computed fields use `round_money()`
+- [ ] `schemas/[doc_type_slug].py` is heavily annotated with `Field(description=...)` and friendly validation errors.
+- [ ] `references/[doc_type_slug].md` exists with quirks and payload rules.
 - [ ] `assets/[doc_type_slug].css` exists (may be empty)
 - [ ] Valid fixture generates a clean PDF with correct totals; opens with `--preview`
 - [ ] Invalid fixture exits with code 1 and a readable error (no Python traceback)
