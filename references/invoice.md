@@ -4,14 +4,6 @@ This is the source of truth for the `invoice` document type. The Pydantic schema
 
 ---
 
-## Document Overview
-
-An Invoice is a commercial document issued by an **issuer** (the seller/service provider) to a **client** (the buyer), requesting payment for goods delivered or services rendered. It records what was provided, at what price, and when payment is due.
-
-The issuer is the company sending the invoice. The `bill_to` party is the client being billed. These are conceptually distinct from the PO's buyer/vendor relationship — on an invoice, the issuer is always the one being paid.
-
----
-
 ## Field Reference
 
 ### Top-Level Fields
@@ -220,21 +212,6 @@ When a user asks to generate an Invoice, Claude should:
 }
 ```
 
-**Expected computed output:**
-
-```text
-line_items[0].total  = $1,600.00   (8 hrs × $200.00; count_units: false)
-line_items[1].total  = $750.00     (3 hrs × $250.00; count_units: false)
-line_items[2].total  = $750.00     (2 SKUs × $375.00; count_units: true)
-subtotal             = $3,100.00
-tax_amount           = $310.00     (10%)
-shipping_cost        = $0.00
-grand_total          = $3,410.00
-amount_paid          = $825.00
-balance_due          = $2,585.00
-total_units          = 2           (only the label design line counts)
-```
-
 ---
 
 ## Payload Construction
@@ -270,22 +247,3 @@ total_units          = 2           (only the label design line counts)
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
 - **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `balance_due`, `total_units`, and per-line `total`.
 - **Logo:** Must be a base64 data URI (`data:image/...;base64,...`). Claude reads the image file and encodes it before writing the payload — never include a file path or URL. Omit or set to `null` if not provided.
-
----
-
-## Document Layout Notes (for template authors)
-
-The invoice template should follow this visual structure, top to bottom:
-
-1. **Header row** — issuer logo (if provided) on the left; document title "INVOICE" + invoice number + issue date on the right. If `paid = true`, render a "PAID" stamp/banner overlaid on or near the header.
-2. **Address block** — two columns: "From" (issuer) on the left, "Bill To" (client) on the right. Contact name displayed below address without any prefix.
-3. **Meta row** — due date, payment terms in a compact horizontal band (only rendered if at least one is present).
-4. **Line items table** — columns: `#` | `Buyer ID` (column omitted entirely if no item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`.
-5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both always present; Notes column is empty when `notes` is absent.
-6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping (only if > 0) / Grand Total / Amount Paid (only if `paid = true` or `amount_paid > 0`) / **Balance Due** (bold, prominent).
-7. **Payment details block** — full-width section below the bottom row, only rendered if `payment_details` is non-empty. Displays as a two-column key/value table with a distinct background or border. Heading: "Payment Details".
-8. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from issuer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.
-
-**Balance Due emphasis:** `balance_due` is the most important financial figure on the invoice. It should be visually prominent (bold, slightly larger, or with a distinct background row) — more so than on a PO's grand total.
-
-**PAID stamp:** When `paid = true` and `balance_due` equals `0.00`, render a "PAID" visual indicator. A bold green label or diagonal stamp effect in CSS is acceptable. This is purely cosmetic and controlled by the `paid` field.

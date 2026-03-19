@@ -4,12 +4,6 @@ This is the source of truth for the `purchase_order` document type. The Pydantic
 
 ---
 
-## Document Overview
-
-A Purchase Order (PO) is a commercial document issued by a **buyer** to a **vendor**, authorizing the purchase of specific goods or services at agreed prices and terms. It is legally binding once accepted by the vendor.
-
----
-
 ## Field Reference
 
 ### Top-Level Fields
@@ -174,19 +168,6 @@ When a user asks to generate a Purchase Order, Claude should:
 }
 ```
 
-**Expected computed output:**
-
-```text
-line_items[0].total  = $1,200.00
-line_items[1].total  = $462.50
-line_items[2].total  = $850.00      (count_units: false — excluded from total_units)
-subtotal             = $2,512.50
-tax_amount           = $201.00      (8%)
-shipping_cost        = $15.00
-grand_total          = $2,728.50
-total_units          = 75           (50 kg + 25 kg; service line excluded)
-```
-
 ---
 
 ## Payload Construction
@@ -222,18 +203,3 @@ total_units          = 75           (50 kg + 25 kg; service line excluded)
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
 - **Computed fields:** Never included in the payload. Omit `subtotal`, `tax_amount`, `grand_total`, `total_units`, and per-line `total`.
 - **Logo:** Must be a base64 data URI (`data:image/...;base64,...`). Claude reads the image file and encodes it before writing the payload — never include a file path or URL. Omit or set to `null` if not provided.
-
----
-
-## Document Layout Notes (for template authors)
-
-The PO template should follow this visual structure, top to bottom:
-
-1. **Header row** — buyer logo (if provided) on the left, document title "PURCHASE ORDER" + PO number + issue date on the right
-2. **Address block** — two columns: "Vendor" on the left, "Buyer" on the right. Contact name displayed below address without any prefix.
-3. **Meta row** — delivery date, payment terms, shipping method in a compact horizontal band
-4. **Line items table** — columns: `#` | `Buyer ID` (if any item has one) | `Vendor ID` (if any item has one) | `Barcode` (if any item has one) | `Description` | `Unit` | `Qty` | `Unit Price` | `Total`
-5. **Bottom section** — two-column layout: Notes (left, optional) and Totals block (right, fixed width). Both are always present; Notes column is empty when `notes` is absent.
-6. **Totals block** (right column) — a single table containing: `Total Units` (first row, only if any item has `count_units = true`, visually separated by a bottom border) followed by financial rows: Subtotal / Tax (rate%) / Shipping / **Grand Total**
-7. **Footer** — full-width dark bar at the bottom of every page. Auto-populated from buyer data: name · address (single line) · phone (if provided) · email (if provided). No additional fields needed. Page number is rendered in the page margin below the footer bar.
-8. **T&C annex** — renders on a new page (forced page break) after the bottom section. Only rendered when `annex_terms` is set. Displays a compact two-column list of sections at 7pt font designed to fit within one page.

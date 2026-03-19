@@ -55,14 +55,11 @@ The source of truth. Write it first — the schema and template are derived from
 
 Required sections (follow the structure of `references/purchase_order.md`):
 
-- §1.1 Document Overview
-- §1.2 Field Reference (one table per top-level object)
-- §1.3 Computed Fields (formula + example for each)
-- §1.4 Validation Rules
-- §1.5 Claude Data Collection Protocol
-- §1.6 Example Payload (complete JSON + expected computed output)
-- §1.7 Payload Construction (minimal shape + field encoding notes)
-- §1.8 Document Layout Notes
+- §1.1 Field Reference (one table per top-level object)
+- §1.2 Validation Rules
+- §1.3 Claude Data Collection Protocol
+- §1.4 Example Payload (complete JSON)
+- §1.5 Payload Construction (minimal shape + field encoding notes)
 
 ### 2. `schemas/[doc_type_slug].py`
 
@@ -150,7 +147,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 
 ## Acceptance checklist
 
-- [ ] `references/[doc_type_slug].md` exists with all sections (§1.1–1.8)
+- [ ] `references/[doc_type_slug].md` exists with all sections (§1.1–1.5)
 - [ ] `schemas/[doc_type_slug].py` derived from the reference; all computed fields use `round_money()`
 - [ ] `assets/[doc_type_slug].css` exists (may be empty)
 - [ ] Valid fixture generates a clean PDF with correct totals; opens with `--preview`

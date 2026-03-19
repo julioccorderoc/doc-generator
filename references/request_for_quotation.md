@@ -1,14 +1,6 @@
 # Request for Quotation (RFQ) — Reference
 
-## §1.1 Document Overview
-
-A Request for Quotation is a document issued by a buyer to one or more vendors, asking them to provide a price for a specific product or service. The issuer describes what they need (specifications, quantities, and requirements); the vendor responds with a quote. No monetary values appear in the RFQ itself.
-
-**Parties:** Issuer (left address block — who is requesting the quote) · Vendor (right address block — who is being asked to quote; optional for broadcast RFQs)
-
----
-
-## §1.2 Field Reference
+## §1.1 Field Reference
 
 ### Document-level fields
 
@@ -90,13 +82,7 @@ Each entry adds one column to the product summary table.
 
 ---
 
-## §1.3 Computed Fields
-
-This document type has **no computed fields**. All values come directly from the payload. No monetary arithmetic is performed.
-
----
-
-## §1.4 Validation Rules
+## §1.2 Validation Rules
 
 - `rfq_number` must be a non-empty string (after stripping whitespace)
 - `product_name` must be a non-empty string
@@ -107,7 +93,7 @@ This document type has **no computed fields**. All values come directly from the
 
 ---
 
-## §1.5 Claude Data Collection Protocol
+## §1.3 Claude Data Collection Protocol
 
 1. **Identify what the user has already provided.** The user may have supplied a product name, some specs, or a partial JSON blob.
 
@@ -142,7 +128,7 @@ This document type has **no computed fields**. All values come directly from the
 
 ---
 
-## §1.6 Example Payload
+## §1.4 Example Payload
 
 ### Broadcast RFQ (no specific vendor, no submission deadline)
 
@@ -191,8 +177,6 @@ This is the typical case — sent to multiple vendors or shared openly. Use `tes
 }
 ```
 
-**Expected output:** Issuer block full-width (no vendor panel), product summary table, spec table with one unnamed section + one "Packaging" section, notes, contact block. No "Valid Until" meta band.
-
 ### Addressed RFQ (specific vendor + submission deadline)
 
 Use this form when the RFQ is directed at one vendor and a quote-by date is required. See `tests/fixtures/sample_rfq.json` for the full working example.
@@ -216,11 +200,9 @@ Use this form when the RFQ is directed at one vendor and a quote-by date is requ
 }
 ```
 
-**Expected output:** Two-party address block (issuer left, vendor right), "Valid Until" in the meta band, annexes table.
-
 ---
 
-## §1.7 Payload Construction
+## §1.5 Payload Construction
 
 ### Minimal payload
 
@@ -252,15 +234,3 @@ Use this form when the RFQ is directed at one vendor and a quote-by date is requ
 - **`primary_color`:** hex color (`#RRGGBB` or `#RGB`) or single-word CSS color name (e.g. `"#1A4021"`, `"green"`); omit to use the default
 
 ---
-
-## §1.8 Document Layout Notes
-
-1. **Header bar** — dark background; logo (left), "REQUEST FOR QUOTATION" label + RFQ number (right). Follows the same structure as `purchase_order.html`.
-2. **Meta band** — appears below the header if `valid_until` is set. Shows "Valid Until" label + formatted date on the right side.
-3. **Address block** — Issuer (left, always rendered) · Vendor (right, rendered only when `vendor` is present). If no vendor, issuer block takes the full width via CSS class `address-block--single`.
-4. **Product summary table** — rendered only when `product_name` is set (always true, as it's required). Columns: "Product" (fixed left column showing `product_name` + optional `product_description`) followed by one column per entry in `product_attributes`. If `product_attributes` is empty, only the product column renders.
-5. **Spec table** — full-width two-column table (label left, value right). Section header rows (`title` present) span both columns with a distinct background. Value cells use `white-space: pre-line` to render `\n` as line breaks without HTML conversion.
-6. **Notes block** — optional; full-width; renders below the spec table.
-7. **Annexes block** — optional; renders as a two-column table (Title | URL). If none of the annexes have a URL, the URL column is omitted.
-8. **Contact block** — optional; centered; shows "Questions? Please contact:" label followed by the contact details on one or two lines.
-9. **Footer** — standard `doc-footer` bar with issuer name and contact info collapsed to one line.

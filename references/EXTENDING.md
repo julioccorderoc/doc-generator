@@ -24,30 +24,21 @@ The reference file is the **source of truth**. Write it first. The schema and te
 
 A reference file must contain exactly these sections, in this order:
 
-### 1.1 Document Overview
-
-One or two sentences describing what this document is, who creates it, and who receives it. Identify the two parties by their roles (e.g. issuer/client, buyer/vendor, shipper/consignee).
-
-### 1.2 Field Reference
+### 1.1 Field Reference
 
 One table per top-level object (document-level fields, party A, party B, line items array). Column set: `| Field | Type | Required | Default | Description |`. Omit `Default` for sub-object tables where it doesn't apply.
 
-- Mark computed fields as `—` (they belong in §1.3).
 - Use `✅` / `❌` for required/optional.
 - For dates: note `YYYY-MM-DD` format and whether the field defaults to today.
 - For money: type `number`, note the currency.
 - For optional arrays: document the array and its entry shape in their own sub-section.
 - Document `count_units` on line items if the doc type has a physical vs. service line distinction.
 
-### 1.3 Computed Fields
-
-Table: `| Field | Formula | Example |`. List every field derived from the payload that must never appear in the input JSON. Include: *All monetary values are rounded to 2 decimal places.*
-
-### 1.4 Validation Rules
+### 1.2 Validation Rules
 
 Bulleted list of every constraint: required strings non-empty, date ordering, numeric ranges, array minimums, cross-field rules.
 
-### 1.5 Claude Data Collection Protocol
+### 1.3 Claude Data Collection Protocol
 
 Numbered instructions for Claude. Follow the pattern in `purchase_order.md` and `invoice.md`:
 
@@ -60,11 +51,11 @@ Numbered instructions for Claude. Follow the pattern in `purchase_order.md` and 
 7. Any doc-type-specific data collection rules (e.g. payment status, payment details).
 8. Confirm before generating.
 
-### 1.6 Example Payload
+### 1.4 Example Payload
 
-Complete valid JSON with all significant fields populated, followed by the expected computed output showing the math.
+Complete valid JSON with all significant fields populated.
 
-### 1.7 Payload Construction
+### 1.5 Payload Construction
 
 Two sub-sections:
 
@@ -72,10 +63,6 @@ Two sub-sections:
 2. **Field encoding notes** — address line breaks (`\n`), date format (`YYYY-MM-DD`), money as numbers not strings, computed fields excluded, logo must be a base64 data URI.
 
 Follow the pattern in `references/purchase_order.md` and `references/invoice.md`.
-
-### 1.8 Document Layout Notes
-
-Numbered list of the visual structure from top to bottom. Specify party positions (left/right), table columns (and which are conditional), conditional totals rows, and any doc-type-specific components.
 
 ---
 
@@ -209,7 +196,7 @@ Add a second valid fixture for meaningfully different scenarios:
 
 Before declaring a new doc type complete:
 
-- [ ] `references/<doc_type>.md` exists with all required sections (§1.1–1.8), including Payload Construction (minimal shape + encoding notes).
+- [ ] `references/<doc_type>.md` exists with all required sections (§1.1–1.5), including Payload Construction (minimal shape + encoding notes).
 - [ ] `schemas/<doc_type>.py` derived from the reference. All computed fields use `round_money()`.
 - [ ] Valid fixture generates a clean, single-page PDF with correct totals.
 - [ ] Invalid fixture exits with code 1 and a readable error (no Python traceback).
