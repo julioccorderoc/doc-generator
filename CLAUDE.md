@@ -12,6 +12,8 @@ uv sync
 
 # macOS system dependency — install once via Homebrew:
 # brew install pango
+# Ubuntu/Debian system dependency:
+# sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
 # WeasyPrint requires Pango/GObject. On macOS the dylibs are in /opt/homebrew/lib/,
 # which is not on the default dyld search path. Prefix every uv run with:
 # DYLD_LIBRARY_PATH=/opt/homebrew/lib

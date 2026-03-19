@@ -137,7 +137,7 @@ Share this section with coworkers. It covers everything needed to go from zero t
 | **Node.js** | For `npx skills add`. Version 18+ recommended. Install via [nodejs.org](https://nodejs.org) or `brew install node` |
 | **Python 3.11+** | For the doc-generator CLI. Most Macs already have this. |
 | **uv** | Python package manager. Install: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| **Pango** (macOS only) | System font library required by WeasyPrint. Install once: `brew install pango` |
+| **Pango** | System font library required by WeasyPrint. Install once (macOS): `brew install pango` or (Debian): `sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0` |
 | **The repo** | Cloned to your machine (see Step 1 below) |
 
 #### Step 1 — Clone the repo
@@ -164,7 +164,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 
 Expected: a PDF opens showing a green-header Purchase Order.
 
-> **Troubleshooting:** If you get a `libpango` error, run `brew install pango` first.
+> **Troubleshooting:** If you get a `libpango` error, run `brew install pango` (macOS) or `sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0` (Debian) first.
 
 #### Step 4 — Install the skill into Claude Code
 

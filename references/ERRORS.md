@@ -39,6 +39,7 @@ uv is not installed.
 > run the official installer from astral.sh. Shall I proceed?"
 
 If confirmed:
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -54,6 +55,7 @@ Python dependencies have not been installed yet.
 > Shall I proceed?"
 
 If confirmed:
+
 ```bash
 uv sync --directory ~/.agents/skills/doc-generator
 ```
@@ -62,15 +64,22 @@ uv sync --directory ~/.agents/skills/doc-generator
 
 ### `WeasyPrint could not import some external libraries`
 
-Pango is not installed (macOS only).
+Pango is not installed.
 
 > "doc-generator requires the Pango library, which is missing on this machine.
-> I'll need to run `brew install pango` — a system-level Homebrew package.
-> Homebrew must already be installed. Shall I proceed?"
+> On macOS, I'll need to run `brew install pango`. On Ubuntu/Debian, `sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0`.
+> Shall I proceed?"
 
-If confirmed:
+If confirmed (macOS):
+
 ```bash
 brew install pango
+```
+
+If confirmed (Debian/Ubuntu):
+
+```bash
+sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
 ```
 
 ---
@@ -83,6 +92,7 @@ The skill files were not cloned properly.
 > to `~/.agents/skills/doc-generator`. Shall I proceed?"
 
 If confirmed:
+
 ```bash
 git clone https://github.com/julioccorderoc/doc-generator.git ~/.agents/skills/doc-generator
 uv sync --directory ~/.agents/skills/doc-generator

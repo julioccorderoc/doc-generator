@@ -84,6 +84,7 @@ git clone https://github.com/julioccorderoc/doc-generator.git
 cd doc-generator
 uv sync
 brew install pango   # macOS only — required by WeasyPrint
+# Ubuntu/Debian: sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
 ```
 
 ---
@@ -129,11 +130,12 @@ No interactive prompts. No assumed environment variables. Agents capture stdout 
 
 ## Running Locally
 
-**macOS prerequisites:**
+**macOS / Linux prerequisites:**
 
 ```bash
 uv sync
-brew install pango   # WeasyPrint system dependency — once only
+brew install pango   # macOS system dependency — once only
+# Ubuntu/Debian: sudo apt-get install libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
 ```
 
 **Generate a document:**
