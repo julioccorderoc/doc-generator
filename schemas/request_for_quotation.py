@@ -20,85 +20,85 @@ from schemas.base import DocModel
 
 class RFQAttribute(DocModel):
     """A single column entry in the product summary table."""
-    header: str
-    value: str
+    header: str = Field(..., description="Column header (e.g. 'Capsules per bottle').")
+    value: str = Field(..., description="Cell value for this product (e.g. '120').")
 
 
 class SpecRow(DocModel):
     """A single row in a specification section."""
-    label: str
-    value: str
+    label: str = Field(..., description="Row label in left column (e.g. 'Formula (per serving)').")
+    value: str = Field(..., description="Row value in right column; supports \\n for multiline content.")
 
 
 class SpecSection(DocModel):
     """A group of spec rows, optionally preceded by a section title row."""
-    title: Optional[str] = None
-    rows: list[SpecRow]
+    title: Optional[str] = Field(default=None, description="Section heading rendered as a full-width row. Omit or null for no heading.")
+    rows: list[SpecRow] = Field(..., description="One or more label/value pairs.")
 
     @field_validator("rows", mode="after")
     @classmethod
     def at_least_one_row(cls, v: list[SpecRow]) -> list[SpecRow]:
         if not v:
-            raise ValueError("spec section must contain at least one row")
+            raise ValueError("At least one row is required in each specification section.")
         return v
 
 
 class Annex(DocModel):
     """A named reference or attachment."""
-    title: str
-    url: Optional[str] = None
+    title: str = Field(..., description="Name of the attachment or reference (e.g. 'Two pack polybag specs').")
+    url: Optional[str] = Field(default=None, description="URL rendered as plain text in the PDF.")
 
 
 class RFQContact(DocModel):
     """Contact person for vendor questions."""
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
+    name: Optional[str] = Field(default=None, description="Contact person's name")
+    email: Optional[str] = Field(default=None, description="Contact email")
+    phone: Optional[str] = Field(default=None, description="Contact phone")
+    website: Optional[str] = Field(default=None, description="Website URL")
 
 
 class RFQParty(DocModel):
     """A party (issuer or vendor) on the RFQ."""
-    name: str
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    website: Optional[str] = None
+    name: str = Field(..., description="Company or individual name.")
+    address: Optional[str] = Field(default=None, description="Mailing address; use \\n for line breaks.")
+    phone: Optional[str] = Field(default=None, description="Phone number.")
+    email: Optional[str] = Field(default=None, description="Email address.")
+    website: Optional[str] = Field(default=None, description="Website URL.")
 
     @field_validator("name", mode="after")
     @classmethod
     def name_non_empty(cls, v: str) -> str:
         if not v.strip():
-            raise ValueError("must not be empty")
+            raise ValueError("This field is required and cannot be blank.")
         return v
 
 
 class RequestForQuotation(DocModel):
-    rfq_number: str
-    issue_date: date = Field(default_factory=date.today)
-    valid_until: Optional[date] = None
+    rfq_number: str = Field(..., description="Unique RFQ identifier (e.g. 'RFQ-2026-001').")
+    issue_date: date = Field(default_factory=date.today, description="Date the RFQ is issued.")
+    valid_until: Optional[date] = Field(default=None, description="Deadline for vendor to submit a quote; must be after issue_date. Only include when the user explicitly requests a submission deadline.")
 
-    issuer: RFQParty
-    vendor: Optional[RFQParty] = None
+    issuer: RFQParty = Field(..., description="Party issuing the RFQ.")
+    vendor: Optional[RFQParty] = Field(default=None, description="Recipient vendor. Omit for broadcast RFQs.")
 
-    product_name: str
-    product_description: Optional[str] = None
-    product_attributes: list[RFQAttribute] = []
+    product_name: str = Field(..., description="Name of the product or service being quoted.")
+    product_description: Optional[str] = Field(default=None, description="Short description or subtitle for the product. Only include when the user explicitly asks for one.")
+    product_attributes: list[RFQAttribute] = Field(default=[], description="Dynamic columns for the product summary table.")
 
-    spec_sections: list[SpecSection]
+    spec_sections: list[SpecSection] = Field(..., description="One or more specification sections. At least one required.")
 
-    notes: Optional[str] = None
-    annexes: Optional[list[Annex]] = None
-    contact: Optional[RFQContact] = None
+    notes: Optional[str] = Field(default=None, description="Free-form notes printed below the spec table.")
+    annexes: Optional[list[Annex]] = Field(default=None, description="Named references/attachments.")
+    contact: Optional[RFQContact] = Field(default=None, description="Contact person for questions.")
 
-    logo: Optional[str] = None
-    primary_color: Optional[str] = None
+    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it. Never pass a file path/URL.")
+    primary_color: Optional[str] = Field(default=None, description="Color to override the document header. Hex color or CSS name.")
 
     @field_validator("rfq_number", mode="after")
     @classmethod
     def rfq_number_non_empty(cls, v: str) -> str:
         if not v.strip():
-            raise ValueError("must not be empty")
+            raise ValueError("The RFQ number is required and cannot be blank.")
         return v
 
     @field_validator("logo", mode="after")
@@ -107,7 +107,7 @@ class RequestForQuotation(DocModel):
         if v is None:
             return v
         if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
-            raise ValueError("logo must be a data URI (data:image/...;base64,...)")
+            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
         return v
 
     @field_validator("primary_color", mode="after")
@@ -123,18 +123,18 @@ class RequestForQuotation(DocModel):
     @classmethod
     def product_name_non_empty(cls, v: str) -> str:
         if not v.strip():
-            raise ValueError("must not be empty")
+            raise ValueError("The product name is required and cannot be blank.")
         return v
 
     @field_validator("spec_sections", mode="after")
     @classmethod
     def at_least_one_section(cls, v: list[SpecSection]) -> list[SpecSection]:
         if not v:
-            raise ValueError("must contain at least one spec section")
+            raise ValueError("At least one specification section with at least one row is required.")
         return v
 
     @model_validator(mode="after")
     def valid_until_after_date(self) -> RequestForQuotation:
         if self.valid_until and self.valid_until <= self.issue_date:
-            raise ValueError("valid_until must be after issue_date")
+            raise ValueError("The quote-by date must be after the issue date.")
         return self
