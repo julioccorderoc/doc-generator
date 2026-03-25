@@ -21,3 +21,6 @@ NCL_LOGO_WHITE_BLUE_.png
 # uv / macOS
 .python-version
 .DS_Store
+
+# desloppify
+.desloppify/
