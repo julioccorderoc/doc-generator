@@ -1,5 +1,12 @@
 /* ── Invoice-specific component styles ─────────────────── */
 
+/* SKU column — seller's part number, styled like buyer-id */
+.line-items td.sku {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    width: 60pt;
+}
+
 /* Status strip — rendered between header and address block */
 .status-strip {
     padding: 6pt 20pt;

@@ -93,6 +93,7 @@ class RequestForQuotation(DocModel):
 
     logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it. Never pass a file path/URL.")
     primary_color: Optional[str] = Field(default=None, description="Color to override the document header. Hex color or CSS name.")
+    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
 
     @field_validator("rfq_number", mode="after")
     @classmethod
@@ -117,6 +118,15 @@ class RequestForQuotation(DocModel):
             return v
         if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
             raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
+        return v
+
+    @field_validator("font_family", mode="after")
+    @classmethod
+    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if re.search(r'[;{}@]|url\s*\(', v, re.IGNORECASE):
+            raise ValueError("font_family contains invalid characters. Provide a plain font stack, e.g. 'Georgia, serif'.")
         return v
 
     @field_validator("product_name", mode="after")

@@ -21,8 +21,10 @@ from utils.paths import ASSETS_DIR
 def build_line_items(doc) -> list[dict]:
     """Return a display-ready list of line item dicts for any doc type.
 
-    Every monetary value is a pre-formatted string. `buyer_id` is included
-    unconditionally; templates gate the column with `has_buyer_id_column`.
+    Every monetary value is a pre-formatted string. `buyer_id` and `sku` are
+    included unconditionally; templates gate their columns with the
+    `has_buyer_id_column` / `has_sku_column` flags from build_line_items_meta.
+    `sku` uses getattr so PO/RFQ line items (which lack the field) return None.
     """
     return [
         {
@@ -32,6 +34,7 @@ def build_line_items(doc) -> list[dict]:
             "unit_price": format_currency(item.unit_price),
             "total": format_currency(item.total),
             "buyer_id": item.buyer_id,
+            "sku": getattr(item, "sku", None),
         }
         for item in doc.line_items
     ]
@@ -45,6 +48,8 @@ def build_line_items_meta(doc) -> dict:
     return {
         # Show the Buyer ID column only when at least one item has a buyer_id
         "has_buyer_id_column": any(item.buyer_id for item in doc.line_items),
+        # Show the SKU column only when at least one item has a sku (invoice-only field)
+        "has_sku_column": any(getattr(item, "sku", None) for item in doc.line_items),
         # Show total units row only when at least one item has count_units=True
         "show_total_units": any(item.count_units for item in doc.line_items),
         "total_units": format_quantity(doc.total_units),
@@ -134,3 +139,20 @@ def primary_color_css(color: str | None) -> str:
         f"  --color-bg-header: {color};\n"
         f"}}\n"
     )
+
+
+def font_family_css(font_family: str | None) -> str:
+    """Return a CSS :root block overriding the font-family variable.
+
+    Rejects values containing CSS injection vectors (semicolons, braces,
+    url(), @-rules). Returns an empty string when no font is provided.
+    """
+    import re
+    if not font_family:
+        return ""
+    if re.search(r'[;{}@]|url\s*\(', font_family, re.IGNORECASE):
+        raise ValueError(
+            "font_family contains invalid characters. "
+            "Provide a plain font stack, e.g. 'Georgia, serif'."
+        )
+    return f":root {{\n  --font-family: {font_family};\n}}\n"

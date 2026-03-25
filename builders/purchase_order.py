@@ -20,6 +20,7 @@ from builders._shared import (
     build_line_items,
     build_line_items_meta,
     build_totals,
+    font_family_css,
     get_css_path,
     parse_terms_sections,
     primary_color_css,
@@ -110,5 +111,5 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         # css_path: absolute file:// URI for base stylesheet (required by base.html)
         # theme_css: optional :root override injected as inline <style> block
         "css_path": get_css_path(),
-        "theme_css": Markup(_PO_CSS + (primary_color_css(doc.primary_color) or "")),
+        "theme_css": Markup(_PO_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family)),
     }

@@ -19,6 +19,7 @@ from builders._shared import (
     build_line_items,
     build_line_items_meta,
     build_totals,
+    font_family_css,
     get_css_path,
     primary_color_css,
 )
@@ -100,5 +101,5 @@ def build_invoice_context(doc: Invoice) -> dict:
         # ── Template infrastructure ───────────────────────────────────────
         # theme_css: primary colour override (if any) + invoice component styles
         "css_path": get_css_path(),
-        "theme_css": Markup(primary_color_css(doc.primary_color) + _INVOICE_CSS),
+        "theme_css": Markup(primary_color_css(doc.primary_color) + _INVOICE_CSS + font_family_css(doc.font_family)),
     }

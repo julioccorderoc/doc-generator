@@ -86,6 +86,7 @@
     <tr>
       <th class="num">#</th>
       {% if has_buyer_id_column %}<th class="buyer-id">Buyer ID</th>{% endif %}
+      {% if has_sku_column %}<th class="sku">SKU</th>{% endif %}
       <th class="description">Description</th>
       <th class="unit">Unit</th>
       <th class="qty">Qty</th>
@@ -98,6 +99,7 @@
     <tr>
       <td class="num">{{ loop.index }}</td>
       {% if has_buyer_id_column %}<td class="buyer-id">{{ item.buyer_id or "" }}</td>{% endif %}
+      {% if has_sku_column %}<td class="sku">{{ item.sku or "" }}</td>{% endif %}
       <td class="description">{{ item.description }}</td>
       <td class="unit">{{ item.unit }}</td>
       <td class="qty">{{ item.quantity }}</td>

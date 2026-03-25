@@ -93,6 +93,7 @@ class PurchaseOrder(DocModel):
     tax_rate: Money = Field(default=Decimal("0.00"), description="Tax rate as a decimal (e.g. 0.08 for 8%). Applied to subtotal.")
     notes: Optional[str] = Field(default=None, description="General notes, terms, or instructions. Renders at the bottom of the document.")
     primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name. Overrides header background.")
+    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
     annex_terms: Optional[Union[bool, str]] = Field(default=None, description="true = standard T&C; string = custom T&C text; null = no T&C page.")
     buyer: Buyer = Field(..., description="The company issuing the PO.")
     vendor: Vendor = Field(..., description="The supplier receiving the PO.")
@@ -112,6 +113,15 @@ class PurchaseOrder(DocModel):
             return v
         if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
             raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
+        return v
+
+    @field_validator("font_family", mode="after")
+    @classmethod
+    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if re.search(r'[;{}@]|url\s*\(', v, re.IGNORECASE):
+            raise ValueError("font_family contains invalid characters. Provide a plain font stack, e.g. 'Georgia, serif'.")
         return v
 
     @field_validator("annex_terms", mode="before")

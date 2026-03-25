@@ -11,6 +11,7 @@ The global data collection workflow is `references/PROTOCOL.md`.
 - **PO optional identifier columns** (`buyer_id`, `vendor_id`, `barcode`) on line items: Do not include them unless the user provides the values or explicitly asks for them. A column only appears in the document if at least one line item has a value.
 - **Service lines (`count_units`)**: If a line item is clearly a service (consulting, setup, labour), ask if it should be excluded from the unit total. Default is `true` (counted); set to `false` to exclude.
 - **Annex Terms (`annex_terms`)**: By default, no T&C page is attached (`null`). Ask the user if they want to attach the standard Terms & Conditions page (`true`) or standard custom text (`string`).
+- **Font (`font_family`)**: Do **not** ask for this. Only set it when the user explicitly requests a different font (e.g. "use Georgia"). Accepts any valid CSS font stack (e.g. `"Georgia, serif"`). Leave `null` otherwise.
 
 ---
 

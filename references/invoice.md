@@ -9,8 +9,10 @@ The global data collection workflow is `references/PROTOCOL.md`.
 ## Document Quirks
 
 - **Service lines (`count_units`)**: If a line item is clearly a service (consulting, setup, labour), ask if it should be excluded from the unit total. Default is `true` (counted); set to `false` to exclude.
+- **SKU (`sku` on line items)**: Do **not** ask for this proactively. Only include it when the user provides seller part numbers, product codes, or SKUs. A SKU column only appears if at least one line item has a value.
 - **Payment details**: Extract any provided bank details or payment links to the `payment_details` array. If not mentioned, do not force the issue.
 - **Payment status**: If the user indicates partial or full payment has already been received, collect `paid` and `amount_paid` values. Otherwise, leave alone.
+- **Font (`font_family`)**: Do **not** ask for this. Only set it when the user explicitly requests a different font (e.g. "use Georgia"). Accepts any valid CSS font stack (e.g. `"Georgia, serif"`). Leave `null` otherwise.
 
 ---
 

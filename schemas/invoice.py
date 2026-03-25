@@ -24,6 +24,7 @@ class LineItem(DocModel):
     quantity: Money = Field(..., description="Quantity delivered or hours worked. Must be greater than zero. Can be decimal.")
     unit_price: Money = Field(..., description="Price per unit in USD. Must be greater than zero.")
     unit: str = Field(default="units", description="Unit label displayed next to quantity. e.g. units, hrs, kg, days.")
+    sku: Optional[str] = Field(default=None, description="Seller's product or part number (SKU). Displayed as 'SKU' column when provided on any line item. Ask explicitly if not mentioned.")
     buyer_id: Optional[str] = Field(default=None, description="Buyer's internal product code or reference identifier. Displayed as 'Buyer ID' column if provided.")
     count_units: bool = Field(default=True, description="Whether to include this item's quantity in total_units. Set to false for service lines that should not count toward the physical unit total.")
 
@@ -104,6 +105,7 @@ class Invoice(DocModel):
     paid: bool = Field(default=False, description="Whether the invoice has already been paid. If true, amount_paid should also be provided.")
     amount_paid: Money = Field(default=Decimal("0.00"), description="Amount already received. Meaningful only when paid is true. In USD.")
     primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name.")
+    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
     issuer: Issuer = Field(..., description="The company sending the invoice.")
     bill_to: BillTo = Field(..., description="The client being billed.")
     line_items: list[LineItem] = Field(..., description="What is being invoiced. Minimum 1 item.")
@@ -123,6 +125,15 @@ class Invoice(DocModel):
             return v
         if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
             raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
+        return v
+
+    @field_validator("font_family", mode="after")
+    @classmethod
+    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if re.search(r'[;{}@]|url\s*\(', v, re.IGNORECASE):
+            raise ValueError("font_family contains invalid characters. Provide a plain font stack, e.g. 'Georgia, serif'.")
         return v
 
     @field_validator("line_items", mode="after")
