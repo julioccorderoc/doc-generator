@@ -195,9 +195,32 @@ body {
     font-weight: var(--font-weight-medium);
 }
 
-/* ── Global table row — never split across pages ─────────── */
+/* ── Global page-break rules — apply to all doc types ───────
+   These rules protect every table in every template, present
+   and future. Never add equivalent rules in doc-type CSS.
+   ─────────────────────────────────────────────────────────── */
 
+/* Rows never split across pages */
 tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+/* thead is never stranded at the bottom of a page without
+   at least one tbody row following it on the same page */
+thead {
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
+/* Meta band (delivery / terms / method) stays together */
+.meta-band {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+/* Totals block (right column of bottom-section) stays together */
+.bottom-section__totals {
     break-inside: avoid;
     page-break-inside: avoid;
 }

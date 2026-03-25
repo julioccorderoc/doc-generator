@@ -72,6 +72,8 @@
 
 .po-terms__section {
     margin-bottom: 5pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 .po-terms__title {
