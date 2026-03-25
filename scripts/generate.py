@@ -143,7 +143,7 @@ def main() -> None:
     html = env.get_template(config.template).render(**context)
 
     # ── 6. Write PDF ───────────────────────────────────────────────────────
-    output_path = next_output_filename(args.doc_type, args.output_name)
+    output_path = next_output_filename(config.file_prefix, args.output_name)
     weasyprint.HTML(string=html).write_pdf(str(output_path))
 
     print(str(output_path))

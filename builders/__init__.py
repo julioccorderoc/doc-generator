@@ -44,10 +44,13 @@ class DocTypeConfig:
         template:      Filename of the Jinja2 template (relative to templates/).
         build_context: Callable that maps a validated model instance to a
                        display-ready context dict for the template.
+        file_prefix:   Short uppercase prefix used in output filenames
+                       (e.g. "PO" → PO_20260316_0001.pdf).
     """
     model: Type
     template: str
     build_context: ContextBuilder
+    file_prefix: str
 
 
 # ── Document type registry ─────────────────────────────────────────────────
@@ -59,15 +62,18 @@ REGISTRY: dict[str, DocTypeConfig] = {
         model=PurchaseOrder,
         template="purchase_order.html",
         build_context=build_po_context,
+        file_prefix="PO",
     ),
     "invoice": DocTypeConfig(
         model=Invoice,
         template="invoice.html",
         build_context=build_invoice_context,
+        file_prefix="INV",
     ),
     "request_for_quotation": DocTypeConfig(
         model=RequestForQuotation,
         template="request_for_quotation.html",
         build_context=build_rfq_context,
+        file_prefix="RFQ",
     ),
 }

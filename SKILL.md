@@ -74,13 +74,13 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-gene
   --output_name <doc_number>
 ```
 
-Pass the document number as `--output_name` so the output file is named after the document (e.g. `--output_name NS39` → filename stem `purchase_order_NS39.pdf`). Use the same identifier the user provided or the one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
+Pass the document number as `--output_name` so the output file is named after the document (e.g. `--output_name NS39` → filename stem `PO_NS39.pdf`). Use the same identifier the user provided or the one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
 
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 
 ### 3. Capture stdout and exit code
 
-- **Exit code 0:** stdout contains the **absolute** output file path (e.g. `~/.agents/skills/doc-generator/output/purchase_order_NS39.pdf`). Use this path directly — do **not** prepend the working directory or any other path.
+- **Exit code 0:** stdout contains the **absolute** output file path (e.g. `~/.agents/skills/doc-generator/output/PO_NS39.pdf`). Use this path directly — do **not** prepend the working directory or any other path.
 - **Exit code 1:** stdout contains an error message. Generation failed.
 
 ## Output Presentation
@@ -95,19 +95,19 @@ Tell the user:
 
 Example response (PO):
 > Purchase Order **PO-2026-0001** generated successfully.
-> Output: `~/.agents/skills/doc-generator/output/purchase_order_PO-2026-0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/PO_PO-2026-0001.pdf`
 > Grand total: $2,728.50 (75 units · Net 30 · FedEx Ground)
 
 Example response (RFQ):
 > Request for Quotation **RFQ-2026-0001** generated successfully.
-> Output: `~/.agents/skills/doc-generator/output/request_for_quotation_RFQ-2026-0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/RFQ_RFQ-2026-0001.pdf`
 > Product: Level Off · 2 spec sections · 13 rows
 
 ### On success with partial payment (invoice)
 
 Highlight both grand total and balance due:
 > Invoice **INV-2026-0001** generated.
-> Output: `~/.agents/skills/doc-generator/output/invoice_INV-2026-0001.pdf`
+> Output: `~/.agents/skills/doc-generator/output/INV_INV-2026-0001.pdf`
 > Grand total: $3,410.00 · Amount paid: $825.00 · **Balance due: $2,585.00**
 
 ### On unknown doc_type
