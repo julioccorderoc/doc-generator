@@ -12,6 +12,7 @@ The global data collection workflow is `references/PROTOCOL.md`.
 - **Service lines (`count_units`)**: If a line item is clearly a service (consulting, setup, labour), ask if it should be excluded from the unit total. Default is `true` (counted); set to `false` to exclude.
 - **Annex Terms (`annex_terms`)**: By default, no T&C page is attached (`null`). Ask the user if they want to attach the standard Terms & Conditions page (`true`) or standard custom text (`string`).
 - **Font (`font_family`)**: Do **not** ask for this. Only set it when the user explicitly requests a different font (e.g. "use Georgia"). Accepts any valid CSS font stack (e.g. `"Georgia, serif"`). Leave `null` otherwise.
+- **Page density (`doc_style`)**: Do **not** ask for this unprompted. Set it only if the user says something like "make it more compact", "fit everything on one page", or "more spacious/formal". Values: `"compact"` (tighter spacing, smaller fonts), `"normal"` (default — no change), `"comfortable"` (more whitespace, larger fonts). Leave `null`/omit for the default.
 
 ---
 

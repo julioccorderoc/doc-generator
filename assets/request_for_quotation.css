@@ -131,7 +131,7 @@
 }
 
 .rfq-annexes__table td {
-    padding: 4pt 8pt;
+    padding: var(--table-cell-padding);
     border-bottom: 1pt solid var(--color-border-light);
     vertical-align: top;
 }

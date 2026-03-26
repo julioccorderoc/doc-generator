@@ -13,6 +13,7 @@ The global data collection workflow is `references/PROTOCOL.md`.
 - **Payment details**: Extract any provided bank details or payment links to the `payment_details` array. If not mentioned, do not force the issue.
 - **Payment status**: If the user indicates partial or full payment has already been received, collect `paid` and `amount_paid` values. Otherwise, leave alone.
 - **Font (`font_family`)**: Do **not** ask for this. Only set it when the user explicitly requests a different font (e.g. "use Georgia"). Accepts any valid CSS font stack (e.g. `"Georgia, serif"`). Leave `null` otherwise.
+- **Page density (`doc_style`)**: Do **not** ask for this unprompted. Set it only if the user says something like "make it more compact", "fit everything on one page", or "more spacious/formal". Values: `"compact"` (tighter spacing, smaller fonts), `"normal"` (default — no change), `"comfortable"` (more whitespace, larger fonts). Leave `null`/omit for the default.
 
 ---
 

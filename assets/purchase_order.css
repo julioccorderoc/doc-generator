@@ -2,6 +2,14 @@
    purchase_order.css — PO-specific component styles
    ============================================================ */
 
+/* ── Density variables (overridden by density_css() in builders/_shared.py) */
+
+:root {
+    --table-cell-padding-compact: 4pt 6pt;
+    --table-cell-padding-dense:   3pt 4pt;
+    --font-size-dense:            7pt;
+}
+
 /* ── PO-only identifier columns ─────────────────────────────── */
 
 .line-items td.vendor-id,
@@ -19,7 +27,7 @@
 
 .line-items--compact th,
 .line-items--compact td {
-    padding: 4pt 6pt;
+    padding: var(--table-cell-padding-compact);
 }
 
 .line-items--compact td.buyer-id,
@@ -31,12 +39,12 @@
 /* ── Dense table: 3 identifier columns active ────────────────── */
 
 .line-items--dense {
-    font-size: 7pt;
+    font-size: var(--font-size-dense);
 }
 
 .line-items--dense th,
 .line-items--dense td {
-    padding: 3pt 4pt;
+    padding: var(--table-cell-padding-dense);
 }
 
 .line-items--dense td.buyer-id,

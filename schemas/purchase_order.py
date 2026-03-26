@@ -94,6 +94,7 @@ class PurchaseOrder(DocModel):
     notes: Optional[str] = Field(default=None, description="General notes, terms, or instructions. Renders at the bottom of the document.")
     primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name. Overrides header background.")
     font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
+    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
     annex_terms: Optional[Union[bool, str]] = Field(default=None, description="true = standard T&C; string = custom T&C text; null = no T&C page.")
     buyer: Buyer = Field(..., description="The company issuing the PO.")
     vendor: Vendor = Field(..., description="The supplier receiving the PO.")

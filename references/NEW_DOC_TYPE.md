@@ -85,7 +85,7 @@ Context builder function `build_[doc_type_slug]_context(doc)`. Load CSS with:
 _[DOC_TYPE_UPPER]_CSS: str = (ASSETS_DIR / "[doc_type_slug].css").read_text(encoding="utf-8")
 ```
 
-No raw `Decimal` or `date` objects in the returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, `primary_color_css` from `builders._shared`. Include `"footer_text": build_footer_text(doc.<issuing_party>)` — the footer renders automatically from `base.html`'s default block when this key is present and non-empty.
+No raw `Decimal` or `date` objects in the returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, `primary_color_css`, `font_family_css`, `density_css` from `builders._shared`. Include `"footer_text": build_footer_text(doc.<issuing_party>)` — the footer renders automatically from `base.html`'s default block when this key is present and non-empty.
 
 ---
 

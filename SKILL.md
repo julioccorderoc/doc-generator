@@ -64,6 +64,8 @@ Example payload path: `/tmp/doc_payload_<timestamp>.json`
 
 **Logo:** If the user provides a logo file path, use the Read tool to read the file and convert its contents to a base64 data URI before including it in the JSON payload. The `logo` field must always be a `data:image/...;base64,...` string or omitted entirely — file paths and URLs are not accepted.
 
+**Page density (`doc_style`):** Do not ask for this unprompted. Set it only when the user expresses a layout preference — e.g. "make it more compact", "fit everything on one page" → `"compact"`; "more spacious" or "formal-looking" → `"comfortable"`. Omit for the default (`"normal"`).
+
 ### 2. Run the CLI
 
 ```bash

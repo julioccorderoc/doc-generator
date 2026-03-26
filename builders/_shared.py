@@ -156,3 +156,65 @@ def font_family_css(font_family: str | None) -> str:
             "Provide a plain font stack, e.g. 'Georgia, serif'."
         )
     return f":root {{\n  --font-family: {font_family};\n}}\n"
+
+
+# ── Document density presets ──────────────────────────────────────────────────
+
+_COMPACT_CSS = """:root {
+  --font-size-base:             9pt;
+  --font-size-sm:               7.5pt;
+  --font-size-xs:               6.5pt;
+  --font-size-lg:               12pt;
+  --font-size-xl:               19pt;
+  --font-size-grand:            10pt;
+  --font-size-balance:          11pt;
+  --spacing-xs:                 3pt;
+  --spacing-sm:                 6pt;
+  --spacing-md:                 11pt;
+  --spacing-lg:                 17pt;
+  --spacing-xl:                 25pt;
+  --table-cell-padding:         4pt 6pt;
+  --header-padding:             12pt 15pt;
+  --header-logo-height:         38pt;
+  --table-cell-padding-compact: 3pt 4pt;
+  --table-cell-padding-dense:   2pt 3pt;
+  --font-size-dense:            6pt;
+}
+"""
+
+_COMFORTABLE_CSS = """:root {
+  --font-size-base:             11pt;
+  --font-size-sm:               9.5pt;
+  --font-size-xs:               8.5pt;
+  --font-size-lg:               16pt;
+  --font-size-xl:               25pt;
+  --font-size-grand:            12pt;
+  --font-size-balance:          15pt;
+  --spacing-xs:                 5pt;
+  --spacing-sm:                 10pt;
+  --spacing-md:                 17pt;
+  --spacing-lg:                 27pt;
+  --spacing-xl:                 40pt;
+  --table-cell-padding:         8pt 11pt;
+  --header-padding:             20pt 24pt;
+  --header-logo-height:         58pt;
+  --table-cell-padding-compact: 6pt 8pt;
+  --table-cell-padding-dense:   4pt 6pt;
+  --font-size-dense:            8pt;
+}
+"""
+
+
+def density_css(style: str | None) -> str:
+    """Return a CSS :root block for the requested density preset.
+
+    Returns an empty string for 'normal' (the default) so callers can
+    safely concatenate without extra conditionals.
+    """
+    if not style or style == "normal":
+        return ""
+    if style == "compact":
+        return _COMPACT_CSS
+    if style == "comfortable":
+        return _COMFORTABLE_CSS
+    return ""

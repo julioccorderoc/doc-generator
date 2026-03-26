@@ -156,48 +156,57 @@ The footer renders automatically — `base.html`'s default `{% block footer %}` 
 
 ---
 
-## `primary_color` Theming Field
+## Per-Document Style Override Fields
 
-Any document type can accept an optional `primary_color: string` field in the payload.
+All three doc types share three optional payload fields that override the visual appearance. None should be asked for proactively — only set them when the user explicitly requests it.
 
-**What it overrides:**
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `primary_color` | `string` | `null` | Hex or CSS color name. Overrides header background and primary text accents. |
+| `font_family` | `string` | `null` | CSS font stack (e.g. `"Georgia, serif"`). Only set when explicitly requested. |
+| `doc_style` | `"compact"`, `"normal"`, `"comfortable"` | `"normal"` | Page density preset. `"compact"` tightens spacing; `"comfortable"` adds whitespace. |
 
-- `--color-primary` — affects: company names in address block, Grand Total / Balance Due text
-- `--color-bg-header` — header bar background
+### How they work in the context builder
 
-**What it does not override:**
-
-- `--color-accent` — stays `#65C08E`
-- Status strip colors, Amount Paid green, and any other semantic fixed colors
-
-**How it works in the context builder:**
+Each field has a corresponding helper in `builders/_shared.py` that returns a CSS `:root` block or an empty string when the field is absent/default:
 
 ```python
-color_override = ""
-if doc.primary_color:
-    color_override = (
-        f":root {{ --color-primary: {doc.primary_color}; "
-        f"--color-bg-header: {doc.primary_color}; }}\n"
-    )
-# For PO (no other theme CSS):
-"theme_css": Markup(color_override) if color_override else None
-
-# For Invoice (combined with invoice-specific CSS from assets/invoice.css):
-"theme_css": Markup(color_override + _INVOICE_CSS)
+"theme_css": Markup(
+    _MY_CSS
+    + primary_color_css(doc.primary_color)   # overrides --color-primary, --color-bg-header
+    + font_family_css(doc.font_family)        # overrides --font-family
+    + density_css(doc.doc_style)              # overrides all spacing/font-size variables
+)
 ```
 
-The `:root` block is injected after `style.css` loads, so it takes precedence.
+All three helpers return `""` when the field is `None` or `"normal"`, so concatenation is always safe. **Density goes last** — it must override any variables set by the doc-type CSS (e.g. `purchase_order.css` defines PO-specific density variables that `density_css()` overrides).
 
-**Payload usage:**
+The `:root` block is injected after `style.css` loads via a `<style>` tag in `base.html`, so it takes precedence over the base stylesheet.
+
+### `primary_color`
+
+- Overrides: `--color-primary` (company names, total text) and `--color-bg-header` (header bar)
+- Does **not** override: `--color-accent`, status strip colors, or semantic fixed colors
+- Format: hex (`#RRGGBB`, `#RGB`) or single-word CSS color name — validated by schema
+
+### `doc_style`
+
+- `"compact"`: ~15% smaller fonts, ~20% tighter spacing. More content per page.
+- `"normal"` (default): current `style.css` values. No CSS injected.
+- `"comfortable"`: ~15% larger fonts, ~20% more whitespace. More readable, more formal.
+- The PO's auto-density classes (`.line-items--compact`, `.line-items--dense`) use CSS variables (`--table-cell-padding-compact`, `--table-cell-padding-dense`, `--font-size-dense`) that are also overridden by `density_css()`, so the auto-density system scales consistently with `doc_style`.
+
+### Payload usage
 
 ```json
 {
   "primary_color": "#7c3aed",
-  ...
+  "font_family": "Georgia, serif",
+  "doc_style": "comfortable"
 }
 ```
 
-Format: any valid CSS color string (hex recommended). No format validation is performed — the value is inserted verbatim into a CSS `:root` block.
+All three can be combined freely — they override different CSS variables and do not conflict.
 
 ---
 
@@ -209,9 +218,11 @@ New CSS rules for a doc type must **never** be added to `style.css`. Place them 
 _MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
 ```
 
-Then pass it as `"theme_css": Markup(...)` in the context builder. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts.
+Then pass it as the first element in `theme_css`. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts in rule bodies.
 
-See `assets/invoice.css` + `builders/invoice.py` as the reference implementation.
+If the doc type has auto-density classes (like PO's compact/dense table), define their padding/font-size as CSS variables in `assets/<doc_type>.css` `:root` block so `density_css()` can override them.
+
+See `assets/invoice.css` + `builders/invoice.py` and `assets/purchase_order.css` + `builders/purchase_order.py` as reference implementations.
 
 ---
 
@@ -222,4 +233,5 @@ See `assets/invoice.css` + `builders/invoice.py` as the reference implementation
 | `assets/style.css` | All base layout, palette variables, shared component styles |
 | `assets/<doc_type>.css` (e.g. `invoice.css`) | Doc-type-specific component styles — loaded at module level in `builders/<doc_type>.py` |
 | `assets/themes/` | Named theme override files (future) |
-| Payload `primary_color` field | Per-document brand color override injected at render time |
+| `builders/_shared.py` helpers | `primary_color_css()`, `font_family_css()`, `density_css()` — per-document `:root` overrides |
+| Payload `primary_color` / `font_family` / `doc_style` fields | Per-document visual overrides injected at render time |

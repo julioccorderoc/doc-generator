@@ -106,6 +106,7 @@ class Invoice(DocModel):
     amount_paid: Money = Field(default=Decimal("0.00"), description="Amount already received. Meaningful only when paid is true. In USD.")
     primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name.")
     font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
+    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
     issuer: Issuer = Field(..., description="The company sending the invoice.")
     bill_to: BillTo = Field(..., description="The client being billed.")
     line_items: list[LineItem] = Field(..., description="What is being invoiced. Minimum 1 item.")

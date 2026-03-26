@@ -15,7 +15,7 @@ from schemas.request_for_quotation import RequestForQuotation, RFQParty
 from utils.formatting import format_date
 from utils.logo import resolve_logo
 from utils.paths import ASSETS_DIR
-from builders._shared import font_family_css, get_css_path, primary_color_css
+from builders._shared import density_css, font_family_css, get_css_path, primary_color_css
 
 
 _RFQ_CSS: str = (ASSETS_DIR / "request_for_quotation.css").read_text(encoding="utf-8")
@@ -78,7 +78,12 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
         }
 
     # Theme CSS: RFQ-specific styles + optional primary colour override
-    theme_css = _RFQ_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family)
+    theme_css = (
+        _RFQ_CSS
+        + primary_color_css(doc.primary_color)
+        + font_family_css(doc.font_family)
+        + density_css(doc.doc_style)
+    )
 
     return {
         # ── Header ────────────────────────────────────────────────────────

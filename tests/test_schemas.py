@@ -220,3 +220,38 @@ def test_invalid_rfq_raises_validation_error():
     assert any("spec_sections" in p for p in field_paths)
     # rfq_number + spec_sections = at least 2 field errors
     assert exc_info.value.error_count() >= 2
+
+
+# ── doc_style field: all doc types ────────────────────────────────────────────
+
+def test_po_doc_style_default():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    assert doc.doc_style == "normal"
+
+
+def test_po_doc_style_valid_values():
+    base = load("sample_po.json")
+    for style in ("compact", "normal", "comfortable"):
+        doc = PurchaseOrder(**{**base, "doc_style": style})
+        assert doc.doc_style == style
+
+
+def test_po_doc_style_invalid():
+    base = load("sample_po.json")
+    for bad in ("big", "small", "large", "dense", ""):
+        with pytest.raises(ValidationError):
+            PurchaseOrder(**{**base, "doc_style": bad})
+
+
+def test_invoice_doc_style_valid():
+    base = load("sample_invoice.json")
+    doc = Invoice(**{**base, "doc_style": "compact"})
+    assert doc.doc_style == "compact"
+    doc2 = Invoice(**{**base, "doc_style": "comfortable"})
+    assert doc2.doc_style == "comfortable"
+
+
+def test_rfq_doc_style_valid():
+    base = load("sample_rfq.json")
+    doc = RequestForQuotation(**{**base, "doc_style": "comfortable"})
+    assert doc.doc_style == "comfortable"

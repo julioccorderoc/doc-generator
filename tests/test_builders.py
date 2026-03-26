@@ -20,6 +20,7 @@ from schemas.request_for_quotation import RequestForQuotation
 from builders.purchase_order import build_po_context
 from builders.invoice import build_invoice_context
 from builders.request_for_quotation import build_rfq_context
+from builders._shared import density_css
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -300,3 +301,45 @@ def test_rfq_vendor_none_when_omitted():
     with patch("builders.request_for_quotation.resolve_logo", return_value=None):
         ctx = build_rfq_context(doc)
     assert ctx["vendor"] is None
+
+
+# ── density_css() helper ──────────────────────────────────────────────────────
+
+def test_density_css_normal_returns_empty():
+    assert density_css("normal") == ""
+
+
+def test_density_css_none_returns_empty():
+    assert density_css(None) == ""
+
+
+def test_density_css_compact_has_variables():
+    css = density_css("compact")
+    assert "--font-size-base" in css
+    assert "9pt" in css
+    assert "--table-cell-padding" in css
+
+
+def test_density_css_comfortable_has_variables():
+    css = density_css("comfortable")
+    assert "--font-size-base" in css
+    assert "11pt" in css
+    assert "--table-cell-padding" in css
+
+
+def test_po_compact_density_in_theme_css():
+    raw = load("sample_po.json")
+    raw["doc_style"] = "compact"
+    doc = PurchaseOrder(**raw)
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert "--font-size-base" in ctx["theme_css"]
+    assert "9pt" in ctx["theme_css"]
+
+
+def test_po_normal_density_no_override_in_theme_css():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    # density CSS is empty for normal — no font-size-base override injected
+    assert "--font-size-base" not in ctx["theme_css"]

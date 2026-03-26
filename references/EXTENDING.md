@@ -73,7 +73,7 @@ Never add to `style.css`. Place doc-type-specific CSS in `assets/<doc_type>.css`
 _MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
 ```
 
-Pass it as `"theme_css": Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family))` in the context builder. Both helpers are in `builders._shared` and return `""` when the field is `None`, so concatenation is always safe. All CSS values must use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as the reference implementation.
+Pass it as `"theme_css": Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family) + density_css(doc.doc_style))` in the context builder. All three helpers are in `builders._shared` and return `""` when the field is `None` or `"normal"`, so concatenation is always safe. Density goes last — it must override any variables set by the doc-type CSS. All CSS values must use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as the reference implementation.
 
 **Specificity note:** The base rule `.totals__table td:first-child` (specificity 0,1,2) sets muted color on first-column cells. Override by qualifying selectors with `.totals__table` (specificity 0,2,1). See the Specificity Rules section in DESIGN_SYSTEM.md.
 
@@ -113,7 +113,7 @@ Model your file on `builders/purchase_order.py` as the reference implementation.
 - **`css_path`** — always required: `get_css_path()` from `builders._shared`.
 - **Boolean flags** — compute `show_tax`, `show_shipping`, `has_buyer_id_column`, etc. here so templates contain no logic.
 - **Shared helpers** — use `build_line_items`, `build_line_items_meta`, `build_totals` from `builders._shared` to avoid duplication.
-- **`theme_css`** — `Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family))`. Import both helpers from `builders._shared`. They return `""` when the field is `None`.
+- **`theme_css`** — `Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family) + density_css(doc.doc_style))`. Import all three helpers from `builders._shared`. They return `""` when the field is `None` or `"normal"`. Density goes last.
 
 ---
 

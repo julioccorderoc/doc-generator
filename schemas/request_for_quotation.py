@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import Field, field_validator, model_validator
 
@@ -94,6 +94,7 @@ class RequestForQuotation(DocModel):
     logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it. Never pass a file path/URL.")
     primary_color: Optional[str] = Field(default=None, description="Color to override the document header. Hex color or CSS name.")
     font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
+    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
 
     @field_validator("rfq_number", mode="after")
     @classmethod
