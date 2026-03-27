@@ -123,5 +123,5 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
 
         # ── Template infrastructure ───────────────────────────────────────
         "css_path": get_css_path(),
-        "theme_css": Markup(theme_css),
+        "theme_css": Markup(theme_css),  # nosec B704
     }

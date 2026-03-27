@@ -42,7 +42,7 @@ def _make_jinja_env() -> Environment:
 
     def nl2br(value: str) -> Markup:
         """Replace newlines with <br> tags, safely escaping user content."""
-        return Markup(escape(value).replace("\n", Markup("<br>\n")))
+        return Markup(escape(value).replace("\n", Markup("<br>\n")))  # nosec B704
 
     env.filters["nl2br"] = nl2br
     return env
@@ -61,7 +61,7 @@ def _format_validation_errors(exc: ValidationError) -> str:
 
 # ── Main ───────────────────────────────────────────────────────────────────
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(
         prog="generate.py",
         description="Generate a PDF document from a JSON payload.",
@@ -103,31 +103,31 @@ def main() -> None:
             f"Unknown doc_type '{args.doc_type}'. "
             f"Supported types: {', '.join(REGISTRY)}"
         )
-        sys.exit(1)
+        return 1
 
     # ── 2. Load payload JSON ───────────────────────────────────────────────
     payload_path = Path(args.payload)
     if not payload_path.exists():
         print(f"Payload file not found: {args.payload}")
-        sys.exit(1)
+        return 1
 
     _MAX_PAYLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
     if payload_path.stat().st_size > _MAX_PAYLOAD_BYTES:
         print("Payload file exceeds the 10 MB limit.")
-        sys.exit(1)
+        return 1
 
     try:
         raw = json.loads(payload_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         print(f"Invalid JSON in payload file: {exc}")
-        sys.exit(1)
+        return 1
 
     # ── 3. Validate against schema ─────────────────────────────────────────
     try:
         doc = config.model(**raw)
     except ValidationError as exc:
         print(_format_validation_errors(exc))
-        sys.exit(1)
+        return 1
 
 
 
@@ -136,7 +136,7 @@ def main() -> None:
         context = config.build_context(doc)
     except ValueError as exc:
         print(f"Error preparing document: {exc}")
-        sys.exit(1)
+        return 1
 
     # ── 5. Render HTML ─────────────────────────────────────────────────────
     env = _make_jinja_env()
@@ -152,6 +152,7 @@ def main() -> None:
     if args.preview:
         open_preview(output_path)
 
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

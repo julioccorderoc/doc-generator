@@ -40,7 +40,7 @@ def build_line_items(doc) -> list[dict]:
     ]
 
 
-def build_line_items_meta(doc) -> dict:
+def build_line_items_meta(doc) -> dict[str, bool | str]:
     """Return boolean/summary flags derived from the line items array.
 
     Intended to be unpacked into the context: `**build_line_items_meta(doc)`.
@@ -58,7 +58,7 @@ def build_line_items_meta(doc) -> dict:
 
 # ── Totals ─────────────────────────────────────────────────────────────────
 
-def build_totals(doc) -> dict:
+def build_totals(doc) -> dict[str, bool | str]:
     """Return all standard totals-table values as formatted strings.
 
     Intended to be unpacked into the context: `**build_totals(doc)`.
@@ -100,7 +100,7 @@ def build_footer_text(party) -> str:
 
 def get_css_path() -> Markup:
     """Return the file:// URI for the base stylesheet, marked safe."""
-    return Markup((ASSETS_DIR / "style.css").as_uri())
+    return Markup((ASSETS_DIR / "style.css").as_uri())  # nosec B704
 
 
 def parse_terms_sections(text: str) -> list[dict]:

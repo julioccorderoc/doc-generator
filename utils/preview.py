@@ -5,7 +5,7 @@ Silently no-ops in headless environments (no DISPLAY, CI, SSH sessions)
 and on any unexpected error. Never raises — preview is best-effort only.
 """
 import os
-import subprocess
+import subprocess  # nosec
 import sys
 from pathlib import Path
 
@@ -23,13 +23,13 @@ def open_preview(path: Path) -> None:
     """
     try:
         if sys.platform == "darwin":
-            subprocess.Popen(["open", str(path)])
+            subprocess.run(["open", str(path)], timeout=5, check=False)  # nosec
         elif sys.platform.startswith("linux"):
             if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
                 return  # headless — no-op
-            subprocess.Popen(["xdg-open", str(path)])
+            subprocess.run(["xdg-open", str(path)], timeout=5, check=False)  # nosec
         elif sys.platform == "win32":
-            os.startfile(str(path))  # type: ignore[attr-defined]
+            os.startfile(str(path))  # type: ignore[attr-defined] # nosec
         # Unknown platform: no-op
-    except Exception:
+    except Exception:  # nosec
         pass

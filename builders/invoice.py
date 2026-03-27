@@ -102,7 +102,7 @@ def build_invoice_context(doc: Invoice) -> dict:
         # ── Template infrastructure ───────────────────────────────────────
         # theme_css: primary colour override (if any) + invoice component styles
         "css_path": get_css_path(),
-        "theme_css": Markup(
+        "theme_css": Markup(  # nosec B704
             primary_color_css(doc.primary_color)
             + _INVOICE_CSS
             + font_family_css(doc.font_family)

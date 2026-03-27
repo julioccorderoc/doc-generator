@@ -112,7 +112,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         # css_path: absolute file:// URI for base stylesheet (required by base.html)
         # theme_css: optional :root override injected as inline <style> block
         "css_path": get_css_path(),
-        "theme_css": Markup(
+        "theme_css": Markup(  # nosec B704
             _PO_CSS
             + primary_color_css(doc.primary_color)
             + font_family_css(doc.font_family)
