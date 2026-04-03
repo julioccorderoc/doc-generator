@@ -103,3 +103,43 @@
     border-top: 1pt solid var(--color-border-light);
     padding-top: 4pt;
 }
+
+/* ── Tabular annex pages ────────────────────────────────── */
+
+.po-annex-table {
+    break-before: page;
+    page-break-before: always;
+    font-size: 8pt;
+    line-height: 1.35;
+    color: var(--color-text);
+}
+
+.annex-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4pt;
+}
+
+.annex-table thead tr {
+    background-color: var(--color-primary);
+    color: var(--color-text-on-primary);
+}
+
+.annex-table thead th {
+    padding: var(--table-cell-padding);
+    text-align: left;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.03em;
+}
+
+.annex-table tbody td {
+    padding: var(--table-cell-padding);
+    border-bottom: 0.5pt solid var(--color-border-light);
+    color: var(--color-text);
+    vertical-align: top;
+}
+
+.annex-table tbody td:empty {
+    color: var(--color-text-muted);
+}

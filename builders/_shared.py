@@ -31,8 +31,8 @@ def build_line_items(doc) -> list[dict]:
             "description": item.description,
             "quantity": format_quantity(item.quantity),
             "unit": item.unit,
-            "unit_price": format_currency(item.unit_price),
-            "total": format_currency(item.total),
+            "unit_price": format_currency(item.unit_price) if getattr(item, "unit_price", None) is not None else "TBD",
+            "total": format_currency(item.total) if getattr(item, "total", None) is not None else "TBD",
             "buyer_id": item.buyer_id,
             "sku": getattr(item, "sku", None),
         }

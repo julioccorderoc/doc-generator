@@ -40,25 +40,50 @@ def _build_po_line_items(doc: PurchaseOrder) -> list[dict]:
 
 
 def _build_po_line_items_meta(doc: PurchaseOrder) -> dict:
-    """Extend the shared meta flags with PO-only column visibility flags."""
+    """Extend the shared meta flags with PO-only column visibility and pricing-state flags."""
     shared = build_line_items_meta(doc)
     has_vendor_id = any(item.vendor_id for item in doc.line_items)
     has_barcode = any(item.barcode for item in doc.line_items)
     active_id_cols = sum([shared["has_buyer_id_column"], has_vendor_id, has_barcode])
+
+    has_unit_price_column = any(item.unit_price is not None for item in doc.line_items)
+    is_partial_pricing = has_unit_price_column and any(item.unit_price is None for item in doc.line_items)
+    is_fully_unpriced = not has_unit_price_column
+
     return {
         **shared,
         "has_vendor_id_column": has_vendor_id,
         "has_barcode_column": has_barcode,
         "active_id_cols": active_id_cols,
+        "has_unit_price_column": has_unit_price_column,
+        "is_partial_pricing": is_partial_pricing,
+        "is_fully_unpriced": is_fully_unpriced,
     }
 _TERMS_PRESET: str = (ROOT / "references" / "po_terms_conditions.md").read_text(
     encoding="utf-8"
 )
 
 
+_PARTIAL_PRICING_NOTE = (
+    "* Prices marked TBD are not included in totals. "
+    "Final amount subject to confirmation."
+)
+
+
 def build_po_context(doc: PurchaseOrder) -> dict:
     """Build the full Jinja2 template context for a Purchase Order."""
     logo_data = resolve_logo(doc.buyer.logo)
+    line_items_meta = _build_po_line_items_meta(doc)
+    is_partial_pricing = line_items_meta["is_partial_pricing"]
+
+    # Auto-append estimation disclaimer when some lines lack a unit price
+    if is_partial_pricing:
+        notes = (doc.notes + "\n\n" + _PARTIAL_PRICING_NOTE) if doc.notes else _PARTIAL_PRICING_NOTE
+    else:
+        notes = doc.notes
+
+    subtotal_label = "Est. Subtotal *" if is_partial_pricing else "Subtotal"
+    grand_total_label = "Est. Grand Total *" if is_partial_pricing else "Grand Total"
 
     return {
         # ── Header ────────────────────────────────────────────────────────
@@ -84,21 +109,23 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         },
 
         # ── Meta band ─────────────────────────────────────────────────────
+        "product": doc.product,
         "payment_terms": doc.payment_terms,
         "shipping_method": doc.shipping_method,
 
         # ── Line items ────────────────────────────────────────────────────
         "line_items": _build_po_line_items(doc),
-        **_build_po_line_items_meta(doc),
+        **line_items_meta,
 
         # ── Totals ────────────────────────────────────────────────────────
         **build_totals(doc),
+        "subtotal_label": subtotal_label,
+        "grand_total_label": grand_total_label,
 
         # ── Notes ─────────────────────────────────────────────────────────
-        "notes": doc.notes,
+        "notes": notes,
 
         # ── Footer ────────────────────────────────────────────────────────
-        # Derived from buyer info — no additional fields needed
         "footer_text": build_footer_text(doc.buyer),
 
         # ── T&C annex ─────────────────────────────────────────────────────
@@ -108,9 +135,17 @@ def build_po_context(doc: PurchaseOrder) -> dict:
             else None
         ),
 
+        # ── Tabular annexes ───────────────────────────────────────────────
+        "annex_tables": [
+            {
+                "title": t.title,
+                "headers": t.headers,
+                "rows": t.rows,
+            }
+            for t in doc.annex_tables
+        ],
+
         # ── Template infrastructure ───────────────────────────────────────
-        # css_path: absolute file:// URI for base stylesheet (required by base.html)
-        # theme_css: optional :root override injected as inline <style> block
         "css_path": get_css_path(),
         "theme_css": Markup(  # nosec B704
             _PO_CSS

@@ -343,3 +343,66 @@ def test_po_normal_density_no_override_in_theme_css():
         ctx = build_po_context(doc)
     # density CSS is empty for normal — no font-size-base override injected
     assert "--font-size-base" not in ctx["theme_css"]
+
+
+# ── PO builder: unit_price optional + pricing-state flags ────────────────────
+
+def test_po_builder_fully_unpriced_flags():
+    doc = PurchaseOrder(**load("sample_po_blanket.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert ctx["is_fully_unpriced"] is True
+    assert ctx["is_partial_pricing"] is False
+    assert ctx["has_unit_price_column"] is False
+
+
+def test_po_builder_partial_pricing_flags_and_auto_note():
+    doc = PurchaseOrder(**load("sample_po_partial.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert ctx["is_partial_pricing"] is True
+    assert ctx["is_fully_unpriced"] is False
+    assert ctx["has_unit_price_column"] is True
+    assert "TBD" in ctx["notes"]
+    assert ctx["subtotal_label"] == "Est. Subtotal *"
+    assert ctx["grand_total_label"] == "Est. Grand Total *"
+
+
+def test_po_builder_partial_tbd_in_line_items():
+    doc = PurchaseOrder(**load("sample_po_partial.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    unpriced = ctx["line_items"][2]
+    assert unpriced["unit_price"] == "TBD"
+    assert unpriced["total"] == "TBD"
+
+
+# ── PO builder: product in context ───────────────────────────────────────────
+
+def test_po_builder_product_in_context():
+    doc = PurchaseOrder(**load("sample_po_logistics.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    assert ctx["product"] == "Eco-Pack 250mL Bottle"
+
+
+def test_po_builder_product_none_by_default(po_context):
+    assert po_context["product"] is None
+
+
+# ── PO builder: annex_tables in context ──────────────────────────────────────
+
+def test_po_builder_annex_tables_serialized():
+    doc = PurchaseOrder(**load("sample_po_logistics.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    tables = ctx["annex_tables"]
+    assert len(tables) == 1
+    annex = tables[0]
+    assert annex["title"] == "Logistics Addendum — Shipment Distribution"
+    assert len(annex["headers"]) == 5
+    assert len(annex["rows"]) == 5
+
+
+def test_po_builder_annex_tables_empty_by_default(po_context):
+    assert po_context["annex_tables"] == []

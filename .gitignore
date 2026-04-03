@@ -17,6 +17,8 @@ content/
 # local files
 NCL_LOGO_WHITE_BLUE_.png
 .claude/settings.local.json
+scorecard.png
+.claude/skills/desloppify/SKILL.md
 
 # uv / macOS
 .python-version

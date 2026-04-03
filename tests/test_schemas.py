@@ -255,3 +255,72 @@ def test_rfq_doc_style_valid():
     base = load("sample_rfq.json")
     doc = RequestForQuotation(**{**base, "doc_style": "comfortable"})
     assert doc.doc_style == "comfortable"
+
+
+# ── unit_price optional: Purchase Order ───────────────────────────────────────
+
+def test_po_unit_price_optional_line_item_total_is_none():
+    raw = load("sample_po.json")
+    raw["line_items"][0].pop("unit_price", None)
+    raw["line_items"][0]["unit_price"] = None
+    doc = PurchaseOrder(**raw)
+    assert doc.line_items[0].unit_price is None
+    assert doc.line_items[0].total is None
+
+
+def test_po_subtotal_skips_none_totals():
+    doc = PurchaseOrder(**load("sample_po_partial.json"))
+    # only the two priced items count: 50*24 + 25*18.5 = 1200 + 462.5 = 1662.50
+    assert doc.subtotal == Decimal("1662.50")
+
+
+def test_po_blanket_subtotal_is_zero():
+    doc = PurchaseOrder(**load("sample_po_blanket.json"))
+    assert doc.subtotal == Decimal("0.00")
+    assert doc.grand_total == Decimal("0.00")
+
+
+def test_po_unit_price_zero_raises():
+    raw = load("sample_po.json")
+    raw["line_items"][0]["unit_price"] = 0
+    with pytest.raises(ValidationError):
+        PurchaseOrder(**raw)
+
+
+# ── product field: Purchase Order ─────────────────────────────────────────────
+
+def test_po_product_field_optional():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    assert doc.product is None
+
+
+def test_po_product_field_set():
+    doc = PurchaseOrder(**load("sample_po_blanket.json"))
+    assert doc.product == "Eco-Pack 250mL Bottle"
+
+
+# ── annex_tables: Purchase Order ──────────────────────────────────────────────
+
+def test_po_annex_tables_default_empty():
+    doc = PurchaseOrder(**load("sample_po.json"))
+    assert doc.annex_tables == []
+
+
+def test_po_annex_table_valid():
+    doc = PurchaseOrder(**load("sample_po_logistics.json"))
+    assert len(doc.annex_tables) == 1
+    annex = doc.annex_tables[0]
+    assert annex.title == "Logistics Addendum — Shipment Distribution"
+    assert len(annex.headers) == 5
+    assert len(annex.rows) == 5
+    assert len(annex.rows[0]) == 5
+
+
+def test_po_annex_table_row_mismatch_raises():
+    from schemas.purchase_order import TableAnnex
+    with pytest.raises(Exception):
+        TableAnnex(
+            title="Bad Annex",
+            headers=["A", "B", "C"],
+            rows=[["only", "two"]],
+        )

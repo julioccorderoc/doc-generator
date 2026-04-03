@@ -32,7 +32,7 @@ Invoke this skill when the user asks to **create, generate, or produce** any of 
 
 | `doc_type` slug | Human name | Required fields (minimum) |
 | --- | --- | --- |
-| `purchase_order` | Purchase Order | `po_number`, `buyer.name`, `buyer.address`, `vendor.name`, `vendor.address`, at least 1 line item with `description`, `quantity`, `unit_price` |
+| `purchase_order` | Purchase Order | `po_number`, `buyer.name`, `buyer.address`, `vendor.name`, `vendor.address`, at least 1 line item with `description` and `quantity` (`unit_price` is optional — omit for blanket POs) |
 | `invoice` | Invoice | `invoice_number`, `issuer.name`, `issuer.address`, `bill_to.name`, `bill_to.address`, at least 1 line item with `description`, `quantity`, `unit_price` |
 | `request_for_quotation` | Request for Quotation (RFQ) | `rfq_number`, `issuer.name`, `product_name`, at least 1 spec section with at least 1 row |
 
@@ -65,6 +65,12 @@ Example payload path: `/tmp/doc_payload_<timestamp>.json`
 **Logo:** If the user provides a logo file path, use the Read tool to read the file and convert its contents to a base64 data URI before including it in the JSON payload. The `logo` field must always be a `data:image/...;base64,...` string or omitted entirely — file paths and URLs are not accepted.
 
 **Page density (`doc_style`):** Do not ask for this unprompted. Set it only when the user expresses a layout preference — e.g. "make it more compact", "fit everything on one page" → `"compact"`; "more spacious" or "formal-looking" → `"comfortable"`. Omit for the default (`"normal"`).
+
+**PO — `unit_price` optional:** For blanket POs or lines awaiting price confirmation, omit `unit_price` from those line items. The document renders "TBD" for those rows. If only some lines have prices, totals are labelled "Est. Subtotal \*" / "Est. Grand Total \*" and a disclaimer note is added automatically.
+
+**PO — `product` field:** For single-product POs, set `product` to the product name — it appears first in the meta-band. Do not ask for it unless the PO clearly covers a single product type.
+
+**PO — `annex_tables`:** A list of structured table annexes (logistics addenda, distribution schedules, etc.). Each renders on its own page. Structure: `{"title": "...", "headers": ["Col1", "Col2", ...], "rows": [["val", "val", ...], ...]}`. Every row must have the same number of cells as `headers`. Both `annex_terms` and `annex_tables` can be used together on the same PO.
 
 ### 2. Run the CLI
 

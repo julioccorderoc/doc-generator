@@ -58,8 +58,14 @@
 </div>
 
 {# ── Meta band ──────────────────────────────────────────── #}
-{% if delivery_date or payment_terms or shipping_method %}
+{% if product or delivery_date or payment_terms or shipping_method %}
 <div class="meta-band">
+  {% if product %}
+  <div class="meta-band__item">
+    <div class="meta-band__label">Product</div>
+    <div class="meta-band__value">{{ product }}</div>
+  </div>
+  {% endif %}
   {% if delivery_date %}
   <div class="meta-band__item">
     <div class="meta-band__label">Delivery Date</div>
@@ -92,8 +98,8 @@
       <th class="description">Description</th>
       <th class="unit">Unit</th>
       <th class="qty">Qty</th>
-      <th class="price">Unit Price</th>
-      <th class="total">Total</th>
+      {% if has_unit_price_column %}<th class="price">Unit Price</th>{% endif %}
+      {% if has_unit_price_column %}<th class="total">Total</th>{% endif %}
     </tr>
   </thead>
   <tbody>
@@ -106,8 +112,8 @@
       <td class="description">{{ item.description }}</td>
       <td class="unit">{{ item.unit }}</td>
       <td class="qty">{{ item.quantity }}</td>
-      <td class="price">{{ item.unit_price }}</td>
-      <td class="total">{{ item.total }}</td>
+      {% if has_unit_price_column %}<td class="price">{{ item.unit_price }}</td>{% endif %}
+      {% if has_unit_price_column %}<td class="total">{{ item.total }}</td>{% endif %}
     </tr>
     {% endfor %}
   </tbody>
@@ -133,8 +139,9 @@
         <td>{{ total_units }}</td>
       </tr>
       {% endif %}
+      {% if not is_fully_unpriced %}
       <tr>
-        <td>Subtotal</td>
+        <td>{{ subtotal_label }}</td>
         <td>{{ subtotal }}</td>
       </tr>
       {% if show_tax %}
@@ -150,9 +157,10 @@
       </tr>
       {% endif %}
       <tr class="totals__divider totals__grand">
-        <td>Grand Total</td>
+        <td>{{ grand_total_label }}</td>
         <td>{{ grand_total }}</td>
       </tr>
+      {% endif %}
     </table>
   </div>
 
@@ -174,5 +182,30 @@
   </p>
 </div>
 {% endif %}
+
+{% for annex in annex_tables %}
+<div class="po-annex-table">
+  <h2 class="po-terms__heading">{{ annex.title or "Addendum" }}</h2>
+  <hr class="po-terms__rule">
+  <table class="annex-table">
+    <thead>
+      <tr>
+        {% for header in annex.headers %}
+        <th>{{ header }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in annex.rows %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
 
 {% endblock %}

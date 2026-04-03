@@ -1,0 +1,41 @@
+{
+  "po_number": "PO-2026-0011",
+  "issue_date": "2026-04-03",
+  "delivery_date": "2026-05-15",
+  "payment_terms": "Net 30",
+  "shipping_method": "FedEx Ground",
+  "shipping_cost": 25.00,
+  "tax_rate": 0.08,
+  "buyer": {
+    "name": "Natural Cure Labs",
+    "address": "123 Wellness Ave\nLos Angeles, CA 90001",
+    "contact_name": "Julio Cordero",
+    "email": "purchasing@naturalcurelabs.com",
+    "phone": "+1 (310) 555-0100"
+  },
+  "vendor": {
+    "name": "Acme Ingredients Co.",
+    "address": "456 Supply St\nChicago, IL 60601",
+    "contact_name": "Sarah Mitchell",
+    "email": "orders@acmeingredients.com"
+  },
+  "line_items": [
+    {
+      "description": "Organic Ashwagandha Extract (KSM-66)",
+      "quantity": 50,
+      "unit_price": 24.00,
+      "unit": "kg"
+    },
+    {
+      "description": "Magnesium Glycinate Powder",
+      "quantity": 25,
+      "unit_price": 18.50,
+      "unit": "kg"
+    },
+    {
+      "description": "Proprietary Blend C (price pending supplier confirmation)",
+      "quantity": 10,
+      "unit": "kg"
+    }
+  ]
+}

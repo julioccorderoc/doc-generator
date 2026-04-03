@@ -1,0 +1,39 @@
+{
+  "po_number": "PO-2026-0010",
+  "issue_date": "2026-04-03",
+  "delivery_date": "2026-06-01",
+  "product": "Eco-Pack 250mL Bottle",
+  "payment_terms": "TBD",
+  "notes": "This is a blanket PO. Unit prices will be confirmed once vendor submits updated quotation.",
+  "buyer": {
+    "name": "Natural Cure Labs",
+    "address": "123 Wellness Ave\nLos Angeles, CA 90001",
+    "contact_name": "Julio Cordero",
+    "email": "purchasing@naturalcurelabs.com",
+    "phone": "+1 (310) 555-0100"
+  },
+  "vendor": {
+    "name": "Acme Packaging Co.",
+    "address": "789 Industrial Blvd\nMonterrey, NL 64000, México",
+    "contact_name": "Rodrigo Fuentes",
+    "email": "sales@acmepack.mx"
+  },
+  "line_items": [
+    {
+      "description": "Eco-Pack 250mL Bottle — Natural Clear",
+      "quantity": 10000,
+      "unit": "units"
+    },
+    {
+      "description": "Eco-Pack 250mL Bottle — Amber",
+      "quantity": 5000,
+      "unit": "units"
+    },
+    {
+      "description": "Custom Label Printing (per unit)",
+      "quantity": 15000,
+      "unit": "units",
+      "count_units": false
+    }
+  ]
+}
