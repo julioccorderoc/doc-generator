@@ -94,6 +94,15 @@ def main() -> int:
             "Defaults to auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf."
         ),
     )
+    parser.add_argument(
+        "--output_dir",
+        default=None,
+        help=(
+            "Directory to save the generated PDF. "
+            "Defaults to the internal output/ folder. "
+            "Pass $(pwd) to save in the caller's working directory."
+        ),
+    )
     args = parser.parse_args()
 
     # ── 1. Validate doc_type ───────────────────────────────────────────────
@@ -143,7 +152,8 @@ def main() -> int:
     html = env.get_template(config.template).render(**context)
 
     # ── 6. Write PDF ───────────────────────────────────────────────────────
-    output_path = next_output_filename(config.file_prefix, args.output_name)
+    output_dir = Path(args.output_dir) if args.output_dir else None
+    output_path = next_output_filename(config.file_prefix, args.output_name, output_dir)
     weasyprint.HTML(string=html).write_pdf(str(output_path))
 
     print(str(output_path))

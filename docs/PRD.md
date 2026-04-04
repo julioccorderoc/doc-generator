@@ -55,7 +55,7 @@ doc-generator/
 ├── utils/
 │   ├── formatting.py            # Currency formatting, date formatting (USD/American standard), etc...
 │   ├── file_naming.py           # Auto-naming logic: po_YYYYMMDD_XXXX.pdf
-│   ├── logo.py                  # Logo resolver: accepts file path or URL, returns base64
+│   ├── logo.py                  # Logo resolver: validates base64 data URIs; rejects file paths and URLs
 │   └── preview.py               # OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
 │
 ├── templates/
@@ -116,7 +116,7 @@ Claude validates payload against Pydantic schema
 Claude calls: python scripts/generate.py --doc_type purchase_order --payload '{...}'
      │
      ▼
-generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → <project_root>/output/po_YYYYMMDD_XXXX.pdf (absolute path printed to stdout)
+generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → <output_dir>/po_YYYYMMDD_XXXX.pdf (absolute path printed to stdout)
      │
      ▼
 Claude presents the file to the user
@@ -148,7 +148,7 @@ Claude presents the file to the user
 - `--preview` opens the PDF immediately after generation
 - Given an invalid payload, prints a structured, human-readable validation error
 - Computed totals match manual calculation
-- Logo renders correctly when provided (file path or URL); document renders cleanly without it
+- Logo renders correctly when provided (base64 data URI); document renders cleanly without it
 
 ### Phase 2 — Invoice
 
@@ -250,14 +250,14 @@ uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixt
 
 Each phase ships with:
 
-- `tests/fixtures/sample_<doc_type>.json` — valid complete payload (with and without logo)
+- `tests/fixtures/sample_<doc_type>.json` — valid complete payload (logo set to `null` for portability)
 - `tests/fixtures/invalid_<doc_type>.json` — payload missing required fields (expected: clean error)
 
 ## 9. Resolved Design Decisions
 
 | # | Decision | Resolution |
 |---|---|---|
-| 1 | Logo/branding | Optional. User provides a local file path or URL. Claude handles passing it to the renderer. The template renders cleanly with or without it. |
+| 1 | Logo/branding | Optional. Root-level `logo` field on all doc types. Must be a base64 data URI. `scripts/encode_logo.py` handles encoding from a file path (keeps base64 off Claude's context). The template renders cleanly with or without it. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
 | 2 | `--payload` format | File path only (e.g. `--payload tests/fixtures/sample_po.json`). Avoids shell escaping issues and maps naturally to how Claude would write a temp file before invoking the script. |
 | 3 | Currency formatting | USD / American standard for Phase 1 and 2 (`$1,234.56`). Multi-currency support is backlog. |
 | 4 | PDF naming | Auto-named using format `<doc_type>_YYYYMMDD_XXXX.pdf` (e.g. `po_20260316_0001.pdf`). User can ask Claude to rename or use a custom format at any time. |

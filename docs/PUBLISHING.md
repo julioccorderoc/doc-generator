@@ -206,7 +206,7 @@ Claude will:
 4. Show a confirmation summary
 5. Generate the PDF and tell you the output path and grand total
 
-The generated PDFs land in `output/` inside the project directory.
+The generated PDFs land in your current working directory by default. When using the skill manually via CLI, you can control the location with `--output_dir <path>`; omitting it falls back to `output/` inside the project directory.
 
 ---
 

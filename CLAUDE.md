@@ -54,9 +54,10 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 | `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`, `request_for_quotation`). |
 | `--payload` | Yes | Absolute or relative path to a JSON file containing the document data. **File path only** — not inline JSON. This avoids shell escaping issues and lets agents write a temp file before invoking. |
 | `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
-| `--output_name` | No | Custom filename stem. If provided, output is `<doc_type>_<name>.pdf` in `output/`. Defaults to date + sequential counter auto-naming. |
+| `--output_name` | No | Custom filename stem. If provided, output is `<doc_type>_<name>.pdf`. Defaults to date + sequential counter auto-naming. |
+| `--output_dir` | No | Directory to save the generated PDF. Defaults to `<project_root>/output/`. Pass `$(pwd)` to save in the caller's working directory. |
 
-**On success:** Writes the PDF to `<project_root>/output/<doc_type>_YYYYMMDD_XXXX.pdf` and prints the **absolute** output path to stdout. Exit code `0`. Agents must use this path directly — never prepend the working directory.
+**On success:** Writes the PDF to the target directory (default `<project_root>/output/`) and prints the **absolute** output path to stdout. Exit code `0`. Agents must use this path directly — never prepend the working directory.
 
 **On validation error:** Prints a structured, human-readable error to stdout describing which fields failed and why. Exit code `1`. No PDF is written.
 

@@ -13,17 +13,23 @@ from pathlib import Path
 from utils.paths import OUTPUT_DIR
 
 
-def next_output_filename(doc_type: str, name: str | None = None) -> Path:
+def next_output_filename(
+    doc_type: str,
+    name: str | None = None,
+    output_dir: Path | None = None,
+) -> Path:
     """Return the output path for the given doc_type.
 
+    If `output_dir` is provided, files are saved there instead of OUTPUT_DIR.
     If `name` is provided, returns <doc_type>_<name>.pdf (no sequence counter).
     Otherwise uses auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf.
 
-    Creates output/ if it does not exist.
+    Creates the target directory if it does not exist.
 
     Raises ValueError if `name` contains path separators or traversal sequences.
     """
-    OUTPUT_DIR.mkdir(exist_ok=True)
+    base_dir = output_dir if output_dir is not None else OUTPUT_DIR
+    base_dir.mkdir(exist_ok=True)
 
     if name:
         if "/" in name or "\\" in name or ".." in name:
@@ -35,17 +41,17 @@ def next_output_filename(doc_type: str, name: str | None = None) -> Path:
             raise ValueError(
                 "output_name must be a plain filename stem with no path separators."
             )
-        return OUTPUT_DIR / f"{doc_type}_{sanitized}.pdf"
+        return base_dir / f"{doc_type}_{sanitized}.pdf"
 
     today = date.today().strftime("%Y%m%d")
     prefix = f"{doc_type}_{today}_"
     pattern = re.compile(rf"^{re.escape(prefix)}(\d{{4}})\.pdf$")
 
     existing_numbers = []
-    for f in OUTPUT_DIR.iterdir():
+    for f in base_dir.iterdir():
         m = pattern.match(f.name)
         if m:
             existing_numbers.append(int(m.group(1)))
 
     next_num = max(existing_numbers) + 1 if existing_numbers else 1
-    return OUTPUT_DIR / f"{prefix}{next_num:04d}.pdf"
+    return base_dir / f"{prefix}{next_num:04d}.pdf"
