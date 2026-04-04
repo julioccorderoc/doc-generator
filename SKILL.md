@@ -1,11 +1,11 @@
 ---
 name: doc-generator
-description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually (e.g., 'make a PO for Acme', 'invoice a client for 10 hours', 'request a quote from supplier'). The skill handles data collection, payload generation, and CLI execution. Do not use for editing existing PDFs."
+description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually (e.g., 'make a PO for Acme', 'invoice a client for 10 hours', 'request a quote from supplier'). The skill handles data collection, payload generation, and CLI execution."
 ---
 
 # doc-generator
 
-Claude's operating instructions for generating business documents using the doc-generator CLI. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation
+Operating instructions for generating business documents. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation
 
 ## Trigger Conditions
 
@@ -75,19 +75,19 @@ Construct the complete JSON payload from the collected data. Write it to a tempo
 
 Example payload path: `/tmp/doc_payload_<timestamp>.json`
 
-**Logo:** The `logo` field sits at the **root** of every payload (not nested inside `buyer`, `issuer`, or any other object). It must be a `data:image/...;base64,...` data URI — file paths and URLs are never accepted. If the user provides a logo file path, use `scripts/encode_logo.py` to encode it (see Step 2 below). Never use the Read tool to base64-encode images yourself — that loads the entire encoded string into your context window.
+**Logo:** The `logo` field sits at the **root** of every payload (not nested inside `buyer`, `issuer`, or any other object). It must be a `data:image/...;base64,...` data URI — file paths and URLs are never accepted. If the user provides a logo file path, use `scripts/encode_logo.py` to encode it (see Step 2 below). Never use the Read tool to base64-encode images yourself.
 
 **Page density (`doc_style`):** Do not ask for this unprompted. Set it only when the user expresses a layout preference — e.g. "make it more compact", "fit everything on one page" → `"compact"`; "more spacious" or "formal-looking" → `"comfortable"`. Omit for the default (`"normal"`).
 
 **PO — `unit_price` optional:** For blanket POs or lines awaiting price confirmation, omit `unit_price` from those line items. The document renders "TBD" for those rows. If only some lines have prices, totals are labelled "Est. Subtotal \*" / "Est. Grand Total \*" and a disclaimer note is added automatically.
 
-**PO — `product` field:** For single-product POs, set `product` to the product name — it appears first in the meta-band. Do not ask for it unless the PO clearly covers a single product type.
+**PO — `product` field:** For single-product POs, set `product` to the product name. Do not ask for it unless the PO clearly covers a single product type.
 
-**PO — `annex_tables`:** A list of structured table annexes (logistics addenda, distribution schedules, etc.). Structure: `{"title": "...", "headers": ["Col1", "Col2", ...], "rows": [["val", "val", ...], ...], "new_page": false}`. Every row must have the same number of cells as `headers`. Set `new_page: true` to force an annex onto a fresh page; omit or set `false` to let it flow after the preceding content. Both `annex_terms` and `annex_tables` can be used together on the same PO.
+**PO — `annex_tables`:** A list of structured table annexes (logistics addendum, distribution schedules, etc.). Structure: `{"title": "...", "headers": ["Col1", "Col2", ...], "rows": [["val", "val", ...], ...], "new_page": false}`. Every row must have the same number of cells as `headers`. Set `new_page: true` to force an annex onto a fresh page; omit or set `false` to let it flow after the preceding content. Both `annex_terms` and `annex_tables` can be used together on the same PO.
 
 ### 2. Run the CLI
 
-**Without a logo** (common case):
+**Without a logo**:
 
 ```bash
 DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator \
@@ -140,19 +140,19 @@ Tell the user:
 
 Example response (PO):
 > Purchase Order **PO-2026-0001** generated successfully.
-> Output: `~/.agents/skills/doc-generator/output/PO_PO-2026-0001.pdf`
+> Output: `~/.your-directory/your-folder/PO_PO-2026-0001.pdf`
 > Grand total: $2,728.50 (75 units · Net 30 · FedEx Ground)
 
 Example response (RFQ):
 > Request for Quotation **RFQ-2026-0001** generated successfully.
-> Output: `~/.agents/skills/doc-generator/output/RFQ_RFQ-2026-0001.pdf`
+> Output: `~/.your-directory/your-folder/RFQ_RFQ-2026-0001.pdf`
 > Product: Level Off · 2 spec sections · 13 rows
 
 ### On success with partial payment (invoice)
 
 Highlight both grand total and balance due:
 > Invoice **INV-2026-0001** generated.
-> Output: `~/.agents/skills/doc-generator/output/INV_INV-2026-0001.pdf`
+> Output: `~/.your-directory/your-folder/INV_INV-2026-0001.pdf`
 > Grand total: $3,410.00 · Amount paid: $825.00 · **Balance due: $2,585.00**
 
 ### On unknown doc_type
