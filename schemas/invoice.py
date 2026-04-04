@@ -47,22 +47,12 @@ class Issuer(DocModel):
     contact_name: Optional[str] = Field(default=None, description="Name of the billing contact at the issuer. Displayed below the address.")
     email: Optional[str] = Field(default=None, description="Contact or billing email.")
     phone: Optional[str] = Field(default=None, description="Contact phone number.")
-    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it before building the payload — never pass a file path or URL.")
 
     @field_validator("name", "address", mode="after")
     @classmethod
     def must_be_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("This field is required and cannot be blank.")
-        return v
-
-    @field_validator("logo", mode="after")
-    @classmethod
-    def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
-            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
         return v
 
 
@@ -107,10 +97,20 @@ class Invoice(DocModel):
     primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name.")
     font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
     doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
+    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Use scripts/encode_logo.py to encode — never pass a file path or URL.")
     issuer: Issuer = Field(..., description="The company sending the invoice.")
     bill_to: BillTo = Field(..., description="The client being billed.")
     line_items: list[LineItem] = Field(..., description="What is being invoiced. Minimum 1 item.")
     payment_details: list[PaymentDetailItem] = Field(default=[], description="How to pay. An optional ordered list of name/value pairs.")
+
+    @field_validator("logo", mode="after")
+    @classmethod
+    def logo_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
+            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
+        return v
 
     @field_validator("invoice_number", mode="after")
     @classmethod

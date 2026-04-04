@@ -4,8 +4,8 @@
 <div class="doc-header">
   {# Left: buyer logo or empty spacer #}
   <div class="doc-header__logo">
-    {% if buyer.logo %}
-    <img src="{{ buyer.logo }}" alt="{{ buyer.name }} logo">
+    {% if logo %}
+    <img src="{{ logo }}" alt="{{ buyer.name }} logo">
     {% else %}
     <div class="doc-header__logo--placeholder"></div>
     {% endif %}

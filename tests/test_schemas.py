@@ -299,6 +299,36 @@ def test_po_product_field_set():
     assert doc.product == "Eco-Pack 250mL Bottle"
 
 
+# ── logo field: root-level on PO and Invoice ─────────────────────────────────
+
+def test_po_logo_valid_data_uri():
+    raw = load("sample_po.json")
+    raw["logo"] = "data:image/png;base64,abc123="
+    doc = PurchaseOrder(**raw)
+    assert doc.logo == "data:image/png;base64,abc123="
+
+
+def test_po_logo_rejects_file_path():
+    raw = load("sample_po.json")
+    raw["logo"] = "/path/to/logo.png"
+    with pytest.raises(ValidationError):
+        PurchaseOrder(**raw)
+
+
+def test_invoice_logo_valid_data_uri():
+    raw = load("sample_invoice.json")
+    raw["logo"] = "data:image/jpeg;base64,abc123="
+    doc = Invoice(**raw)
+    assert doc.logo == "data:image/jpeg;base64,abc123="
+
+
+def test_invoice_logo_rejects_url():
+    raw = load("sample_invoice.json")
+    raw["logo"] = "https://example.com/logo.png"
+    with pytest.raises(ValidationError):
+        Invoice(**raw)
+
+
 # ── annex_tables: Purchase Order ──────────────────────────────────────────────
 
 def test_po_annex_tables_default_empty():

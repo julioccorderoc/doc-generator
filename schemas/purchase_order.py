@@ -57,22 +57,12 @@ class Buyer(DocModel):
     contact_name: Optional[str] = Field(default=None, description="Name of the purchasing contact at the buyer company.")
     email: Optional[str] = Field(default=None, description="Contact email.")
     phone: Optional[str] = Field(default=None, description="Contact phone number.")
-    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it before building the payload — never pass a file path or URL.")
 
     @field_validator("name", "address", mode="after")
     @classmethod
     def must_be_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("This field is required and cannot be blank.")
-        return v
-
-    @field_validator("logo", mode="after")
-    @classmethod
-    def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
-            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
         return v
 
 
@@ -123,9 +113,19 @@ class PurchaseOrder(DocModel):
     doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
     annex_terms: Optional[Union[bool, str]] = Field(default=None, description="true = standard T&C; string = custom T&C text; null = no T&C page.")
     annex_tables: list[TableAnnex] = Field(default_factory=list, description="List of tabular annexes. Each renders on its own page with a title and a flexible-column table.")
+    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Use scripts/encode_logo.py to encode — never pass a file path or URL.")
     buyer: Buyer = Field(..., description="The company issuing the PO.")
     vendor: Vendor = Field(..., description="The supplier receiving the PO.")
     line_items: list[LineItem] = Field(..., description="What is being purchased. Minimum 1 item.")
+
+    @field_validator("logo", mode="after")
+    @classmethod
+    def logo_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
+            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
+        return v
 
     @field_validator("po_number", mode="after")
     @classmethod

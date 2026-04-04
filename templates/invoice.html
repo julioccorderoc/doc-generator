@@ -4,8 +4,8 @@
 <div class="doc-header">
   {# Left: issuer logo or empty spacer #}
   <div class="doc-header__logo">
-    {% if issuer.logo %}
-    <img src="{{ issuer.logo }}" alt="{{ issuer.name }} logo">
+    {% if logo %}
+    <img src="{{ logo }}" alt="{{ issuer.name }} logo">
     {% else %}
     <div class="doc-header__logo--placeholder"></div>
     {% endif %}

@@ -31,7 +31,7 @@ Model your file on `schemas/purchase_order.py` as the reference implementation. 
 - **`@field_validator(mode="after")`** — for single-field constraints. Always `@classmethod`.
 - **`@model_validator(mode="after")`** — for cross-field constraints (e.g. `due_date >= issue_date`).
 - **Defaults** — `Field(default_factory=date.today, ...)` for today; `Field(default=Decimal("0.00"), ...)` (not `0.0`) for monetary defaults.
-- **Logo** — accept `Optional[str]`; add a `@field_validator` that enforces the value starts with `data:image/` (or is `None`). See `schemas/purchase_order.py` `Buyer.logo_format` for the reference implementation. `utils/logo.py` also validates at render time as defense-in-depth, but the schema is the primary enforcement point.
+- **Logo** — add `logo: Optional[str] = Field(default=None, ...)` at the **root level** of the document model (not nested inside a party sub-model). Add a `@field_validator` that enforces the value matches `data:image/[type];base64,[chars]` (or is `None`). See `schemas/purchase_order.py` `PurchaseOrder.logo_format` for the reference implementation. `utils/logo.py` also validates at render time as defense-in-depth, but the schema is the primary enforcement point.
 
 ---
 
@@ -109,7 +109,7 @@ Model your file on `builders/purchase_order.py` as the reference implementation.
 
 - **No raw `Decimal`** — all monetary values must be strings: `format_currency(doc.amount)`.
 - **No raw `date`** — all dates must be strings: `format_date(doc.issue_date)` or `None`.
-- **Logos** — `Markup(resolve_logo(doc.party.logo))` or `None`.
+- **Logo** — `resolve_logo(doc.logo)` (root-level field, same on all doc types). Pass the result as `"logo": logo_data` at the top level of the context dict, not nested inside a party dict.
 - **`css_path`** — always required: `get_css_path()` from `builders._shared`.
 - **Boolean flags** — compute `show_tax`, `show_shipping`, `has_buyer_id_column`, etc. here so templates contain no logic.
 - **Shared helpers** — use `build_line_items`, `build_line_items_meta`, `build_totals` from `builders._shared` to avoid duplication.

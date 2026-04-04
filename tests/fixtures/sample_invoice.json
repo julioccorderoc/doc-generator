@@ -8,13 +8,13 @@
   "notes": "Thank you for your business. Please include the invoice number in your payment reference.",
   "paid": true,
   "amount_paid": 825.00,
+  "logo": null,
   "issuer": {
     "name": "Natural Cure Labs LLC",
     "address": "123 Wellness Ave\nLos Angeles, CA 90001",
     "contact_name": "Julio Cordero",
     "email": "billing@naturalcurelabs.com",
-    "phone": "+1 (310) 555-0100",
-    "logo": null
+    "phone": "+1 (310) 555-0100"
   },
   "bill_to": {
     "name": "Acme Retail Group",

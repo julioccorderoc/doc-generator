@@ -7,13 +7,13 @@
   "shipping_cost": 15.00,
   "tax_rate": 0.08,
   "notes": "Please include a packing slip with each box.\nAll items must be individually labeled with the SKU.",
+  "logo": null,
   "buyer": {
     "name": "Natural Cure Labs",
     "address": "123 Wellness Ave\nLos Angeles, CA 90001",
     "contact_name": "Julio Cordero",
     "email": "purchasing@naturalcurelabs.com",
-    "phone": "+1 (310) 555-0100",
-    "logo": null
+    "phone": "+1 (310) 555-0100"
   },
   "vendor": {
     "name": "Acme Ingredients Co.",

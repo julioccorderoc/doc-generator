@@ -24,10 +24,9 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_generate_purchase_order_end_to_end(tmp_path):
-    # Load the standard fixture and clear the logo (file paths are not accepted
-    # by resolve_logo; this mirrors how agents pass a data URI or omit the logo).
+    # Load the standard fixture; logo is already null at root level.
     payload = json.loads((FIXTURES / "sample_po.json").read_text())
-    payload["buyer"]["logo"] = None
+    payload["logo"] = None
     payload_file = tmp_path / "po_no_logo.json"
     payload_file.write_text(json.dumps(payload))
 

@@ -37,7 +37,7 @@ _INVOICE_CSS: str = (ASSETS_DIR / "invoice.css").read_text(encoding="utf-8")
 
 def build_invoice_context(doc: Invoice) -> dict:
     """Build the full Jinja2 template context for an Invoice."""
-    logo_data = resolve_logo(doc.issuer.logo)
+    logo_data = resolve_logo(doc.logo)
 
     # Derive payment status for the status strip.
     # This is a display-only computed value — never accepted from user input.
@@ -56,6 +56,9 @@ def build_invoice_context(doc: Invoice) -> dict:
         "document_status": document_status,
         "status_label": status_label,
 
+        # ── Header logo ───────────────────────────────────────────────────
+        "logo": logo_data,
+
         # ── Parties ───────────────────────────────────────────────────────
         "issuer": {
             "name": doc.issuer.name,
@@ -63,7 +66,6 @@ def build_invoice_context(doc: Invoice) -> dict:
             "contact_name": doc.issuer.contact_name,
             "email": doc.issuer.email,
             "phone": doc.issuer.phone,
-            "logo": logo_data,
         },
         "bill_to": {
             "name": doc.bill_to.name,

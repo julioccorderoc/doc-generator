@@ -72,7 +72,7 @@ _PARTIAL_PRICING_NOTE = (
 
 def build_po_context(doc: PurchaseOrder) -> dict:
     """Build the full Jinja2 template context for a Purchase Order."""
-    logo_data = resolve_logo(doc.buyer.logo)
+    logo_data = resolve_logo(doc.logo)
     line_items_meta = _build_po_line_items_meta(doc)
     is_partial_pricing = line_items_meta["is_partial_pricing"]
 
@@ -91,6 +91,9 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         "issue_date": format_date(doc.issue_date),
         "delivery_date": format_date(doc.delivery_date) if doc.delivery_date else None,
 
+        # ── Header logo ───────────────────────────────────────────────────
+        "logo": logo_data,
+
         # ── Parties ───────────────────────────────────────────────────────
         "buyer": {
             "name": doc.buyer.name,
@@ -98,7 +101,6 @@ def build_po_context(doc: PurchaseOrder) -> dict:
             "contact_name": doc.buyer.contact_name,
             "email": doc.buyer.email,
             "phone": doc.buyer.phone,
-            "logo": logo_data,
         },
         "vendor": {
             "name": doc.vendor.name,
