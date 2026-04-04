@@ -406,3 +406,11 @@ def test_po_builder_annex_tables_serialized():
 
 def test_po_builder_annex_tables_empty_by_default(po_context):
     assert po_context["annex_tables"] == []
+
+
+def test_po_builder_annex_table_new_page_in_context():
+    doc = PurchaseOrder(**load("sample_po_logistics.json"))
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        ctx = build_po_context(doc)
+    # logistics fixture has no new_page set — should default to False
+    assert ctx["annex_tables"][0]["new_page"] is False

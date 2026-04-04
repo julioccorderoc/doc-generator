@@ -354,3 +354,15 @@ def test_po_annex_table_row_mismatch_raises():
             headers=["A", "B", "C"],
             rows=[["only", "two"]],
         )
+
+
+def test_po_annex_table_new_page_default():
+    from schemas.purchase_order import TableAnnex
+    annex = TableAnnex(headers=["Col"], rows=[["val"]])
+    assert annex.new_page is False
+
+
+def test_po_annex_table_new_page_true():
+    from schemas.purchase_order import TableAnnex
+    annex = TableAnnex(headers=["Col"], rows=[["val"]], new_page=True)
+    assert annex.new_page is True

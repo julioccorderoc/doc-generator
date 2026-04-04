@@ -16,7 +16,8 @@ The global data collection workflow is `references/PROTOCOL.md`.
   - **Fully unpriced** — Unit Price and Total columns hidden; financials block hidden; Total Units still shown.
 - **`product` field**: Optional. For single-product POs, set this to the product name and it will appear as the first item in the meta-band (the row with Delivery Date, Payment Terms, etc.). Do not ask for it unless the PO is clearly for a single product type.
 - **Annex Terms (`annex_terms`)**: By default, no T&C page is attached (`null`). Ask the user if they want to attach the standard Terms & Conditions page (`true`) or custom T&C text (`string`).
-- **Tabular annexes (`annex_tables`)**: A list of structured table annexes. Each renders on its own forced page. Use for logistics addenda, distribution schedules, or any supplemental table. See structure below.
+- **Tabular annexes (`annex_tables`)**: A list of structured table annexes. By default each annex flows after the preceding content (no forced page break). Set `new_page: true` on an individual annex to force it onto a fresh page. The T&C annex (`annex_terms`) always starts on a new page — that behavior is fixed. See structure below.
+- **Logo (`logo`)**: Root-level field on the document (not inside `buyer`). Optional. Must be a base64 data URI (`data:image/png;base64,...`). Use `scripts/encode_logo.py` to encode from a file path — never pass a file path or URL directly. Do not ask for it proactively; only include if the user provides a logo.
 - **Font (`font_family`)**: Do **not** ask for this. Only set it when the user explicitly requests a different font (e.g. "use Georgia"). Accepts any valid CSS font stack (e.g. `"Georgia, serif"`). Leave `null` otherwise.
 - **Page density (`doc_style`)**: Do **not** ask for this unprompted. Set it only if the user says something like "make it more compact", "fit everything on one page", or "more spacious/formal". Values: `"compact"` (tighter spacing, smaller fonts), `"normal"` (default — no change), `"comfortable"` (more whitespace, larger fonts). Leave `null`/omit for the default.
 
@@ -61,9 +62,10 @@ Each entry in `annex_tables` is a `TableAnnex` object:
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `title` | string | No | Heading for the annex page. Defaults to `"Addendum"` if omitted. |
+| `title` | string | No | Heading for the annex. Defaults to `"Addendum"` if omitted. |
 | `headers` | list[string] | **Yes** | Column header labels. Minimum 1. |
 | `rows` | list[list[string]] | No | Table rows. Each row must have the same number of cells as `headers`. Defaults to `[]`. |
+| `new_page` | boolean | No | Force this annex to start on a new page. Default `false` — the annex flows after the preceding content. Set to `true` when the annex should always open on a fresh page (e.g. a long logistics table). |
 
 ### Example — logistics addendum
 

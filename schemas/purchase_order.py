@@ -82,9 +82,10 @@ class Vendor(DocModel):
 
 
 class TableAnnex(DocModel):
-    title: Optional[str] = Field(default=None, description="Heading for this annex page. Defaults to 'Addendum' if omitted.")
+    title: Optional[str] = Field(default=None, description="Heading for this annex. Defaults to 'Addendum' if omitted.")
     headers: list[str] = Field(..., description="Column header labels. Must have at least 1 entry.")
     rows: list[list[str]] = Field(default_factory=list, description="Table rows. Each row must have the same number of cells as headers.")
+    new_page: bool = Field(default=False, description="Force this annex to start on a new page. Default false — annex flows after the preceding content.")
 
     @model_validator(mode="after")
     def rows_match_headers(self) -> TableAnnex:

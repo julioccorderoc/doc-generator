@@ -143,6 +143,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
                 "title": t.title,
                 "headers": t.headers,
                 "rows": t.rows,
+                "new_page": t.new_page,
             }
             for t in doc.annex_tables
         ],
