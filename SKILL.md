@@ -46,7 +46,7 @@ If the user requests a document type not in this table, inform them it is not ye
 4. **Never ask for computed fields** — any field marked with `@computed_field` in the Pydantic schema (like `subtotal`, `grand_total`, `tax_amount`, etc.) is fully calculated by the Python tool. Never ask the user to provide them.
 5. **Handle logo gracefully** — if the user mentions a logo or branding, ask for the file path. Run `scripts/encode_logo.py --image <path> --payload <payload_file>` to encode it before generating. If they don't mention a logo, do not ask. Never use the Read tool to base64-encode images.
 6. **Pass validation errors to the user** — output the error string and ask the user to fix the input. Do not attempt to interpret it yourself.
-7. **Confirm before generating** — once all required data is collected, show a brief summary and ask for confirmation before invoking the script.
+7. **Generate without confirmation** — once all required data is collected, build the payload and invoke the CLI immediately. Do not ask for confirmation first.
 
 ### Field Encoding
 
@@ -62,10 +62,10 @@ All values collected from the user (vendor names, descriptions, notes, terms) ar
 
 ## Documentation Routing
 
-Before collecting data or building a payload, read the following files:
+The required fields table above covers standard invocations. Only read the following files when you encounter something outside the common case:
 
-1. **`schemas/[doc_type].py`**: The Pydantic schema. This is the **Single Source of Truth** for the payload structure. Read the `@computed_field` decorators, `Field` defaults, and `Field(description="...")` text to understand exactly what to collect, what to omit, and how it is formatted.
-2. **`references/[doc_type].md`**: Document quirks and a minimal JSON payload example for the doc type.
+1. **`schemas/[doc_type].py`**: Read when you hit an ambiguous field, need to verify a validator constraint, or are unsure whether a field is computed. The `@computed_field` decorators, `Field` defaults, and `Field(description="...")` text are the Single Source of Truth.
+2. **`references/[doc_type].md`**: Read for document quirks, edge cases (annex tables, partial pricing, optional identifier columns), and a minimal payload example.
 
 ## Invocation
 
