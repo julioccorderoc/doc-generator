@@ -2,7 +2,7 @@
 
 This is a supplementary reference for the `purchase_order` document type.
 The **Single Source of Truth** for the payload schema is `schemas/purchase_order.py`.
-The global data collection workflow is `references/PROTOCOL.md`.
+The universal data collection workflow and field encoding rules are in `SKILL.md`.
 
 ---
 
