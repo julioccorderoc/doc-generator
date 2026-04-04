@@ -117,31 +117,3 @@
     page-break-before: always;
 }
 
-.annex-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 4pt;
-}
-
-.annex-table thead th {
-    background: var(--color-bg-table-head);
-    color: var(--color-text);
-    padding: var(--table-cell-padding);
-    text-align: left;
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-bottom: var(--table-border);
-}
-
-.annex-table tbody td {
-    padding: var(--table-cell-padding);
-    border-bottom: 0.5pt solid var(--color-border-light);
-    color: var(--color-text);
-    vertical-align: top;
-}
-
-.annex-table tbody td:empty {
-    color: var(--color-text-muted);
-}
