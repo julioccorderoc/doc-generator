@@ -9,13 +9,12 @@ computed fields — it is purely descriptive.
 """
 from __future__ import annotations
 
-import re
 from datetime import date
 from typing import Literal, Optional
 
 from pydantic import Field, field_validator, model_validator
 
-from schemas.base import DocModel
+from schemas.base import DocModel, validate_font_family, validate_logo_format, validate_primary_color
 
 
 class RFQAttribute(DocModel):
@@ -106,29 +105,17 @@ class RequestForQuotation(DocModel):
     @field_validator("logo", mode="after")
     @classmethod
     def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
-            raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
-        return v
+        return validate_logo_format(v)
 
     @field_validator("primary_color", mode="after")
     @classmethod
     def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
-            raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
-        return v
+        return validate_primary_color(v)
 
     @field_validator("font_family", mode="after")
     @classmethod
     def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        if re.search(r'[;{}@]|url\s*\(', v, re.IGNORECASE):
-            raise ValueError("font_family contains invalid characters. Provide a plain font stack, e.g. 'Georgia, serif'.")
-        return v
+        return validate_font_family(v)
 
     @field_validator("product_name", mode="after")
     @classmethod

@@ -10,6 +10,8 @@ Decimal or date objects ever reach a template (ADR-002).
 """
 from __future__ import annotations
 
+import re
+
 from markupsafe import Markup
 
 from utils.formatting import format_currency, format_quantity, format_tax_rate
@@ -109,7 +111,6 @@ def parse_terms_sections(text: str) -> list[dict]:
     Recognises ## N. Title headings. If no headings are found, the whole
     text is returned as a single untitled section.
     """
-    import re
     pattern = re.compile(
         r"##\s+(?:\d+\.\s+)?(.+?)\n+(.*?)(?=\n##\s|\Z)", re.DOTALL
     )
@@ -147,7 +148,6 @@ def font_family_css(font_family: str | None) -> str:
     Rejects values containing CSS injection vectors (semicolons, braces,
     url(), @-rules). Returns an empty string when no font is provided.
     """
-    import re
     if not font_family:
         return ""
     if re.search(r'[;{}@]|url\s*\(', font_family, re.IGNORECASE):

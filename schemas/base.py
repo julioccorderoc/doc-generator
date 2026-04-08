@@ -5,6 +5,7 @@ Key export: ``Money`` — an annotated Decimal type that coerces any
 numeric JSON input (float, int, str) to Decimal via str() to avoid
 float imprecision. See docs/decisions/001-decimal-for-money.md.
 """
+import re
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Annotated
 
@@ -31,6 +32,30 @@ Money = Annotated[Decimal, BeforeValidator(_coerce_decimal)]
 def round_money(value: Decimal) -> Decimal:
     """Round a Decimal to 2 decimal places using ROUND_HALF_UP."""
     return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def validate_logo_format(v: str | None) -> str | None:
+    if v is None:
+        return v
+    if not re.match(r"^data:image/[a-zA-Z0-9\-\+]+;base64,[a-zA-Z0-9+/=]+$", v):
+        raise ValueError("Logo must be a base64 data URI (data:image/...;base64,...)")
+    return v
+
+
+def validate_primary_color(v: str | None) -> str | None:
+    if v is None:
+        return v
+    if not re.match(r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$", v):
+        raise ValueError("primary_color must be a hex color (#RRGGBB or #RGB) or a CSS color name")
+    return v
+
+
+def validate_font_family(v: str | None) -> str | None:
+    if v is None:
+        return v
+    if re.search(r'[;{}@]|url\s*\(', v, re.IGNORECASE):
+        raise ValueError("font_family contains invalid characters. Provide a plain font stack, e.g. 'Georgia, serif'.")
+    return v
 
 
 class DocModel(BaseModel):
