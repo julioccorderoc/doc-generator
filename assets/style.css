@@ -225,6 +225,25 @@ thead {
     page-break-inside: avoid;
 }
 
+/* ── Section group — reusable heading + table block ─────── */
+
+.section-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.section-group__heading {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    padding: var(--spacing-sm) 0 var(--spacing-xs) 0;
+    border-bottom: 1pt solid var(--color-border-light);
+    margin-bottom: var(--spacing-xs);
+    break-after: avoid;
+    page-break-after: avoid;
+}
+
 /* ── Line items table ────────────────────────────────────── */
 
 .line-items {

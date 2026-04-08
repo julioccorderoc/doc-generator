@@ -253,7 +253,7 @@ def test_rfq_required_keys_present(rfq_context):
 def test_rfq_spec_sections_in_context(rfq_context):
     assert len(rfq_context["spec_sections"]) == 2
     first = rfq_context["spec_sections"][0]
-    assert first["title"] is None
+    assert first["title"] == "Specifications"
     assert len(first["rows"]) == 6
     assert first["rows"][0]["label"] == "Formula (per serving)"
 

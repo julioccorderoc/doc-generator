@@ -90,25 +90,6 @@
     white-space: pre-line;
 }
 
-/* Section header row — spans both columns.
-   break-after: avoid keeps the section title with its first
-   spec row — it is never stranded alone at the bottom of a page. */
-.rfq-spec-section-header {
-    break-after: avoid;
-    page-break-after: avoid;
-}
-
-.rfq-spec-section-header td {
-    background: var(--color-bg-table-head);
-    font-weight: var(--font-weight-bold);
-    font-size: var(--font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--color-text-muted);
-    padding: var(--table-cell-padding);
-    text-align: center;
-}
-
 /* ── Annexes ────────────────────────────────────────────── */
 
 .rfq-annexes {
@@ -171,13 +152,6 @@
 }
 
 .rfq-contact-block__website {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-}
-
-/* ── Valid-until meta band item ─────────────────────────── */
-
-.rfq-meta-valid-until {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
 }

@@ -97,35 +97,28 @@
   </tbody>
 </table>
 
-{# ── Specification table ──────────────────────────────────── #}
-<table class="rfq-spec-table">
-  <thead>
-    <tr>
-      <th>Specification</th>
-      <th>Details</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for section in spec_sections %}
-
-    {# Optional section header row #}
-    {% if section.title %}
-    <tr class="rfq-spec-section-header">
-      <td colspan="2">{{ section.title }}</td>
-    </tr>
-    {% endif %}
-
-    {# Spec rows #}
-    {% for row in section.rows %}
-    <tr>
-      <td class="rfq-spec__label">{{ row.label }}</td>
-      <td class="rfq-spec__value">{{ row.value }}</td>
-    </tr>
-    {% endfor %}
-
-    {% endfor %}
-  </tbody>
-</table>
+{# ── Specification sections ─────────────────────────────────── #}
+{% for section in spec_sections %}
+<div class="section-group">
+  <div class="section-group__heading">{{ section.title }}</div>
+  <table class="rfq-spec-table">
+    <thead>
+      <tr>
+        <th>Specification</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in section.rows %}
+      <tr>
+        <td class="rfq-spec__label">{{ row.label }}</td>
+        <td class="rfq-spec__value">{{ row.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
 
 {# ── Notes ───────────────────────────────────────────────── #}
 {% if notes %}

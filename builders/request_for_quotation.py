@@ -54,7 +54,7 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
     # Build spec sections as plain dicts (no Pydantic objects in context)
     spec_sections = [
         {
-            "title": section.title,
+            "title": section.title or "Specifications",
             "rows": [{"label": row.label, "value": row.value} for row in section.rows],
         }
         for section in doc.spec_sections
