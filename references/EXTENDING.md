@@ -84,7 +84,7 @@ Pass it as `"theme_css": Markup(_MY_CSS + primary_color_css(doc.primary_color) +
 - `.meta-band { break-inside: avoid }` — the meta band stays together
 - `.bottom-section__totals { break-inside: avoid }` — the totals block stays together
 
-If your doc type has other elements that must stay together (e.g. a section-title row followed by content rows), add `break-after: avoid` or `break-inside: avoid` to the doc-type CSS file. See `rfq-spec-section-header` in `assets/request_for_quotation.css` as the reference pattern.
+If your doc type has grouped tables with section headings, use the reusable `.section-group` / `.section-group__heading` classes from `style.css` — they already include `break-after: avoid` on the heading. For other elements that must stay together, add `break-after: avoid` or `break-inside: avoid` to the doc-type CSS file. See `.po-terms__section` in `assets/purchase_order.css` as the reference pattern.
 
 ### 3.3 Template rules
 

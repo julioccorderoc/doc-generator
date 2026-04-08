@@ -1,11 +1,11 @@
 ---
 name: doc-generator
-description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually (e.g., 'make a PO for Acme', 'invoice a client for 10 hours', 'request a quote from supplier'). The skill handles data collection, payload generation, and CLI execution."
+description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually. The skill handles data collection, payload generation, and CLI execution"
 ---
 
 # doc-generator
 
-Operating instructions for generating business documents. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation
+Generates business documents. Covers trigger conditions, data collection per document type, CLI invocation, and result presentation
 
 ## Trigger Conditions
 

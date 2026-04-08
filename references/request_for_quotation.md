@@ -43,4 +43,12 @@ The universal data collection workflow and field encoding rules are in `SKILL.md
 - **Multiline spec values:** use `\n` within the value string for multi-line cells.
 - **`product_attributes`:** omit or `[]` if no summary table columns are needed.
 - **`vendor`:** omit entirely for broadcast RFQs.
-- **`spec_sections[*].title`:** omit or set to `null` for an unnamed section.
+- **`spec_sections[*].title`:** omit or set to `null` for an unnamed section — the builder defaults to "Specifications" so every section has a visible heading in the PDF.
+
+---
+
+## Layout Notes
+
+- Each spec section renders as its own visual block: a **section heading** (`.section-group__heading` from `style.css`) followed by a separate **table** with its own `<thead>`.
+- The `.section-group` / `.section-group__heading` classes are defined in the base `style.css` and are reusable across doc types.
+- If a section starts on a new page, the column headers ("Specification | Details") repeat — readers always know what columns they're looking at.
