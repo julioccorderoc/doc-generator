@@ -46,7 +46,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 Any agent invoking this tool must use the following interface. This is the **complete** contract — there are no interactive prompts, no assumed environment variables, and no implicit state.
 
 ```text
-uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
+uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview] [--save_payload]
 ```
 
 | Argument | Required | Description |
@@ -56,8 +56,9 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 | `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
 | `--output_name` | No | Custom filename stem. If provided, output is `<doc_type>_<name>.pdf`. Defaults to date + sequential counter auto-naming. |
 | `--output_dir` | No | Directory to save the generated PDF. Defaults to `<project_root>/output/`. Pass `$(pwd)` to save in the caller's working directory. |
+| `--save_payload` | No | If provided, saves the validated payload (with all computed fields) as a `.json` file alongside the PDF, using the same filename stem. |
 
-**On success:** Writes the PDF to the target directory (default `<project_root>/output/`) and prints the **absolute** output path to stdout. Exit code `0`. Agents must use this path directly — never prepend the working directory.
+**On success:** Writes the PDF to the target directory (default `<project_root>/output/`) and prints the **absolute** output path to stdout. Exit code `0`. Agents must use this path directly — never prepend the working directory. If `--save_payload` was passed, a `.json` file with the same stem is also written.
 
 **On validation error:** Prints a structured, human-readable error to stdout describing which fields failed and why. Exit code `1`. No PDF is written.
 

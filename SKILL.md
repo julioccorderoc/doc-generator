@@ -121,6 +121,8 @@ Pass the document number as `--output_name` so the output file is named after th
 
 `--output_dir "$(pwd)"` saves the PDF in the agent's current working directory. Omit it only if you intentionally want to save inside the skill's internal `output/` folder.
 
+**`--save_payload`:** If the user asks to keep or save the JSON data alongside the PDF, add `--save_payload` to the CLI invocation. This writes a `.json` file (validated, with computed fields) next to the PDF using the same filename stem. Do not pass it unless the user requests it.
+
 **Do not pass `--preview`** when running as a skill (the user will open the file themselves).
 
 ### 3. Capture stdout and exit code

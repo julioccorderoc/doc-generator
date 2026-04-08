@@ -103,6 +103,14 @@ def main() -> int:
             "Pass $(pwd) to save in the caller's working directory."
         ),
     )
+    parser.add_argument(
+        "--save_payload",
+        action="store_true",
+        help=(
+            "Save the validated payload (with computed fields) as a JSON file "
+            "alongside the PDF, using the same filename stem."
+        ),
+    )
     args = parser.parse_args()
 
     # ── 1. Validate doc_type ───────────────────────────────────────────────
@@ -157,7 +165,15 @@ def main() -> int:
 
     print(str(output_path))
 
-    # ── 7. Preview (best-effort) ───────────────────────────────────────────
+    # ── 7. Save validated payload ──────────────────────────────────────────
+    if args.save_payload:
+        json_path = output_path.with_suffix(".json")
+        json_path.write_text(
+            json.dumps(doc.model_dump(mode="json"), indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    # ── 8. Preview (best-effort) ───────────────────────────────────────────
     if args.preview:
         open_preview(output_path)
 
