@@ -59,6 +59,7 @@ def _build_po_line_items_meta(doc: PurchaseOrder) -> dict:
         "is_partial_pricing": is_partial_pricing,
         "is_fully_unpriced": is_fully_unpriced,
     }
+
 _TERMS_PRESET: str = (ROOT / "references" / "po_terms_conditions.md").read_text(
     encoding="utf-8"
 )

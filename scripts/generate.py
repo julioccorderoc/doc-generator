@@ -139,7 +139,6 @@ def main() -> int:
         return 1
 
 
-
     # ── 4. Build template context ──────────────────────────────────────────
     try:
         context = config.build_context(doc)
