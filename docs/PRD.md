@@ -1,7 +1,7 @@
 # PRD: `doc-generator` — Claude Skill for Structured PDF Generation
 
-**Status:** Draft  
-**Last updated:** 2026-03-16  
+**Status:** Implemented  
+**Last updated:** 2026-04-09  
 **Stack:** Python · WeasyPrint · Jinja2 · uv  
 
 ## 1. Problem Statement
@@ -39,51 +39,87 @@ This project is developed as a standalone VS Code project that mirrors the Claud
 ```text
 doc-generator/
 │
-├── SKILL.md
+├── CLAUDE.md                    ← Agent entry point: CLI contract, conventions, design decisions
+├── SKILL.md                     ← Claude skill definition (trigger, data collection, invocation)
+├── README.md                    ← Project overview and setup instructions
 │
-├── pyproject.toml
-├── uv.lock
+├── pyproject.toml               ← uv project manifest with dependencies (weasyprint, jinja2, pydantic)
+├── uv.lock                      ← Locked dependency versions (auto-managed by uv)
+│
+├── .claude/
+│   └── settings.json            ← Pre-approved permissions: Write(/tmp/) + Bash CLI invocation
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml               ← pytest on every push/PR
+│       └── sync-skill.yml       ← Auto-opens PR to vercel-labs/agent-skills when SKILL.md changes
 │
 ├── scripts/
-│   └── generate.py              # CLI: --doc_type, --payload, --theme, --preview
+│   ├── generate.py              # CLI: --doc_type, --payload, --preview, --output_name, --output_dir, --save_payload
+│   └── encode_logo.py           # Encodes a local image to base64 data URI for the logo field
+│
+├── builders/                    ← Context builder package — one module per doc type
+│   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY
+│   ├── _shared.py               ← Shared helpers: build_line_items, build_totals, get_css_path, etc.
+│   ├── purchase_order.py
+│   ├── invoice.py
+│   └── request_for_quotation.py
 │
 ├── schemas/
-│   ├── base.py                  # Shared base classes / mixins (e.g. MoneyMixin)
-│   ├── purchase_order.py        # Pydantic model w/ computed fields
-│   └── invoice.py
+│   ├── base.py                  ← Shared base classes and mixins (Money type, validators)
+│   ├── purchase_order.py        ← Pydantic v2 model for POs (with @computed_field)
+│   ├── invoice.py               ← Pydantic v2 model for Invoices
+│   └── request_for_quotation.py ← Pydantic v2 model for RFQs (no computed fields)
 │
 ├── utils/
-│   ├── formatting.py            # Currency formatting, date formatting (USD/American standard), etc...
-│   ├── file_naming.py           # Auto-naming logic: po_YYYYMMDD_XXXX.pdf
-│   ├── logo.py                  # Logo resolver: validates base64 data URIs; rejects file paths and URLs
-│   └── preview.py               # OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
+│   ├── paths.py                 ← Project root path constants (ROOT, TEMPLATES_DIR, ASSETS_DIR, OUTPUT_DIR)
+│   ├── formatting.py            ← Currency formatting (USD/American: $1,234.56), date formatting
+│   ├── file_naming.py           ← Auto-naming logic: <PREFIX>_YYYYMMDD_XXXX.pdf (PREFIX = PO, INV, RFQ)
+│   ├── logo.py                  ← Logo resolver: validates base64 data URIs; rejects file paths and URLs
+│   └── preview.py               ← OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
 │
 ├── templates/
-│   ├── base.html                # Shared layout — imports style.css, injects theme overrides
+│   ├── base.html                ← Shared layout — imports style.css, injects theme CSS variables
 │   ├── purchase_order.html
-│   └── invoice.html
+│   ├── invoice.html
+│   └── request_for_quotation.html
 │
 ├── assets/
-│   ├── style.css                # Base stylesheet — built entirely on CSS custom properties
-│   └── themes/                  # ← future: named theme overrides
-│       └── .gitkeep
+│   ├── style.css                ← Base stylesheet built entirely on CSS custom properties
+│   ├── purchase_order.css       ← PO-specific component styles
+│   ├── invoice.css              ← Invoice-specific component styles
+│   ├── request_for_quotation.css ← RFQ-specific component styles
+│   └── themes/                  ← Future: named theme override files
 │
 ├── references/
-│   ├── purchase_order.md        # Field reference: all fields, types, rules, examples
-│   ├── invoice.md
-│   └── EXTENDING.md
+│   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type
+│   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
+│   ├── request_for_quotation.md ← SOURCE OF TRUTH for the request_for_quotation doc type
+│   ├── po_terms_conditions.md   ← Standard T&C preset text for PO annex
+│   ├── EXTENDING.md             ← Developer guide: how to add a new document type
+│   ├── NEW_DOC_TYPE.md          ← Copy-paste coding agent prompt for implementing a new doc type
+│   ├── DESIGN_SYSTEM.md         ← Visual source of truth: color palette, typography, theming
+│   └── ERRORS.md                ← All CLI error patterns and recovery steps
 │
 ├── tests/
 │   └── fixtures/
 │       ├── sample_po.json
+│       ├── sample_po_with_annex.json
 │       ├── invalid_po.json
 │       ├── sample_invoice.json
-│       └── invalid_invoice.json
+│       ├── sample_invoice_contractor.json
+│       ├── invalid_invoice.json
+│       ├── sample_rfq.json
+│       ├── sample_rfq_broadcast.json
+│       └── invalid_rfq.json
 │
-├── output/                      # .gitignored
+├── output/                      ← Generated PDFs land here (.gitignored)
 │
 └── docs/
-    └── PRD.md
+    ├── PRD.md                   ← This file
+    ├── PUBLISHING.md            ← Skill publishing and team setup guide
+    ├── future_features.md       ← Planned future capabilities
+    └── decisions/               ← Architecture decision records (001-006)
 ```
 
 ### Why this structure works as a skill
@@ -113,10 +149,10 @@ Claude collects data (asks user / fetches from tool / uses provided data)
 Claude validates payload against Pydantic schema
      │
      ▼
-Claude calls: python scripts/generate.py --doc_type purchase_order --payload '{...}'
+Claude calls: python scripts/generate.py --doc_type purchase_order --payload /tmp/payload.json
      │
      ▼
-generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → <output_dir>/po_YYYYMMDD_XXXX.pdf (absolute path printed to stdout)
+generate.py → Jinja2 renders HTML → WeasyPrint writes PDF → <output_dir>/PO_YYYYMMDD_XXXX.pdf (absolute path printed to stdout)
      │
      ▼
 Claude presents the file to the user
@@ -132,15 +168,15 @@ Claude presents the file to the user
 
 **Deliverables:**
 
-- [ ] `references/purchase_order.md` — field reference (produced via schema prompt, see above)
-- [ ] `schemas/purchase_order.py` — Pydantic model derived from the reference
-- [ ] `templates/base.html` — page layout, font imports, shared CSS variables, optional logo slot
-- [ ] `templates/purchase_order.html` — PO layout with line items table
-- [ ] `assets/style.css` — clean professional styling, USD/American number formatting
-- [ ] `scripts/generate.py` — CLI dispatcher (doc_type → schema → template → PDF), with `--preview` flag
-- [ ] `pyproject.toml` — uv project with weasyprint + jinja2 + pydantic
-- [ ] `tests/fixtures/sample_po.json` and `tests/fixtures/invalid_po.json`
-- [ ] Local test: `uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview`
+- [x] `references/purchase_order.md` — field reference (produced via schema prompt, see above)
+- [x] `schemas/purchase_order.py` — Pydantic model derived from the reference
+- [x] `templates/base.html` — page layout, font imports, shared CSS variables, optional logo slot
+- [x] `templates/purchase_order.html` — PO layout with line items table
+- [x] `assets/style.css` — clean professional styling, USD/American number formatting
+- [x] `scripts/generate.py` — CLI dispatcher (doc_type → schema → template → PDF), with `--preview` flag
+- [x] `pyproject.toml` — uv project with weasyprint + jinja2 + pydantic
+- [x] `tests/fixtures/sample_po.json` and `tests/fixtures/invalid_po.json`
+- [x] Local test: `uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview`
 
 **Acceptance criteria:**
 
@@ -166,12 +202,12 @@ Claude presents the file to the user
 
 **Deliverables:**
 
-- [ ] `references/invoice.md` — field reference (produced via schema prompt)
-- [ ] `schemas/invoice.py`
-- [ ] `templates/invoice.html`
-- [ ] Updated `generate.py` to route `--doc_type invoice`
-- [ ] `tests/fixtures/sample_invoice.json` and `tests/fixtures/invalid_invoice.json`
-- [ ] Local test with `--preview`
+- [x] `references/invoice.md` — field reference (produced via schema prompt)
+- [x] `schemas/invoice.py`
+- [x] `templates/invoice.html`
+- [x] Updated `generate.py` to route `--doc_type invoice`
+- [x] `tests/fixtures/sample_invoice.json` and `tests/fixtures/invalid_invoice.json`
+- [x] Local test with `--preview`
 
 **Acceptance criteria:**
 
@@ -182,16 +218,17 @@ Claude presents the file to the user
 
 **Objective:** Document and codify how to add future document types. Then write the SKILL.md so Claude knows how to operate the tool.
 
-**Extensibility contract — adding a new doc type:**
+**Extensibility contract — adding a new doc type (five files, nothing else changes):**
 
 ```text
-1. Add schemas/<doc_type>.py     → Pydantic model
-2. Add templates/<doc_type>.html → Jinja2 template extending base.html
-3. Register in scripts/generate.py REGISTRY dict (one line)
-4. Update SKILL.md doc_types section
+1. Add references/<doc_type>.md    → Field reference, quirks, minimal payload shape
+2. Add schemas/<doc_type>.py       → Pydantic v2 model derived from the reference
+3. Add templates/<doc_type>.html   → Jinja2 template extending base.html
+4. Add builders/<doc_type>.py      → Context builder function
+5. Register in builders/__init__.py → One DocTypeConfig entry added to REGISTRY
 ```
 
-That's it. No other files change.
+`generate.py`, `base.html`, and `style.css` are never modified when adding a doc type.
 
 **SKILL.md content outline:**
 
@@ -204,9 +241,9 @@ That's it. No other files change.
 
 **Deliverables:**
 
-- [ ] `SKILL.md` — complete Claude operating instructions
-- [ ] `references/EXTENDING.md` — developer guide for adding new doc types
-- [ ] End-to-end test of the full Claude skill flow (local simulation)
+- [x] `SKILL.md` — complete Claude operating instructions
+- [x] `references/EXTENDING.md` — developer guide for adding new doc types
+- [x] End-to-end test of the full Claude skill flow (local simulation)
 
 ### Phase 4 — Skill Installation & Claude Testing
 
@@ -260,8 +297,10 @@ Each phase ships with:
 | 1 | Logo/branding | Optional. Root-level `logo` field on all doc types. Must be a base64 data URI. `scripts/encode_logo.py` handles encoding from a file path (keeps base64 off Claude's context). The template renders cleanly with or without it. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
 | 2 | `--payload` format | File path only (e.g. `--payload tests/fixtures/sample_po.json`). Avoids shell escaping issues and maps naturally to how Claude would write a temp file before invoking the script. |
 | 3 | Currency formatting | USD / American standard for Phase 1 and 2 (`$1,234.56`). Multi-currency support is backlog. |
-| 4 | PDF naming | Auto-named using format `<doc_type>_YYYYMMDD_XXXX.pdf` (e.g. `po_20260316_0001.pdf`). User can ask Claude to rename or use a custom format at any time. |
+| 4 | PDF naming | Auto-named using format `<PREFIX>_YYYYMMDD_XXXX.pdf` (e.g. `PO_20260316_0001.pdf`). PREFIX comes from `DocTypeConfig.file_prefix` (PO, INV, RFQ). Custom naming via `--output_name`. See [004-argparse-only-cli](decisions/004-argparse-only-cli.md). |
 | 5 | `--preview` flag | Included from Phase 1. Opens the generated PDF immediately after creation using the OS default viewer. |
+| 6 | Skill publishing | GitHub-first distribution via `npx skills add`. See [005-skill-marketplace-publishing](decisions/005-skill-marketplace-publishing.md). |
+| 7 | Logo security | Logo field accepts only base64 data URIs; file paths and URLs rejected at the CLI level. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
 
 ## 10. Future Doc Types (Backlog)
 
@@ -278,9 +317,9 @@ Each phase ships with:
 
 ## 11. Definition of Done (Full Project)
 
-- [ ] PO and Invoice generate clean, professional PDFs from a JSON payload
-- [ ] Validation errors are human-readable and actionable
-- [ ] Adding a new doc type touches ≤ 3 files
-- [ ] SKILL.md is complete and Claude triggers + uses the skill correctly without hand-holding
-- [ ] All local tests pass via `uv run`
-- [ ] Skill installed and validated in live Claude environment
+- [x] PO, Invoice, and RFQ generate clean, professional PDFs from a JSON payload
+- [x] Validation errors are human-readable and actionable
+- [x] Adding a new doc type touches exactly 5 files (see EXTENDING.md)
+- [x] SKILL.md is complete and Claude triggers + uses the skill correctly without hand-holding
+- [x] All local tests pass via `uv run pytest`
+- [x] Skill installed and validated in live Claude environment via `npx skills add`

@@ -90,8 +90,8 @@ def main() -> int:
         "--output_name",
         default=None,
         help=(
-            "Custom filename stem (e.g. 'NS39' produces purchase_order_NS39.pdf). "
-            "Defaults to auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf."
+            "Custom filename stem (e.g. 'NS39' produces PO_NS39.pdf). "
+            "Defaults to auto-naming: <PREFIX>_YYYYMMDD_XXXX.pdf."
         ),
     )
     parser.add_argument(

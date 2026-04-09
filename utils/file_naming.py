@@ -1,10 +1,11 @@
 """
 Auto-naming logic for generated PDF files.
 
-Output format: <doc_type>_YYYYMMDD_XXXX.pdf
-Example:       purchase_order_20260316_0001.pdf
+Output format: <PREFIX>_YYYYMMDD_XXXX.pdf
+Example:       PO_20260316_0001.pdf
 
-Sequence resets per day per doc_type.
+PREFIX comes from DocTypeConfig.file_prefix (PO, INV, RFQ).
+Sequence resets per day per prefix.
 """
 import re
 from datetime import date
@@ -21,8 +22,8 @@ def next_output_filename(
     """Return the output path for the given doc_type.
 
     If `output_dir` is provided, files are saved there instead of OUTPUT_DIR.
-    If `name` is provided, returns <doc_type>_<name>.pdf (no sequence counter).
-    Otherwise uses auto-naming: <doc_type>_YYYYMMDD_XXXX.pdf.
+    If `name` is provided, returns <prefix>_<name>.pdf (no sequence counter).
+    Otherwise uses auto-naming: <prefix>_YYYYMMDD_XXXX.pdf.
 
     Creates the target directory if it does not exist.
 

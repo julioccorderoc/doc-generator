@@ -87,7 +87,8 @@ doc-generator/
 ├── uv.lock                      ← Locked dependency versions (auto-managed by uv)
 │
 ├── scripts/
-│   └── generate.py              ← Thin CLI entrypoint: argparse + generation pipeline (~95 lines)
+│   ├── generate.py              ← Thin CLI entrypoint: argparse + generation pipeline (~95 lines)
+│   └── encode_logo.py           ← Encodes a local image file to a base64 data URI and injects it into a payload
 │
 ├── builders/                    ← Context builder package — one module per doc type
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY (single registration point)
@@ -105,7 +106,7 @@ doc-generator/
 ├── utils/
 │   ├── paths.py                 ← Project root path constants (ROOT, TEMPLATES_DIR, ASSETS_DIR)
 │   ├── formatting.py            ← Currency formatting (USD/American: $1,234.56), date formatting
-│   ├── file_naming.py           ← Auto-naming logic: <doc_type>_YYYYMMDD_XXXX.pdf
+│   ├── file_naming.py           ← Auto-naming logic: <PREFIX>_YYYYMMDD_XXXX.pdf (PREFIX = PO, INV, RFQ)
 │   ├── logo.py                  ← Logo resolver: validates data URI (data:image/...;base64,...); rejects file paths and URLs
 │   └── preview.py               ← OS-aware PDF opener (macOS: open, Linux: xdg-open, Win: start)
 │
@@ -117,6 +118,7 @@ doc-generator/
 │
 ├── assets/
 │   ├── style.css                        ← Base stylesheet built entirely on CSS custom properties
+│   ├── purchase_order.css               ← PO-specific component styles (loaded by builders/purchase_order.py)
 │   ├── invoice.css                      ← Invoice-specific component styles (loaded by builders/invoice.py)
 │   ├── request_for_quotation.css        ← RFQ-specific component styles (loaded by builders/request_for_quotation.py)
 │   └── themes/                          ← Future: named theme override files
@@ -144,7 +146,10 @@ doc-generator/
 ├── output/                      ← Generated PDFs land here (.gitignored)
 │
 └── docs/
-    └── PRD.md                   ← Full product requirements document
+    ├── PRD.md                   ← Full product requirements document
+    ├── PUBLISHING.md            ← Skill publishing and team setup guide
+    ├── future_features.md       ← Planned future capabilities and roadmap
+    └── decisions/               ← Architecture decision records (001-006)
 ```
 
 ---

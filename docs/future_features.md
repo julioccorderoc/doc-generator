@@ -2,6 +2,8 @@
 
 This document outlines the planned future capabilities for the `doc-generator` project. These additions will extend the system's utility while adhering to the deterministic, schema-driven, CLI-first design principles.
 
+> **Already shipped:** Request for Quotation doc type (Phase 6), per-document font customization via `font_family` (Phase 9), file prefix naming — PO/INV/RFQ (Phase 9), page density presets via `doc_style` (Phase 10), PO Terms & Conditions annex (Phase 7), tabular annexes `annex_tables` (Phase 8).
+
 ## 1. Additional Document Types
 
 Adding more documents to complete the business lifecycle:

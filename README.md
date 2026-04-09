@@ -105,7 +105,7 @@ brew install pango   # macOS only — required by WeasyPrint
 For agents or direct use:
 
 ```text
-uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
+uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview] [--output_name <stem>] [--output_dir <dir>] [--save_payload]
 ```
 
 | Argument | Required | Description |
@@ -113,12 +113,15 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 | `--doc_type` | Yes | Document type slug (`purchase_order`, `invoice`, `request_for_quotation`). |
 | `--payload` | Yes | Path to a JSON file. File path only — not inline JSON. |
 | `--preview` | No | Opens the PDF with the OS default viewer after generation. Silent no-op in headless environments. |
+| `--output_name` | No | Custom filename stem. Output becomes `<PREFIX>_<name>.pdf` (e.g. `--output_name NS39` → `PO_NS39.pdf`). Defaults to date + sequential counter. |
+| `--output_dir` | No | Directory to save the generated PDF. Defaults to `<project_root>/output/`. Pass `$(pwd)` to save in the caller's working directory. |
+| `--save_payload` | No | Saves the validated payload (with all computed fields) as a `.json` file alongside the PDF, using the same filename stem. |
 
 **Exit codes:**
 
 | Outcome | Exit code | stdout |
 | --- | --- | --- |
-| Success | `0` | Absolute output path, e.g. `/path/to/doc-generator/output/purchase_order_20260316_0001.pdf` |
+| Success | `0` | Absolute output path, e.g. `/path/to/doc-generator/output/PO_20260316_0001.pdf` |
 | Validation error | `1` | Structured error — which fields failed and why |
 | Unknown `doc_type` | `1` | List of registered doc type slugs |
 
