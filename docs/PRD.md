@@ -6,21 +6,21 @@
 
 ## 1. Problem Statement
 
-Generating professional business documents (Purchase Orders, Invoices, etc.) is repetitive, error-prone when done manually, and typically requires expensive SaaS tools or fragile spreadsheet templates. The goal is to give Claude a deterministic, local, zero-cost document generation capability — where Claude handles data collection and the skill handles rendering.
+Generating professional business documents (POs, Invoices, etc.) is repetitive, error-prone manually, and typically requires expensive SaaS or fragile spreadsheet templates. Goal: give Claude a deterministic, local, zero-cost document generation capability — Claude handles data collection, skill handles rendering.
 
 ## 2. Goals
 
-- **Deterministic output:** same input → same PDF, always. No LLM involved in rendering.
-- **Schema-driven:** every document type has a defined required/optional field contract.
-- **Claude-native:** Claude collects and validates the data, then dispatches to the renderer.
-- **Extensible:** adding a new document type = add a schema + a Jinja2 template. No changes to the core engine.
-- **Local-first:** runs entirely on the user's machine. No external APIs, no paid services.
+- **Deterministic output:** same input -> same PDF, always. No LLM in rendering.
+- **Schema-driven:** every doc type has defined required/optional field contract.
+- **Claude-native:** Claude collects and validates data, then dispatches to renderer.
+- **Extensible:** new doc type = add schema + Jinja2 template. No core engine changes.
+- **Local-first:** runs entirely on user's machine. No external APIs, no paid services.
 
 ## 3. Non-Goals
 
-- This is not a UI or web app.
-- This does not store documents — it generates them on demand.
-- This does not handle e-signatures, PDF forms (fillable fields), or digital delivery.
+- Not a UI or web app.
+- Does not store documents — generates on demand.
+- Does not handle e-signatures, PDF forms (fillable fields), or digital delivery.
 
 ## 4. Technical Stack
 
@@ -28,13 +28,13 @@ Generating professional business documents (Purchase Orders, Invoices, etc.) is 
 |---|---|---|
 | PDF rendering | WeasyPrint | Free, open-source, full CSS support including flexbox |
 | Templating | Jinja2 | Industry standard, supports loops/conditionals/filters |
-| Schema validation | Pydantic v2 | Clean validation errors Claude can interpret and relay to the user |
+| Schema validation | Pydantic v2 | Clean validation errors Claude can interpret and relay |
 | Dependency management | uv | Fast, reproducible, no virtualenv ceremony |
 | Language | Python 3.11+ | — |
 
 ## 5. Project Structure
 
-This project is developed as a standalone VS Code project that mirrors the Claude skill file structure exactly. This means local testing and skill installation use the same codebase with zero adaptation.
+Developed as standalone VS Code project mirroring Claude skill file structure. Local testing and skill installation use same codebase with zero adaptation.
 
 ```text
 doc-generator/
@@ -55,7 +55,7 @@ doc-generator/
 │
 ├── scripts/
 │   ├── generate.py              # CLI: --doc_type, --payload, --preview, --output_name, --output_dir, --save_payload
-│   └── encode_logo.py           # Encodes a local image to base64 data URI for the logo field
+│   └── encode_logo.py           # Encodes local image to base64 data URI for logo field
 │
 ├── builders/                    ← Context builder package — one module per doc type
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY
@@ -91,12 +91,12 @@ doc-generator/
 │   └── themes/                  ← Future: named theme override files
 │
 ├── references/
-│   ├── purchase_order.md        ← SOURCE OF TRUTH for the purchase_order doc type
-│   ├── invoice.md               ← SOURCE OF TRUTH for the invoice doc type
-│   ├── request_for_quotation.md ← SOURCE OF TRUTH for the request_for_quotation doc type
+│   ├── purchase_order.md        ← SOURCE OF TRUTH for purchase_order doc type
+│   ├── invoice.md               ← SOURCE OF TRUTH for invoice doc type
+│   ├── request_for_quotation.md ← SOURCE OF TRUTH for request_for_quotation doc type
 │   ├── po_terms_conditions.md   ← Standard T&C preset text for PO annex
-│   ├── EXTENDING.md             ← Developer guide: how to add a new document type
-│   ├── NEW_DOC_TYPE.md          ← Copy-paste coding agent prompt for implementing a new doc type
+│   ├── EXTENDING.md             ← Developer guide: how to add new doc type
+│   ├── NEW_DOC_TYPE.md          ← Copy-paste coding agent prompt for implementing new doc type
 │   ├── DESIGN_SYSTEM.md         ← Visual source of truth: color palette, typography, theming
 │   └── ERRORS.md                ← All CLI error patterns and recovery steps
 │
@@ -123,9 +123,9 @@ doc-generator/
 
 ### Why this structure works as a skill
 
-Claude skills are folders with a `SKILL.md` at the root and optional `scripts/`, `assets/`, and `references/` subdirectories. This project is already organized that way — so installing it as a Claude skill requires no restructuring, just packaging.
+Claude skills are folders with `SKILL.md` at root and optional `scripts/`, `assets/`, `references/` subdirectories. This project already organized that way — installing as a skill requires no restructuring.
 
-The `references/` folder is the key extensibility surface: when Claude encounters a doc type, it reads the corresponding `references/<doc_type>.md` to understand exactly what fields are needed, their types, validation rules, and examples. This keeps SKILL.md lean and doc-type-specific knowledge out of the main entrypoint.
+`references/` folder is key extensibility surface: Claude reads `references/<doc_type>.md` to understand fields, types, validation rules, examples. Keeps SKILL.md lean and doc-type knowledge out of main entrypoint.
 
 ## 6. How It Works (Runtime Flow)
 
@@ -161,47 +161,47 @@ Claude presents the file to the user
 
 ### Phase 1 — Purchase Order
 
-**Objective:** Build the full stack end-to-end with the simplest real document type.
+**Objective:** Build full stack end-to-end with simplest real document type.
 
-> **Note:** The PO field schema (required fields, types, computed fields, validation rules) will be defined in a dedicated prompt step before implementation begins. The output of that step will live in `references/purchase_order.md` and become the source of truth for both the Pydantic model and Claude's data collection behavior. Do not start coding Phase 1 until that reference file exists.
+> **Note:** PO field schema (required fields, types, computed fields, validation rules) defined in dedicated prompt step before implementation. Output lives in `references/purchase_order.md` as source of truth for Pydantic model and Claude's data collection. Do not start coding until reference file exists.
 
 **Deliverables:**
 
-- [x] `references/purchase_order.md` — field reference (produced via schema prompt, see above)
-- [x] `schemas/purchase_order.py` — Pydantic model derived from the reference
+- [x] `references/purchase_order.md` — field reference (via schema prompt)
+- [x] `schemas/purchase_order.py` — Pydantic model derived from reference
 - [x] `templates/base.html` — page layout, font imports, shared CSS variables, optional logo slot
 - [x] `templates/purchase_order.html` — PO layout with line items table
 - [x] `assets/style.css` — clean professional styling, USD/American number formatting
-- [x] `scripts/generate.py` — CLI dispatcher (doc_type → schema → template → PDF), with `--preview` flag
+- [x] `scripts/generate.py` — CLI dispatcher (doc_type -> schema -> template -> PDF), with `--preview`
 - [x] `pyproject.toml` — uv project with weasyprint + jinja2 + pydantic
 - [x] `tests/fixtures/sample_po.json` and `tests/fixtures/invalid_po.json`
 - [x] Local test: `uv run python scripts/generate.py --doc_type purchase_order --payload tests/fixtures/sample_po.json --preview`
 
 **Acceptance criteria:**
 
-- Given a valid JSON payload, produces a clean single-page PDF
-- `--preview` opens the PDF immediately after generation
-- Given an invalid payload, prints a structured, human-readable validation error
+- Valid JSON payload produces clean single-page PDF
+- `--preview` opens PDF immediately after generation
+- Invalid payload prints structured, human-readable validation error
 - Computed totals match manual calculation
 - Logo renders correctly when provided (base64 data URI); document renders cleanly without it
 
 ### Phase 2 — Invoice
 
-**Objective:** Prove extensibility by adding a second doc type with minimal effort.
+**Objective:** Prove extensibility by adding second doc type with minimal effort.
 
-> **Same process as Phase 1:** schema is defined via a dedicated prompt step first, producing `references/invoice.md`, then the Pydantic model and template follow from it.
+> **Same process as Phase 1:** schema defined via dedicated prompt step first, producing `references/invoice.md`.
 
-**Delta from PO — what's different:**
+**Delta from PO:**
 
 - Adds `invoice_number`, `due_date`, `payment_terms`
-- Adds `bill_to` (may differ from vendor/buyer on a PO)
+- Adds `bill_to` (may differ from vendor/buyer on PO)
 - Adds `paid` boolean + `amount_paid` optional field
 - Balance due = `grand_total - amount_paid`
-- Different layout: more emphasis on payment details block at the bottom
+- Different layout: more emphasis on payment details block at bottom
 
 **Deliverables:**
 
-- [x] `references/invoice.md` — field reference (produced via schema prompt)
+- [x] `references/invoice.md` — field reference (via schema prompt)
 - [x] `schemas/invoice.py`
 - [x] `templates/invoice.html`
 - [x] Updated `generate.py` to route `--doc_type invoice`
@@ -210,14 +210,14 @@ Claude presents the file to the user
 
 **Acceptance criteria:**
 
-- Existing PO generation is unaffected
-- Adding the invoice required zero changes to `base.html`, `style.css`, or `generate.py`'s core engine
+- Existing PO generation unaffected
+- Adding invoice required zero changes to `base.html`, `style.css`, or `generate.py`'s core engine
 
 ### Phase 3 — Extensibility Pattern & SKILL.md
 
-**Objective:** Document and codify how to add future document types. Then write the SKILL.md so Claude knows how to operate the tool.
+**Objective:** Document and codify how to add future doc types. Write SKILL.md so Claude can operate the tool.
 
-**Extensibility contract — adding a new doc type (five files, nothing else changes):**
+**Extensibility contract — adding new doc type (five files, nothing else changes):**
 
 ```text
 1. Add references/<doc_type>.md    → Field reference, quirks, minimal payload shape
@@ -227,42 +227,42 @@ Claude presents the file to the user
 5. Register in builders/__init__.py → One DocTypeConfig entry added to REGISTRY
 ```
 
-`generate.py`, `base.html`, and `style.css` are never modified when adding a doc type.
+`generate.py`, `base.html`, and `style.css` never modified when adding doc type.
 
 **SKILL.md content outline:**
 
 - Trigger conditions (when to use this skill)
 - Supported `doc_types` table with required fields per type
-- Data collection protocol (how Claude should gather missing fields)
-- Validation error handling (how to relay Pydantic errors back to the user)
+- Data collection protocol (how Claude gathers missing fields)
+- Validation error handling (how to relay Pydantic errors to user)
 - Invocation command template
-- Output location and how to present the file
+- Output location and how to present file
 
 **Deliverables:**
 
 - [x] `SKILL.md` — complete Claude operating instructions
 - [x] `references/EXTENDING.md` — developer guide for adding new doc types
-- [x] End-to-end test of the full Claude skill flow (local simulation)
+- [x] End-to-end test of full Claude skill flow (local simulation)
 
 ### Phase 4 — Skill Installation & Claude Testing
 
-**Objective:** Install as a real Claude skill and validate the full loop.
+**Objective:** Install as real Claude skill and validate full loop.
 
 **Steps:**
 
-1. Package the skill folder (zip or `.skill` file per Claude skill format)
+1. Package skill folder per Claude skill format
 2. Install via Claude skill manager
-3. Run real prompts against the installed skill:
+3. Run real prompts against installed skill:
    - "Generate a purchase order for vendor Acme Corp, 50 units of X at $12 each"
    - "Create an invoice for the services we delivered last month" (Claude should ask for missing data)
-4. Confirm Claude triggers the skill correctly, collects data, and produces the PDF
+4. Confirm Claude triggers correctly, collects data, produces PDF
 
 **Acceptance criteria:**
 
-- Claude reads SKILL.md without being explicitly told to
+- Claude reads SKILL.md without being explicitly told
 - Claude identifies and asks for missing required fields before generating
-- Claude does not hallucinate fields not in the schema
-- PDF output is indistinguishable from Phase 1/2 local test output
+- Claude does not hallucinate fields not in schema
+- PDF output indistinguishable from Phase 1/2 local test output
 
 ## 8. Testing Strategy
 
@@ -293,18 +293,18 @@ Each phase ships with:
 
 | # | Decision | Resolution |
 |---|---|---|
-| 1 | Logo/branding | Optional. Root-level `logo` field on all doc types. Must be a base64 data URI. `scripts/encode_logo.py` handles encoding from a file path (keeps base64 off Claude's context). The template renders cleanly with or without it. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
-| 2 | `--payload` format | File path only (e.g. `--payload tests/fixtures/sample_po.json`). Avoids shell escaping issues and maps naturally to how Claude would write a temp file before invoking the script. |
-| 3 | Currency formatting | USD / American standard for Phase 1 and 2 (`$1,234.56`). Multi-currency support is backlog. |
-| 4 | PDF naming | Auto-named using format `<PREFIX>_YYYYMMDD_XXXX.pdf` (e.g. `PO_20260316_0001.pdf`). PREFIX comes from `DocTypeConfig.file_prefix` (PO, INV, RFQ). Custom naming via `--output_name`. See [004-argparse-only-cli](decisions/004-argparse-only-cli.md). |
-| 5 | `--preview` flag | Included from Phase 1. Opens the generated PDF immediately after creation using the OS default viewer. |
+| 1 | Logo/branding | Optional. Root-level `logo` field on all doc types. Must be base64 data URI. `scripts/encode_logo.py` handles encoding from file path (keeps base64 off Claude's context). Template renders cleanly with or without. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
+| 2 | `--payload` format | File path only (e.g. `--payload tests/fixtures/sample_po.json`). Avoids shell escaping issues, maps naturally to how Claude writes temp file before invoking. |
+| 3 | Currency formatting | USD / American standard for Phase 1 and 2 (`$1,234.56`). Multi-currency is backlog. |
+| 4 | PDF naming | Auto-named `<PREFIX>_YYYYMMDD_XXXX.pdf` (e.g. `PO_20260316_0001.pdf`). PREFIX from `DocTypeConfig.file_prefix` (PO, INV, RFQ). Custom naming via `--output_name`. See [004-argparse-only-cli](decisions/004-argparse-only-cli.md). |
+| 5 | `--preview` flag | Included from Phase 1. Opens generated PDF immediately via OS default viewer. |
 | 6 | Skill publishing | GitHub-first distribution via `npx skills add`. See [005-skill-marketplace-publishing](decisions/005-skill-marketplace-publishing.md). |
-| 7 | Logo security | Logo field accepts only base64 data URIs; file paths and URLs rejected at the CLI level. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
+| 7 | Logo security | Logo field accepts only base64 data URIs; file paths and URLs rejected at CLI level. See [006-logo-data-uri-only](decisions/006-logo-data-uri-only.md). |
 
 ## 10. Future Doc Types (Backlog)
 
-- `packing_slip` — simpler than PO, no pricing, just quantities and shipping info
-- `quote` / `estimate` — like an invoice but with expiry date and "not a tax invoice" watermark
+- `packing_slip` — simpler than PO, no pricing, quantities and shipping info only
+- `quote` / `estimate` — like invoice but with expiry date and "not a tax invoice" watermark
 - `statement_of_work` — multi-section, narrative + deliverables table
 - `receipt` — minimal single-transaction document
 - `credit_note` — invoice adjustment/reversal
@@ -312,13 +312,13 @@ Each phase ships with:
 **Future capabilities:**
 
 - Multi-currency support (MXN, EUR, etc.) with localized number formatting
-- Configurable branding profiles (logo + color palette as a named config, not per-generation)
+- Configurable branding profiles (logo + color palette as named config, not per-generation)
 
 ## 11. Definition of Done (Full Project)
 
-- [x] PO, Invoice, and RFQ generate clean, professional PDFs from a JSON payload
+- [x] PO, Invoice, and RFQ generate clean, professional PDFs from JSON payload
 - [x] Validation errors are human-readable and actionable
-- [x] Adding a new doc type touches exactly 5 files (see EXTENDING.md)
-- [x] SKILL.md is complete and Claude triggers + uses the skill correctly without hand-holding
+- [x] Adding new doc type touches exactly 5 files (see EXTENDING.md)
+- [x] SKILL.md complete and Claude triggers + uses skill correctly without hand-holding
 - [x] All local tests pass via `uv run pytest`
 - [x] Skill installed and validated in live Claude environment via `npx skills add`

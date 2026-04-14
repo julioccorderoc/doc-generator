@@ -5,29 +5,29 @@
 
 ## Context
 
-The original `utils/logo.py` accepted either a local file path or an HTTPS URL in the `logo` field of any payload. This created two security problems:
+Original `utils/logo.py` accepted local file paths or HTTPS URLs in `logo` field. Two security problems:
 
-1. **Path traversal** — `_resolve_file()` resolved relative paths against `Path.cwd()` with no boundary check. A payload with `"logo": "../../../../etc/passwd"` would base64-encode an arbitrary local file into the generated PDF.
+1. **Path traversal** — `_resolve_file()` resolved relative paths against `Path.cwd()` with no boundary check. Payload with `"logo": "../../../../etc/passwd"` would base64-encode arbitrary local file into PDF.
 
-2. **Unrestricted URL fetch** — `_resolve_url()` made an outbound HTTP request to any URL. In cloud environments, this enables server-side request forgery (SSRF) against metadata endpoints such as `http://169.254.169.254/`.
+2. **Unrestricted URL fetch** — `_resolve_url()` made outbound HTTP request to any URL. In cloud environments, enables SSRF against metadata endpoints like `http://169.254.169.254/`.
 
-Both vectors were exploitable by anyone who could influence the JSON payload — including end users interacting with Claude during document generation.
+Both exploitable by anyone who could influence JSON payload — including end users interacting with Claude during document generation.
 
 ## Decision
 
-`utils/logo.py` accepts **only pre-resolved base64 data URIs** of the form `data:image/<subtype>;base64,<data>`. Any other value raises `ValueError`. `_resolve_file()` and `_resolve_url()` have been removed entirely.
+`utils/logo.py` accepts **only pre-resolved base64 data URIs** of form `data:image/<subtype>;base64,<data>`. Any other value raises `ValueError`. `_resolve_file()` and `_resolve_url()` removed entirely.
 
-The responsibility for converting a logo source into a data URI moves to the agent layer (Claude), not the CLI:
+Responsibility for converting logo source into data URI moves to agent layer (Claude), not CLI:
 
-- If the user provides a logo file path, Claude reads the file using the `Read` tool and encodes it as a data URI before writing the payload.
-- The CLI never reads from the local filesystem or makes outbound network requests on behalf of a user-supplied logo value.
+- If user provides logo file path, Claude reads file using `Read` tool and encodes as data URI before writing payload.
+- CLI never reads from local filesystem or makes outbound network requests for user-supplied logo values.
 
-This is documented in `SKILL.md` (Invocation §1), `references/purchase_order.md`, `references/invoice.md`, and `references/EXTENDING.md`.
+Documented in `SKILL.md` (Invocation), `references/purchase_order.md`, `references/invoice.md`, and `references/EXTENDING.md`.
 
 ## Consequences
 
-- **File paths and URLs in the `logo` field will raise `ValueError` at render time.** Any existing payload that contains a file path or URL will fail validation.
-- **No network calls at generation time.** The CLI remains fully local and air-gap safe.
-- **`utils/logo.py` is simpler** — it is now a one-function validation pass, not a resolver.
-- **Agents must pre-encode logos.** Claude (or any other agent) must read and base64-encode the image before writing the payload. This is a one-time cost per invocation and is explicit in the skill instructions.
-- **Future schema authors** adding a `logo` field to a new doc type should accept `Optional[str]` in the schema and call `resolve_logo()` in the context builder — the function will enforce the data URI constraint at render time.
+- **File paths and URLs in `logo` field raise `ValueError` at render time.** Any existing payload with file path or URL fails validation.
+- **No network calls at generation time.** CLI remains fully local and air-gap safe.
+- **`utils/logo.py` is simpler** — one-function validation pass, not a resolver.
+- **Agents must pre-encode logos.** Claude (or any agent) must read and base64-encode image before writing payload. One-time cost per invocation, explicit in skill instructions.
+- **Future schema authors** adding `logo` field should accept `Optional[str]` in schema and call `resolve_logo()` in context builder — function enforces data URI constraint at render time.

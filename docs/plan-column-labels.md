@@ -9,20 +9,17 @@
 
 ## What / Why
 
-Users need to customize what the column headers say in their documents.
-Different companies use different terminology:
+Users need to customize column headers. Different companies use different terminology:
 
-- "Qty" → "Quantity" or "Units"
-- "Unit Price" → "Rate" or "Unit Rate"
-- "Total" → "Amount" or "Line Total"
-- "Description" → "Item" or "Product"
-- "Buyer ID" → "Product Code" or "Part #"
-- "Vendor ID" → "Supplier Code"
-- "Specification" → "Parameter" (RFQ)
+- "Qty" -> "Quantity" or "Units"
+- "Unit Price" -> "Rate" or "Unit Rate"
+- "Total" -> "Amount" or "Line Total"
+- "Description" -> "Item" or "Product"
+- "Buyer ID" -> "Product Code" or "Part #"
+- "Vendor ID" -> "Supplier Code"
+- "Specification" -> "Parameter" (RFQ)
 
-The headers are currently hardcoded in templates. This feature adds an optional
-`column_labels` dict field to each schema that overrides specific column headers
-without changing anything else.
+Headers currently hardcoded in templates. This adds optional `column_labels` dict field to each schema that overrides specific headers without changing anything else.
 
 ---
 
@@ -32,7 +29,7 @@ without changing anything else.
 
 - Keys are snake_case column identifiers; values are display strings
 - Builder merges defaults with overrides; template uses `{{ labels.qty }}`
-- Validator rejects unknown keys with a clear error
+- Validator rejects unknown keys with clear error
 
 **Option B (rejected):** Individual fields (`label_qty`, `label_unit_price`, ...)
 
@@ -50,7 +47,7 @@ without changing anything else.
 column_labels: Optional[dict[str, str]] = None
 ```
 
-Valid keys and default display values:
+Valid keys and defaults:
 
 ```python
 PO_DEFAULT_LABELS = {
@@ -101,8 +98,7 @@ RFQ_DEFAULT_LABELS = {
 }
 ```
 
-Note: RFQ product attribute columns (dynamic) are already customizable via
-`product_attributes[].header` — no change needed there.
+Note: RFQ product attribute columns (dynamic) already customizable via `product_attributes[].header` — no change needed.
 
 ### Validator (same pattern for all three)
 
@@ -148,15 +144,13 @@ labels = resolve_column_labels(DEFAULT_LABELS, doc.column_labels)
 context["labels"] = labels
 ```
 
-The DEFAULT_LABELS constants can live in `_shared.py` or in each builder module.
-Preference: each builder owns its own defaults (they're doc-type-specific), and
-`_shared.py` provides only the `resolve_column_labels()` helper.
+DEFAULT_LABELS constants can live in `_shared.py` or each builder module. Preference: each builder owns its own defaults (doc-type-specific), `_shared.py` provides only `resolve_column_labels()` helper.
 
 ---
 
 ## Template Changes
 
-Replace every hardcoded column header `<th>` text with a `labels` variable lookup.
+Replace every hardcoded column header `<th>` text with `labels` variable lookup.
 
 **Example — purchase_order.html:**
 
@@ -176,7 +170,7 @@ Replace every hardcoded column header `<th>` text with a `labels` variable looku
 <th>{{ labels.total }}</th>
 ```
 
-Conditional columns use the same pattern:
+Conditional columns use same pattern:
 
 ```html
 {% if meta.has_buyer_id_column %}<th>{{ labels.buyer_id }}</th>{% endif %}
@@ -204,10 +198,10 @@ Conditional columns use the same pattern:
 | `references/invoice.md` | Document `column_labels` field |
 | `references/request_for_quotation.md` | Document `column_labels` field |
 | `SKILL.md` | Mention label override capability |
-| `tests/test_schemas.py` | Add tests: valid overrides, unknown key rejection |
-| `tests/test_builders.py` | Add test: labels propagate to context correctly |
+| `tests/test_schemas.py` | Tests: valid overrides, unknown key rejection |
+| `tests/test_builders.py` | Test: labels propagate to context correctly |
 
-**Total: ~15 files.** All additive changes — no existing behaviour is modified.
+**Total: ~15 files.** All additive — no existing behaviour modified.
 
 ---
 
@@ -252,9 +246,7 @@ def test_po_labels_override_propagates_to_context():
 ## Notes
 
 - No changes to `style.css`, `base.html`, `generate.py`, or `builders/__init__.py`
-- The `#` column (row number) is not customizable — it has no semantic name
-- For RFQ, the dynamic `product_attributes[].header` values are already user-controlled;
-  `column_labels` only covers the fixed columns (`product`, `specification`, `details`)
-- Column body cells do NOT change (they still use the same Python keys for data access)
-- Validation in the schema ensures only known keys are accepted — prevents typos silently
-  falling back to the default header
+- `#` column (row number) is not customizable — no semantic name
+- For RFQ, dynamic `product_attributes[].header` values already user-controlled; `column_labels` only covers fixed columns (`product`, `specification`, `details`)
+- Column body cells unchanged (same Python keys for data access)
+- Schema validation ensures only known keys accepted — prevents typos silently falling back to default

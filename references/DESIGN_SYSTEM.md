@@ -1,14 +1,14 @@
 # Design System — doc-generator
 
-This is the visual source of truth for all document types in doc-generator. It is the equivalent of what `references/purchase_order.md` is for a document type: the spec everything else is derived from.
+Visual source of truth for all document types. Equivalent of `references/purchase_order.md` for a doc type: spec everything else derives from.
 
-Before writing or modifying any template or stylesheet, read this document first.
+Read before writing or modifying any template or stylesheet.
 
 ---
 
 ## Overview
 
-The design language is clean, typography-driven, and professional — suited to B2B business documents. It relies entirely on CSS custom properties defined in `assets/style.css`. No hardcoded color, size, or font values appear in rule bodies. Theming is achieved by overriding `:root` variables, either via the `themes/` folder or via a `primary_color` payload field.
+Clean, typography-driven, professional design for B2B documents. Built entirely on CSS custom properties in `assets/style.css`. No hardcoded color, size, or font values in rule bodies. Theming via `:root` variable overrides — `themes/` folder or `primary_color` payload field.
 
 ---
 
@@ -21,22 +21,22 @@ Two user-chosen primaries; all others derived or fixed.
 | Variable | Value | Used for |
 |---|---|---|
 | `--color-primary` | `#1A4021` | Header background, company names in address block, Grand Total / Balance Due text |
-| `--color-accent` | `#65C08E` | Accent stripe on top of header, table header row tint, 2pt rule above Balance Due |
+| `--color-accent` | `#65C08E` | Accent stripe on header, table header row tint, 2pt rule above Balance Due |
 | `--color-text` | `#111827` | All body text, meta band values, line item cells |
 | `--color-text-muted` | `#6b7280` | Section labels (FROM, BILL TO, VENDOR, BUYER), totals row labels, contact info, SKU / unit columns |
-| `--color-text-inverse` | `#ffffff` | White text on dark header background |
+| `--color-text-inverse` | `#ffffff` | White text on dark header |
 | `--color-border` | `#d1d5db` | Totals divider lines, table bottom borders |
-| `--color-border-light` | `#e5e7eb` | Meta band borders, row separators in line items table, bottom-section top border |
+| `--color-border-light` | `#e5e7eb` | Meta band borders, row separators, bottom-section top border |
 | `--color-bg-page` | `#ffffff` | Document body background |
-| `--color-bg-header` | `#1A4021` | Document header bar (matches `--color-primary` by default; overridden independently when `primary_color` is set) |
-| `--color-bg-table-head` | `#f0faf4` | Line items table header row — light tint of accent |
-| `--color-bg-table-alt` | `#f8fdfb` | Alternating even rows in line items table — very subtle |
+| `--color-bg-header` | `#1A4021` | Header bar (matches `--color-primary` by default; overridden independently when `primary_color` set) |
+| `--color-bg-table-head` | `#f0faf4` | Line items header row — light tint of accent |
+| `--color-bg-table-alt` | `#f8fdfb` | Alternating even rows — very subtle |
 
-> **Removed:** `--color-total-row` no longer exists. The previous dark-filled total row has been replaced with a typography-driven hierarchy (see Totals Block Design below).
+> **Removed:** `--color-total-row` no longer exists. Dark-filled total row replaced with typography-driven hierarchy (see Totals Block Design).
 
 ### Semantic Colors (doc-type-specific, not in style.css)
 
-These values live in `assets/invoice.css`. They are fixed and not overridable via `primary_color`.
+In `assets/invoice.css`. Fixed, not overridable via `primary_color`.
 
 | Usage | Value |
 |---|---|
@@ -52,13 +52,13 @@ These values live in `assets/invoice.css`. They are fixed and not overridable vi
 
 ## Typography Hierarchy
 
-All type is set in `"Helvetica Neue", Helvetica, Arial, sans-serif`. No external font imports. The following table maps visual roles to their CSS values.
+All type set in `"Helvetica Neue", Helvetica, Arial, sans-serif`. No external font imports.
 
 | Element | Size | Weight | Color | Notes |
 |---|---|---|---|---|
 | Document type label (INVOICE, PURCHASE ORDER) | `--font-size-xl` (22pt) | Bold | `--color-text-inverse` | Uppercase, tracking 0.04em |
-| Document number | `--font-size-lg` (14pt) | Medium (500) | `--color-text-inverse` | Reduced opacity 0.85 |
-| Issue date | `--font-size-sm` (8.5pt) | Normal | `--color-text-inverse` | Reduced opacity 0.70 |
+| Document number | `--font-size-lg` (14pt) | Medium (500) | `--color-text-inverse` | Opacity 0.85 |
+| Issue date | `--font-size-sm` (8.5pt) | Normal | `--color-text-inverse` | Opacity 0.70 |
 | Company name (address block) | `--font-size-base` (10pt) | Bold | `--color-primary` | `.address-block__name` |
 | Section labels (FROM, BILL TO, VENDOR, BUYER) | `--font-size-xs` (7.5pt) | Bold | `--color-text-muted` | Uppercase, tracking 0.08em |
 | Address detail | `--font-size-sm` (8.5pt) | Normal | `--color-text` | Line height 1.5 |
@@ -78,19 +78,19 @@ All type is set in `"Helvetica Neue", Helvetica, Arial, sans-serif`. No external
 
 ## Header Design
 
-The document header is a full-width dark bar.
+Full-width dark bar.
 
 - **Background:** `var(--color-bg-header)` — dark forest green
-- **Accent stripe:** `3pt solid var(--color-accent)` on the top edge — a visible medium-green stripe
+- **Accent stripe:** `3pt solid var(--color-accent)` on top edge — medium-green stripe
 - **Logo:** left-aligned, max 48pt tall, max 140pt wide, `object-fit: contain`
-- **Title block:** right-aligned; stacked document type → document number → issue date
-- **Border radius:** `2pt` on the container
+- **Title block:** right-aligned; stacked document type → number → issue date
+- **Border radius:** `2pt`
 
 ---
 
 ## Totals Block Design
 
-**No dark-background filled rows.** The hierarchy is entirely typographic.
+**No dark-background filled rows.** Hierarchy is entirely typographic.
 
 ### Row anatomy (top to bottom)
 
@@ -115,7 +115,7 @@ Balance Due          $x,xxx.xx      ← 13pt bold --color-primary — biggest nu
 
 ### Specificity rules
 
-The general rule `.totals__table td:first-child` (specificity 0,1,2) sets `color: var(--color-text-muted)` on all first-column cells. To override for specific rows, always qualify with the table parent:
+General rule `.totals__table td:first-child` (0,1,2) sets `color: var(--color-text-muted)` on first-column cells. To override for specific rows, qualify with table parent:
 
 ```css
 /* Wrong — specificity 0,1,1; loses to td:first-child (0,1,2) */
@@ -144,21 +144,21 @@ The general rule `.totals__table td:first-child` (specificity 0,1,2) sets `color
 
 ## Footer Design
 
-The document footer is a subtle, full-width bar pinned to the bottom of every page via `position: fixed; bottom: 0`.
+Subtle full-width bar pinned to bottom of every page via `position: fixed; bottom: 0`.
 
-- **Background:** `var(--color-bg-page)` (white) — no fill block, just a light separator line
-- **Border:** `1pt solid var(--color-border-light)` on the top edge
+- **Background:** `var(--color-bg-page)` (white) — no fill, light separator line
+- **Border:** `1pt solid var(--color-border-light)` on top edge
 - **Text:** `var(--color-text-muted)` at `var(--font-size-xs)`, centred
-- **Content:** `footer_text` — a single `·`-separated line derived from the issuing party's data: `name · address (single line) · phone · email`. Phone and email are included only when present.
-- **Body padding:** `padding-bottom: 28pt` on `body` reserves space so document content never flows behind the footer.
+- **Content:** `footer_text` — single `·`-separated line from issuing party data: `name · address (single line) · phone · email`. Phone/email included only when present.
+- **Body padding:** `padding-bottom: 28pt` on `body` reserves space so content never flows behind footer.
 
-The footer renders automatically — `base.html`'s default `{% block footer %}` outputs the bar whenever `footer_text` is defined and non-empty in the context. It requires no user-provided fields — `build_footer_text(party)` in `builders._shared` derives everything from the party object already in the context. Override `{% block footer %}` only to suppress or customise the footer.
+Footer renders automatically — `base.html`'s default `{% block footer %}` outputs bar when `footer_text` is defined and non-empty. Needs no user-provided fields — `build_footer_text(party)` in `builders._shared` derives everything from party object. Override `{% block footer %}` only to suppress or customise.
 
 ---
 
 ## Per-Document Style Override Fields
 
-All three doc types share three optional payload fields that override the visual appearance. None should be asked for proactively — only set them when the user explicitly requests it.
+Three optional payload fields shared by all doc types. Never ask proactively — set only when user explicitly requests.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -166,9 +166,9 @@ All three doc types share three optional payload fields that override the visual
 | `font_family` | `string` | `null` | CSS font stack (e.g. `"Georgia, serif"`). Only set when explicitly requested. |
 | `doc_style` | `"compact"`, `"normal"`, `"comfortable"` | `"normal"` | Page density preset. `"compact"` tightens spacing; `"comfortable"` adds whitespace. |
 
-### How they work in the context builder
+### How they work in context builder
 
-Each field has a corresponding helper in `builders/_shared.py` that returns a CSS `:root` block or an empty string when the field is absent/default:
+Each field has corresponding helper in `builders/_shared.py` returning CSS `:root` block or empty string when absent/default:
 
 ```python
 "theme_css": Markup(
@@ -179,14 +179,14 @@ Each field has a corresponding helper in `builders/_shared.py` that returns a CS
 )
 ```
 
-All three helpers return `""` when the field is `None` or `"normal"`, so concatenation is always safe. **Density goes last** — it must override any variables set by the doc-type CSS (e.g. `purchase_order.css` defines PO-specific density variables that `density_css()` overrides).
+All three return `""` when `None` or `"normal"` — concatenation always safe. **Density goes last** — must override doc-type CSS variables (e.g. `purchase_order.css` defines PO-specific density variables that `density_css()` overrides).
 
-The `:root` block is injected after `style.css` loads via a `<style>` tag in `base.html`, so it takes precedence over the base stylesheet.
+`:root` block injected after `style.css` via `<style>` tag in `base.html`, taking precedence over base stylesheet.
 
 ### `primary_color`
 
 - Overrides: `--color-primary` (company names, total text) and `--color-bg-header` (header bar)
-- Does **not** override: `--color-accent`, status strip colors, or semantic fixed colors
+- Does **not** override: `--color-accent`, status strip colors, semantic fixed colors
 - Format: hex (`#RRGGBB`, `#RGB`) or single-word CSS color name — validated by schema
 
 ### `doc_style`
@@ -194,7 +194,7 @@ The `:root` block is injected after `style.css` loads via a `<style>` tag in `ba
 - `"compact"`: ~15% smaller fonts, ~20% tighter spacing. More content per page.
 - `"normal"` (default): current `style.css` values. No CSS injected.
 - `"comfortable"`: ~15% larger fonts, ~20% more whitespace. More readable, more formal.
-- The PO's auto-density classes (`.line-items--compact`, `.line-items--dense`) use CSS variables (`--table-cell-padding-compact`, `--table-cell-padding-dense`, `--font-size-dense`) that are also overridden by `density_css()`, so the auto-density system scales consistently with `doc_style`.
+- PO auto-density classes (`.line-items--compact`, `.line-items--dense`) use CSS variables (`--table-cell-padding-compact`, `--table-cell-padding-dense`, `--font-size-dense`) also overridden by `density_css()`, so auto-density scales consistently with `doc_style`.
 
 ### Payload usage
 
@@ -206,23 +206,23 @@ The `:root` block is injected after `style.css` loads via a `<style>` tag in `ba
 }
 ```
 
-All three can be combined freely — they override different CSS variables and do not conflict.
+All three combine freely — override different CSS variables, no conflicts.
 
 ---
 
 ## Doc-Type-Specific Styles
 
-New CSS rules for a doc type must **never** be added to `style.css`. Place them in `assets/<doc_type>.css` and load the file at module level in `builders/<doc_type>.py`:
+New CSS rules for doc type must **never** go in `style.css`. Place in `assets/<doc_type>.css`, load at module level in `builders/<doc_type>.py`:
 
 ```python
 _MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
 ```
 
-Then pass it as the first element in `theme_css`. All values must reference CSS custom properties — no hardcoded colors, sizes, or fonts in rule bodies.
+Pass as first element in `theme_css`. All values reference CSS custom properties — no hardcoded colors/sizes/fonts.
 
-If the doc type has auto-density classes (like PO's compact/dense table), define their padding/font-size as CSS variables in `assets/<doc_type>.css` `:root` block so `density_css()` can override them.
+If doc type has auto-density classes (like PO compact/dense table), define padding/font-size as CSS variables in `assets/<doc_type>.css` `:root` block so `density_css()` can override them.
 
-See `assets/invoice.css` + `builders/invoice.py` and `assets/purchase_order.css` + `builders/purchase_order.py` as reference implementations.
+See `assets/invoice.css` + `builders/invoice.py` and `assets/purchase_order.css` + `builders/purchase_order.py` as references.
 
 ---
 

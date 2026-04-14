@@ -9,32 +9,20 @@
 
 ## Context & Background
 
-`doc-generator` is a schema-driven PDF generation CLI (no LLM in the render path). It
-supports three document types: `purchase_order`, `invoice`, `request_for_quotation`.
+`doc-generator` is a schema-driven PDF generation CLI (no LLM in render path). Supports three doc types: `purchase_order`, `invoice`, `request_for_quotation`.
 
-**Current state (as of Phase 8):**
-All three templates contain hardcoded English strings: document titles, column headers,
-section labels, totals-row labels, status text, and UI phrases. There is no language
-field in any schema, no translation file, and no translation lookup in any builder.
+**Current state (Phase 8):**
+All three templates contain hardcoded English strings: document titles, column headers, section labels, totals-row labels, status text, UI phrases. No language field in any schema, no translation file, no translation lookup in any builder.
 
-The one exception is `status_label` in `builders/invoice.py` (lines 43–45), which is
-already computed in Python — making it the only label already positioned correctly for
-localisation.
+One exception: `status_label` in `builders/invoice.py` (lines 43-45), already computed in Python — only label positioned correctly for localisation.
 
-The `currency` field in `schemas/purchase_order.py` and `schemas/invoice.py` establishes
-the pattern to follow: a string field with a default, validated against a frozenset of
-supported values defined in Python. Language support follows the same pattern.
+`currency` field in `schemas/purchase_order.py` and `schemas/invoice.py` establishes pattern to follow: string field with default, validated against frozenset. Language support follows same pattern.
 
-**Goal:** Allow any payload to specify `"language": "fr"` (or `"de"`, `"es"`, etc.) and
-produce a fully localised PDF — translated document title, column headers, section labels,
-and status text. English (`"en"`) is the default; omitting `"language"` from any payload
-produces output identical to today's. No existing tests break.
+**Goal:** Any payload can specify `"language": "fr"` (or `"de"`, `"es"`, etc.) and produce fully localised PDF — translated document title, column headers, section labels, status text. English (`"en"`) default; omitting `"language"` produces output identical to today's. No existing tests break.
 
-**Design rules that must be preserved:**
-- `docs/decisions/002-python-only-formatting.md` — templates receive only strings. Labels
-  are resolved in Python builders; templates never see language codes or conditional logic.
-- `references/EXTENDING.md §3.3` — only `{% if %}`, `{% for %}`, and `{{ value }}` in
-  templates. No filters beyond `nl2br`. No arithmetic, no string operations.
+**Design rules preserved:**
+- `docs/decisions/002-python-only-formatting.md` — templates receive only strings. Labels resolved in Python builders; templates never see language codes or conditional logic.
+- `references/EXTENDING.md §3.3` — only `{% if %}`, `{% for %}`, `{{ value }}` in templates. No filters beyond `nl2br`. No arithmetic, no string operations.
 
 ---
 
@@ -42,28 +30,22 @@ produces output identical to today's. No existing tests break.
 
 | Code | Name       | Native Name | v1 Status |
 |------|------------|-------------|-----------|
-| en   | English    | English     | ✅ default |
-| es   | Spanish    | Español     | ✅         |
-| fr   | French     | Français    | ✅         |
-| de   | German     | Deutsch     | ✅         |
-| zh   | Chinese    | 中文         | ✅         |
-| pt   | Portuguese | Português   | ✅         |
+| en   | English    | English     | default |
+| es   | Spanish    | Español     | yes |
+| fr   | French     | Francais    | yes |
+| de   | German     | Deutsch     | yes |
+| zh   | Chinese    | 中文         | yes |
+| pt   | Portuguese | Portugues   | yes |
 
 **Selection rationale:**
 - **en** — Global business lingua franca. Current default.
-- **es** — Second-most-used language in international B2B; covers Latin America and Spain.
-- **fr** — Official language of 29 countries; major EU trade language; widely used in
-  Francophone Africa B2B.
+- **es** — Second-most-used in international B2B; covers Latin America and Spain.
+- **fr** — Official in 29 countries; major EU trade language; Francophone Africa B2B.
 - **de** — Largest EU economy; dominant in manufacturing and industrial procurement.
 - **zh** — World's largest goods exporter; essential for Asia-Pacific supply chains.
 - **pt** — Brazil (9th largest economy) plus Lusophone Africa.
 
-**RTL consideration:** Arabic (`ar`) and Hebrew (`he`) require `dir="rtl"` on the `<html>`
-element and CSS layout changes (`text-align`, flex-direction reversal on address blocks
-and totals). WeasyPrint supports bidi text natively, but template and CSS changes make
-this non-trivial. **RTL is out of scope for v1.** It should be added as a dedicated phase
-once the LTR translation infrastructure is in place. A v2 note is recorded below in
-Key Invariants.
+**RTL consideration:** Arabic (`ar`) and Hebrew (`he`) require `dir="rtl"` on `<html>` and CSS layout changes (`text-align`, flex-direction reversal on address blocks and totals). WeasyPrint supports bidi text natively, but template and CSS changes make this non-trivial. **RTL out of scope for v1.** Add as dedicated phase once LTR translation infrastructure is in place. v2 note recorded in Key Invariants.
 
 ---
 
@@ -76,10 +58,10 @@ Key Invariants.
 | `templates/purchase_order.html` | Hardcoded HTML | `"Purchase Order"`, `"Vendor"`, `"Buyer"`, `"Delivery Date"`, `"Payment Terms"`, `"Shipping Method"`, `"#"`, `"SKU"`, `"Description"`, `"Unit"`, `"Qty"`, `"Unit Price"`, `"Total"`, `"Notes"`, `"Total Units"`, `"Subtotal"`, `"Tax (...)"`, `"Shipping"`, `"Grand Total"`, `"Terms & Conditions"`, T&C footer sentence |
 | `templates/invoice.html` | Hardcoded HTML | `"Invoice"`, `"From"`, `"Bill To"`, `"Due Date"`, `"Payment Terms"`, same line-item columns as PO, `"Notes"`, same totals as PO, `"Amount Paid"`, `"Balance Due"`, `"Payment Details"` |
 | `templates/request_for_quotation.html` | Hardcoded HTML | `"Request for Quotation"`, `"Valid Until"`, `"From"`, `"To"`, `"Product"`, `"Specification"`, `"Details"`, `"Notes"`, `"Annexes & Attachments"`, `"Questions? Please contact:"` |
-| `builders/invoice.py:43–45` | Python string literals | `"Paid"`, `"Partially Paid"` (already in Python — just needs to use translated label) |
+| `builders/invoice.py:43-45` | Python string literals | `"Paid"`, `"Partially Paid"` (already in Python — needs translated label) |
 | `templates/base.html:2` | Hardcoded HTML attribute | `lang="en"` |
 
-### How language flows after this plan (payload → PDF)
+### How language flows after this plan (payload -> PDF)
 
 **Before:**
 ```
@@ -118,15 +100,11 @@ JSON payload
   └─ <div class="doc-header__type">{{ labels.doc_title }}</div>
 ```
 
-### Config file fit in the builder pipeline
+### Config file fit in builder pipeline
 
-`utils/translations.py` is loaded at import time (like `_TERMS_PRESET` in
-`builders/purchase_order.py`). It reads `config/languages.yml` once, builds
-`SUPPORTED_LANGUAGES: frozenset[str]`, and exposes `get_labels(language, doc_type) -> dict`.
+`utils/translations.py` loaded at import time (like `_TERMS_PRESET` in `builders/purchase_order.py`). Reads `config/languages.yml` once, builds `SUPPORTED_LANGUAGES: frozenset[str]`, exposes `get_labels(language, doc_type) -> dict`.
 
-Each builder calls `get_labels(doc.language, "<doc_type>")` at the top of its context
-function and passes the flat label dict as `"labels"` in the returned context. Templates
-use `{{ labels.key }}` — pure variable output, no logic.
+Each builder calls `get_labels(doc.language, "<doc_type>")` at top of context function and passes flat label dict as `"labels"` in returned context. Templates use `{{ labels.key }}` — pure variable output, no logic.
 
 ---
 
@@ -134,20 +112,13 @@ use `{{ labels.key }}` — pure variable output, no logic.
 
 ### Format: YAML
 
-**Chosen over JSON** because YAML supports inline comments (useful for noting
-translation nuances and context for translators), has cleaner syntax for deeply nested
-string maps, and is the de-facto standard for human-editable config in Python projects.
+**Chosen over JSON** — YAML supports inline comments (useful for translation nuances), cleaner syntax for deeply nested string maps, de-facto standard for human-editable config in Python projects.
 
-**Chosen over TOML** because YAML's multi-value inline tables (`{en: "...", fr: "..."}`
-per label key) are more compact than TOML's requirement for a separate `[section.key]`
-block per label.
+**Chosen over TOML** — YAML multi-value inline tables (`{en: "...", fr: "..."}` per label key) more compact than TOML's separate `[section.key]` block per label.
 
-**Dependency:** `pyyaml` must be added to `pyproject.toml`. It is a single pure-Python
-package with no system dependencies and no conflict risk with the existing stack.
+**Dependency:** `pyyaml` added to `pyproject.toml`. Single pure-Python package, no system deps, no conflict risk.
 
-**No-dep alternative:** If `pyyaml` is undesirable, use TOML with Python's stdlib
-`tomllib` (available since Python 3.11, which this project already requires). The
-structure maps directly; only the file extension and `tomllib.loads()` call change.
+**No-dep alternative:** If `pyyaml` undesirable, use TOML with stdlib `tomllib` (Python 3.11+). Structure maps directly; only file extension and `tomllib.loads()` call change.
 
 ### Proposed file: `config/languages.yml`
 
@@ -453,9 +424,7 @@ labels:
       pt: "Dúvidas? Entre em contato com:"
 ```
 
-**How Claude updates this file:** To add a language, append the code to `languages:` and
-add a matching key under every label. To fix a translation, `Read` the file, locate the
-label key + language sub-key, `Edit` that single line, done. No Python changes required.
+**How Claude updates this file:** To add language, append code to `languages:` and add matching key under every label. To fix translation, `Read` file, locate label key + language sub-key, `Edit` that line. No Python changes required.
 
 ---
 
@@ -463,16 +432,13 @@ label key + language sub-key, `Edit` that single line, done. No Python changes r
 
 ### Step 1 — `config/languages.yml` (new file)
 
-Create the file at project root `config/languages.yml` with the complete YAML shown in
-the Config File Design section above.
+Create at project root `config/languages.yml` with complete YAML shown above.
 
 ---
 
 ### Step 2 — `utils/translations.py` (new file)
 
-Create `utils/translations.py`. This module is the single access point for translation
-data. It reads the YAML once at import time (module-level, same pattern as `_TERMS_PRESET`
-in `builders/purchase_order.py`).
+Single access point for translation data. Reads YAML once at import time (module-level, same pattern as `_TERMS_PRESET` in `builders/purchase_order.py`).
 
 ```python
 """Translation loader for doc-generator.
@@ -515,7 +481,7 @@ def get_labels(language: str, doc_type: str) -> dict[str, str]:
 
 ### Step 3 — `pyproject.toml`
 
-Add `pyyaml` to the runtime dependencies:
+Add `pyyaml` to runtime dependencies:
 
 ```toml
 dependencies = [
@@ -526,24 +492,22 @@ dependencies = [
 ]
 ```
 
-Run `uv sync` after this change.
+Run `uv sync` after.
 
 ---
 
 ### Step 4 — `schemas/purchase_order.py`
 
-Add the `language` field and validator to `PurchaseOrder`. The import and validator
-follow the exact same pattern as `currency` + `SUPPORTED_CURRENCIES` in the multi-currency
-plan.
+Add `language` field and validator. Same pattern as `currency` + `SUPPORTED_CURRENCIES`.
 
 ```python
-# New import (add to existing imports block):
+# New import:
 from utils.translations import SUPPORTED_LANGUAGES
 
-# In PurchaseOrder class, add after the `currency` field:
+# In PurchaseOrder class, after currency field:
 language: str = "en"
 
-# Add a new field validator (after the existing tax_rate/shipping validators):
+# New field validator:
 @field_validator("language", mode="after")
 @classmethod
 def language_supported(cls, v: str) -> str:
@@ -556,24 +520,22 @@ def language_supported(cls, v: str) -> str:
 
 ### Step 5 — `schemas/invoice.py`
 
-Identical change to Step 4: import `SUPPORTED_LANGUAGES` from `utils.translations`,
-add `language: str = "en"` field, add `language_supported` validator.
+Identical to Step 4: import `SUPPORTED_LANGUAGES`, add `language: str = "en"` field, add `language_supported` validator.
 
 ---
 
 ### Step 6 — `schemas/request_for_quotation.py`
 
-Identical change to Steps 4–5: same import, field, and validator on `RequestForQuotation`.
+Identical to Steps 4-5: same import, field, and validator on `RequestForQuotation`.
 
 ---
 
 ### Step 7 — `builders/purchase_order.py`
 
-Add `get_labels` import and inject labels into the context. Also compute `tax_label`
-(the combined "Tax (rate%)" string) in Python so the template never does string composition.
+Add `get_labels` import, inject labels into context. Compute `tax_label` (combined "Tax (rate%)" string) in Python so template never does string composition.
 
 ```python
-# New import (add to existing imports):
+# New import:
 from utils.translations import get_labels
 
 def build_po_context(doc: PurchaseOrder) -> dict:
@@ -623,9 +585,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
 
 ### Step 8 — `builders/invoice.py`
 
-Add `get_labels`, inject labels + `html_lang`, translate `status_label`, and compute
-`tax_label`. The `status_label` change is the only place Python already held a label —
-it now uses the config value instead of a string literal.
+Add `get_labels`, inject labels + `html_lang`, translate `status_label`, compute `tax_label`. `status_label` now uses config value instead of string literal.
 
 ```python
 # New import:
@@ -636,7 +596,7 @@ def build_invoice_context(doc: Invoice) -> dict:
     labels = get_labels(doc.language, "invoice")   # ← add at top
     logo_data = resolve_logo(doc.issuer.logo)
 
-    # Derive payment status — now uses translated labels from config
+    # Derive payment status — now uses translated labels
     if doc.paid:
         document_status = "paid"
         status_label = labels["status_paid"]           # ← was "Paid"
@@ -723,7 +683,7 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
 
 ### Step 10 — `templates/base.html`
 
-One-line change: make the `lang` attribute dynamic.
+One-line change: make `lang` attribute dynamic.
 
 ```html
 <!-- Before -->
@@ -733,14 +693,13 @@ One-line change: make the `lang` attribute dynamic.
 <html lang="{{ html_lang | default('en') }}">
 ```
 
-The `| default('en')` guard ensures the template renders correctly even if `html_lang`
-is accidentally absent from the context (defensive only; all builders set it).
+`| default('en')` guard ensures template renders if `html_lang` accidentally absent (defensive only; all builders set it).
 
 ---
 
 ### Step 11 — `templates/purchase_order.html`
 
-Replace all 20 hardcoded English strings with label lookups. Full substitution map:
+Replace all 20 hardcoded English strings with label lookups:
 
 | Template location | Before | After |
 |---|---|---|
@@ -749,7 +708,7 @@ Replace all 20 hardcoded English strings with label lookups. Full substitution m
 | Buyer address label | `Buyer` | `{{ labels.label_buyer }}` |
 | Meta band: delivery | `Delivery Date` | `{{ labels.label_delivery_date }}` |
 | Meta band: terms | `Payment Terms` | `{{ labels.label_payment_terms }}` |
-| Meta band: shipping method | `Shipping Method` | `{{ labels.label_shipping_method }}` |
+| Meta band: shipping | `Shipping Method` | `{{ labels.label_shipping_method }}` |
 | Line items `<th>` #1 | `#` | `{{ labels.col_num }}` |
 | Line items `<th>` SKU | `SKU` | `{{ labels.col_sku }}` |
 | Line items `<th>` desc | `Description` | `{{ labels.col_description }}` |
@@ -758,30 +717,23 @@ Replace all 20 hardcoded English strings with label lookups. Full substitution m
 | Line items `<th>` price | `Unit Price` | `{{ labels.col_unit_price }}` |
 | Line items `<th>` total | `Total` | `{{ labels.col_total }}` |
 | Notes label | `Notes` | `{{ labels.label_notes }}` |
-| Totals: Total Units row | `Total Units` | `{{ labels.label_total_units }}` |
-| Totals: Subtotal row | `Subtotal` | `{{ labels.label_subtotal }}` |
-| Totals: Tax row | `Tax ({{ tax_rate_pct }})` | `{{ tax_label }}` |
-| Totals: Shipping row | `Shipping` | `{{ labels.label_shipping }}` |
-| Totals: Grand Total row | `Grand Total` | `{{ labels.label_grand_total }}` |
-| T&C annex `<h2>` | `Terms &amp; Conditions` | `{{ labels.label_terms_heading }}` |
-| T&C annex footer `<p>` | `These Terms are effective...` | `{{ labels.label_terms_footer }}` |
+| Totals: Total Units | `Total Units` | `{{ labels.label_total_units }}` |
+| Totals: Subtotal | `Subtotal` | `{{ labels.label_subtotal }}` |
+| Totals: Tax | `Tax ({{ tax_rate_pct }})` | `{{ tax_label }}` |
+| Totals: Shipping | `Shipping` | `{{ labels.label_shipping }}` |
+| Totals: Grand Total | `Grand Total` | `{{ labels.label_grand_total }}` |
+| T&C annex `<h2>` | `Terms & Conditions` | `{{ labels.label_terms_heading }}` |
+| T&C annex footer | `These Terms are effective...` | `{{ labels.label_terms_footer }}` |
 
-**Note on `tax_label`:** The current template has
-`<td>Tax ({{ tax_rate_pct }})</td>`. This is replaced with `<td>{{ tax_label }}</td>`
-where `tax_label` is built in the Python builder (Step 7) as
-`f"{labels['label_tax']} ({totals['tax_rate_pct']})"`. This preserves decision 002 —
-no string composition in templates.
+**`tax_label` note:** Current template has `<td>Tax ({{ tax_rate_pct }})</td>`. Replaced with `<td>{{ tax_label }}</td>` where `tax_label` built in Python (Step 7) as `f"{labels['label_tax']} ({totals['tax_rate_pct']})"`. Preserves ADR-002 — no string composition in templates.
 
-**Note on `&amp;`:** The YAML stores `Terms & Conditions` as plain text. With
-`autoescape=True` in the Jinja2 environment (confirmed in `scripts/generate.py:40`),
-`{{ labels.label_terms_heading }}` auto-escapes `&` to `&amp;` in the HTML output.
-The hardcoded `&amp;` in the current template is replaced with the plain-text variable.
+**`&amp;` note:** YAML stores `Terms & Conditions` as plain text. With `autoescape=True` in Jinja2 env (confirmed in `scripts/generate.py:40`), `{{ labels.label_terms_heading }}` auto-escapes `&` to `&amp;`. Hardcoded `&amp;` in current template replaced with plain-text variable.
 
 ---
 
 ### Step 12 — `templates/invoice.html`
 
-Replace all 18 hardcoded English strings. Map:
+Replace all 18 hardcoded English strings:
 
 | Template location | Before | After |
 |---|---|---|
@@ -792,20 +744,20 @@ Replace all 18 hardcoded English strings. Map:
 | Meta band: terms | `Payment Terms` | `{{ labels.label_payment_terms }}` |
 | All 7 line-item `<th>` | same as PO | same as PO (Step 11 map) |
 | Notes label | `Notes` | `{{ labels.label_notes }}` |
-| Totals: Total Units row | `Total Units` | `{{ labels.label_total_units }}` |
-| Totals: Subtotal row | `Subtotal` | `{{ labels.label_subtotal }}` |
-| Totals: Tax row | `Tax ({{ tax_rate_pct }})` | `{{ tax_label }}` |
-| Totals: Shipping row | `Shipping` | `{{ labels.label_shipping }}` |
-| Totals: Grand Total row | `Grand Total` | `{{ labels.label_grand_total }}` |
-| Totals: Amount Paid row | `Amount Paid` | `{{ labels.label_amount_paid }}` |
-| Totals: Balance Due row | `Balance Due` | `{{ labels.label_balance_due }}` |
+| Totals: Total Units | `Total Units` | `{{ labels.label_total_units }}` |
+| Totals: Subtotal | `Subtotal` | `{{ labels.label_subtotal }}` |
+| Totals: Tax | `Tax ({{ tax_rate_pct }})` | `{{ tax_label }}` |
+| Totals: Shipping | `Shipping` | `{{ labels.label_shipping }}` |
+| Totals: Grand Total | `Grand Total` | `{{ labels.label_grand_total }}` |
+| Totals: Amount Paid | `Amount Paid` | `{{ labels.label_amount_paid }}` |
+| Totals: Balance Due | `Balance Due` | `{{ labels.label_balance_due }}` |
 | Payment details title | `Payment Details` | `{{ labels.label_payment_details }}` |
 
 ---
 
 ### Step 13 — `templates/request_for_quotation.html`
 
-Replace all 10 hardcoded English strings. Map:
+Replace all 10 hardcoded English strings:
 
 | Template location | Before | After |
 |---|---|---|
@@ -817,14 +769,12 @@ Replace all 10 hardcoded English strings. Map:
 | Spec table `<th>` #1 | `Specification` | `{{ labels.col_specification }}` |
 | Spec table `<th>` #2 | `Details` | `{{ labels.col_details }}` |
 | Notes label | `Notes` | `{{ labels.label_notes }}` |
-| Annexes section label | `Annexes &amp; Attachments` | `{{ labels.label_annexes }}` |
+| Annexes section label | `Annexes & Attachments` | `{{ labels.label_annexes }}` |
 | Contact block phrase | `Questions? Please contact:` | `{{ labels.label_contact }}` |
 
 ---
 
 ### Step 14 — Tests (`tests/test_translations.py`, new file)
-
-Create a new test file covering the translation utilities and schema validation:
 
 ```python
 import pytest
@@ -914,25 +864,19 @@ def test_rfq_valid_language_zh(sample_rfq_data):
     assert doc.language == "zh"
 ```
 
-Fixtures (`sample_po_data`, `sample_invoice_data`, `sample_rfq_data`) should be added to
-`tests/conftest.py` (or defined locally) by loading the corresponding `tests/fixtures/`
-JSON files — same pattern used in the existing `tests/test_schemas.py`.
+Fixtures (`sample_po_data`, `sample_invoice_data`, `sample_rfq_data`) should be added to `tests/conftest.py` (or defined locally) by loading corresponding `tests/fixtures/` JSON files — same pattern as existing `tests/test_schemas.py`.
 
 ---
 
 ## Files NOT Changed
 
-- `scripts/generate.py` — no changes; language validation happens in the schema
-- `builders/_shared.py` — `build_line_items()`, `build_totals()`, `build_footer_text()`
-  are unaffected; labels are injected by the doc-type builders, not the shared helpers
-- `builders/__init__.py` — REGISTRY is unchanged; no new doc types
+- `scripts/generate.py` — no changes; language validation in schema
+- `builders/_shared.py` — `build_line_items()`, `build_totals()`, `build_footer_text()` unaffected; labels injected by doc-type builders, not shared helpers
+- `builders/__init__.py` — REGISTRY unchanged; no new doc types
 - `assets/*.css` — no text content; CSS variables are language-agnostic
-- `tests/fixtures/*.json` — existing fixtures omit `"language"`, which defaults to `"en"`;
-  no changes needed; all existing tests continue to pass unchanged
-- `docs/decisions/002-python-only-formatting.md` — this plan is consistent with ADR-002;
-  no amendment needed
-- `schemas/base.py` — `SUPPORTED_LANGUAGES` for language lives in `utils/translations.py`
-  (not base.py) because it is loaded from the config file, not a hardcoded frozenset
+- `tests/fixtures/*.json` — existing fixtures omit `"language"`, defaults to `"en"`; no changes; all existing tests pass unchanged
+- `docs/decisions/002-python-only-formatting.md` — plan is consistent with ADR-002; no amendment
+- `schemas/base.py` — `SUPPORTED_LANGUAGES` lives in `utils/translations.py` (not base.py) because loaded from config file, not hardcoded frozenset
 
 ---
 
@@ -980,34 +924,18 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 
 # ── Adding a new language (agent workflow) ────────────────────────────────
 # Claude reads config/languages.yml, appends "it" under languages:,
-# then appends an "it" key under every label in labels:, then
-# adds "language": "it" to a fixture and re-runs the generate command.
-# No Python changes required.
+# then appends "it" key under every label, adds "language": "it" to fixture,
+# re-runs generate. No Python changes required.
 ```
 
 ---
 
 ## Key Invariants to Preserve
 
-- **English default** — omitting `"language"` from any payload produces output identical
-  to today's. `language: str = "en"` in all schemas; `get_labels("en", ...)` returns the
-  same strings currently hardcoded in the templates.
-- **No logic in templates** (ADR-002) — templates use `{{ labels.key }}` for pure output.
-  No conditionals, filters, or string operations on label values. The `tax_label`
-  composed string is built in Python (Steps 7–8), not in the template.
-- **No raw Decimal or date objects in context** — label injection does not touch monetary
-  or date fields; ADR-002 is unaffected.
-- **Existing tests pass unchanged** — `tests/fixtures/*.json` have no `"language"` key,
-  which defaults to `"en"`; all schema, builder, utils, and integration tests are green.
-- **Config is the only edit path for translations** — adding a language or fixing a
-  translation requires only editing `config/languages.yml`. No Python code changes.
-  Claude can do this in a single `Edit` call.
-- **`SUPPORTED_LANGUAGES` is derived from config, not hardcoded** — the YAML
-  `languages:` keys are the single source of truth; `utils/translations.py` builds
-  the frozenset at import time. Adding a language to the YAML automatically makes it
-  valid in all three schemas.
-- **v2 RTL note** — Arabic (`ar`) and Hebrew (`he`) require `<html dir="rtl">` and
-  CSS layout changes (flex-direction reversal, text-align). When adding RTL, the
-  `html_lang` context key should be extended to an `html_attrs` dict that includes
-  `lang` + `dir`, and all three templates updated accordingly. This is a contained
-  change that does not affect the label system.
+- **English default** — omitting `"language"` produces output identical to today's. `language: str = "en"` in all schemas; `get_labels("en", ...)` returns same strings currently hardcoded in templates.
+- **No logic in templates** (ADR-002) — templates use `{{ labels.key }}` for pure output. No conditionals, filters, or string operations on label values. `tax_label` composed string built in Python (Steps 7-8), not template.
+- **No raw Decimal or date objects in context** — label injection doesn't touch monetary or date fields; ADR-002 unaffected.
+- **Existing tests pass unchanged** — `tests/fixtures/*.json` have no `"language"` key, defaults to `"en"`; all schema, builder, utils, integration tests green.
+- **Config is only edit path for translations** — adding language or fixing translation requires only editing `config/languages.yml`. No Python changes. Claude can do this in single `Edit` call.
+- **`SUPPORTED_LANGUAGES` derived from config, not hardcoded** — YAML `languages:` keys are single source of truth; `utils/translations.py` builds frozenset at import time. Adding language to YAML automatically makes it valid in all three schemas.
+- **v2 RTL note** — Arabic (`ar`) and Hebrew (`he`) require `<html dir="rtl">` and CSS layout changes (flex-direction reversal, text-align). When adding RTL, `html_lang` context key should extend to `html_attrs` dict including `lang` + `dir`, and all three templates updated. Contained change that doesn't affect label system.

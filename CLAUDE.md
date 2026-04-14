@@ -1,6 +1,6 @@
 # doc-generator
 
-A deterministic, schema-driven PDF generation tool for business documents (Purchase Orders, Invoices, Requests for Quotation, etc.). It is invocable by **any AI agent** that can execute shell commands — Claude, Cursor, Gemini, Codex, or any other tool. No LLM is involved in rendering. Same input always produces the same PDF.
+Deterministic, schema-driven PDF generator for business docs (POs, Invoices, RFQs). Invocable by **any AI agent** with shell access — Claude, Cursor, Gemini, Codex, etc. No LLM in render path. Same input → same PDF.
 
 ---
 
@@ -43,7 +43,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python scripts/generate.py \
 
 ## CLI Contract (Platform-Agnostic Interface)
 
-Any agent invoking this tool must use the following interface. This is the **complete** contract — there are no interactive prompts, no assumed environment variables, and no implicit state.
+Any agent must use this interface. Complete contract — no interactive prompts, no implicit state.
 
 ```text
 uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview] [--save_payload]
@@ -51,20 +51,20 @@ uv run python scripts/generate.py --doc_type <type> --payload <path> [--preview]
 
 | Argument | Required | Description |
 |---|---|---|
-| `--doc_type` | Yes | Document type slug. Must match a registered type (e.g. `purchase_order`, `invoice`, `request_for_quotation`). |
-| `--payload` | Yes | Absolute or relative path to a JSON file containing the document data. **File path only** — not inline JSON. This avoids shell escaping issues and lets agents write a temp file before invoking. |
-| `--preview` | No | If provided, opens the generated PDF using the OS default viewer after generation. Gracefully no-ops in headless environments (no display, CI). |
-| `--output_name` | No | Custom filename stem. If provided, output is `<doc_type>_<name>.pdf`. Defaults to date + sequential counter auto-naming. |
-| `--output_dir` | No | Directory to save the generated PDF. Defaults to `<project_root>/output/`. Pass `$(pwd)` to save in the caller's working directory. |
-| `--save_payload` | No | If provided, saves the validated payload (with all computed fields) as a `.json` file alongside the PDF, using the same filename stem. |
+| `--doc_type` | Yes | Doc type slug. Must match registered type (e.g. `purchase_order`, `invoice`, `request_for_quotation`). |
+| `--payload` | Yes | Path to JSON file with doc data. **File path only** — not inline JSON. Avoids shell escaping; agents write temp file before invoking. |
+| `--preview` | No | Opens generated PDF with OS default viewer. Gracefully no-ops in headless environments. |
+| `--output_name` | No | Custom filename stem. Output becomes `<doc_type>_<name>.pdf`. Defaults to date + sequential counter. |
+| `--output_dir` | No | Directory for generated PDF. Defaults to `<project_root>/output/`. Pass `$(pwd)` for caller's cwd. |
+| `--save_payload` | No | Saves validated payload (with computed fields) as `.json` alongside PDF, same filename stem. |
 
-**On success:** Writes the PDF to the target directory (default `<project_root>/output/`) and prints the **absolute** output path to stdout. Exit code `0`. Agents must use this path directly — never prepend the working directory. If `--save_payload` was passed, a `.json` file with the same stem is also written.
+**On success:** Writes PDF to target dir (default `<project_root>/output/`), prints **absolute** path to stdout. Exit `0`. Agents must use this path directly — never prepend cwd. With `--save_payload`, `.json` file also written.
 
-**On validation error:** Prints a structured, human-readable error to stdout describing which fields failed and why. Exit code `1`. No PDF is written.
+**On validation error:** Prints structured error to stdout describing failed fields. Exit `1`. No PDF written.
 
-**On unknown doc_type:** Prints a list of registered doc types to stdout. Exit code `1`.
+**On unknown doc_type:** Prints registered doc types to stdout. Exit `1`.
 
-Agents should capture stdout and check the exit code to determine success or failure.
+Agents: capture stdout, check exit code.
 
 ---
 
@@ -157,44 +157,44 @@ doc-generator/
 
 ## Key Design Decisions
 
-**Schema-driven, not template-driven.** Every document type has a Pydantic v2 schema that defines required/optional fields, types, and validation rules. The schema is the contract — templates are just renderers.
+**Schema-driven, not template-driven.** Every doc type has Pydantic v2 schema defining fields, types, validation. Schema is contract — templates are renderers.
 
-**No LLM in the render path.** `scripts/generate.py` is a pure deterministic function. It takes a JSON payload, validates it against a Pydantic schema, renders a Jinja2 template, and writes a PDF via WeasyPrint. No model calls, no network, no side effects.
+**No LLM in render path.** `scripts/generate.py` is pure deterministic. Takes JSON, validates via Pydantic, renders Jinja2, writes PDF via WeasyPrint. No model calls, no network.
 
-**No logic in templates.** All computation (subtotals, tax, totals, formatting) happens in Python before the template is rendered. Jinja2 templates receive a fully-resolved context dict and only do display.
+**No logic in templates.** All computation (subtotals, tax, totals, formatting) in Python before render. Templates receive fully-resolved context dict, only display.
 
-**Computed fields via Pydantic `@computed_field`.** Derived values (`subtotal`, `tax_amount`, `grand_total`, line item `total`) are always calculated from the raw inputs. They are never accepted from the payload — Pydantic validates and computes them automatically.
+**Computed fields via Pydantic `@computed_field`.** Derived values (`subtotal`, `tax_amount`, `grand_total`, line item `total`) always calculated from raw inputs. Never accepted from payload.
 
-**File-path-only `--payload`.** Agents write the JSON to a temp file and pass the path. This avoids shell quoting issues with inline JSON and works identically across all platforms and agent runtimes.
+**File-path-only `--payload`.** Agents write JSON to temp file and pass path. Avoids shell quoting issues, works identically across all platforms.
 
-**CSS custom properties only.** `assets/style.css` uses `--var: value` everywhere. No hardcoded colors, sizes, or fonts outside of `:root`. This makes theming a single override file.
+**CSS custom properties only.** `assets/style.css` uses `--var: value` everywhere. No hardcoded colors/sizes/fonts outside `:root`. Theming = single override file.
 
-**USD/American formatting in Phase 1.** All monetary values are formatted as `$1,234.56`. Multi-currency support is explicitly backlogged.
+**USD/American formatting in Phase 1.** All money formatted as `$1,234.56`. Multi-currency backlogged.
 
-**Preview is best-effort.** The `--preview` flag attempts to open the PDF with the OS default viewer. If no display is available (headless CI, SSH session), it silently skips — never errors.
+**Preview is best-effort.** `--preview` attempts OS default viewer. No display available → silently skips, never errors.
 
 ---
 
 ## Source-of-Truth Rule: `references/<doc_type>.md`
 
-Before touching a schema file, a template, or a fixture for any document type — **read the corresponding `references/<doc_type>.md` first**.
+Before touching schema, template, or fixture — **read `references/<doc_type>.md` first**.
 
-Each reference file defines:
+Each reference defines:
 
-- All fields (required/optional), their types, defaults, and descriptions
-- Computed fields (never ask the user for these)
+- All fields (required/optional), types, defaults, descriptions
+- Computed fields (never ask user for these)
 - Validation rules
-- The Claude data collection protocol for that doc type
-- An example payload with expected computed output
-- Layout notes for the template
+- Claude data collection protocol
+- Example payload with expected computed output
+- Layout notes
 
-The Pydantic model and Jinja2 template are derived from the reference. The reference is never derived from the code.
+Pydantic model and Jinja2 template derive from reference. Reference never derives from code.
 
 ---
 
 ## How to Add a New Document Type
 
-Five files. No other existing files change.
+Five files. No existing files change.
 
 ```text
 1. Add references/<doc_type>.md    → Define all fields, rules, computed fields, layout notes
@@ -204,34 +204,32 @@ Five files. No other existing files change.
 5. Register in builders/__init__.py → Add one DocTypeConfig entry to REGISTRY
 ```
 
-That's it. `base.html`, `style.css`, and `generate.py`'s core engine are never modified when adding a doc type. See `references/EXTENDING.md` for full step-by-step guidance. For a single-session coding agent prompt, see `references/NEW_DOC_TYPE.md`.
+`base.html`, `style.css`, and `generate.py` core never modified when adding doc type. See `references/EXTENDING.md` for full guide. For single-session agent prompt, see `references/NEW_DOC_TYPE.md`.
 
 ---
 
 ## Technical Decision Records
 
-All non-obvious technical decisions are recorded in `docs/decisions/` using the naming convention `00X-{short-description}.md`. Each file captures: the context that forced the decision, what was decided, and the consequences.
+All non-obvious decisions recorded in `docs/decisions/` as `00X-{short-description}.md`. Each captures: context, decision, consequences.
 
-Before changing any architectural pattern or constraint in this codebase, check whether a decision record exists for it. If you're making a new architectural decision, create a record.
+Before changing architectural patterns, check for existing record. Making new decision → create record.
 
-Current decisions:
-
-- [001-decimal-for-money](docs/decisions/001-decimal-for-money.md) — Use `Decimal` (not `float`) for all monetary fields
+- [001-decimal-for-money](docs/decisions/001-decimal-for-money.md) — `Decimal` not `float` for money
 - [002-python-only-formatting](docs/decisions/002-python-only-formatting.md) — All formatting in Python; templates receive strings
-- [003-file-path-payload](docs/decisions/003-file-path-payload.md) — `--payload` accepts file path only, not inline JSON
-- [004-argparse-only-cli](docs/decisions/004-argparse-only-cli.md) — Use stdlib `argparse`; no CLI framework dependencies
-- [005-skill-marketplace-publishing](docs/decisions/005-skill-marketplace-publishing.md) — Skill marketplace publishing: GitHub-first distribution + vercel-labs/agent-skills registry (Option A); npm package documented for future (Option B)
-- [006-logo-data-uri-only](docs/decisions/006-logo-data-uri-only.md) — Logo field accepts only base64 data URIs; file paths and URLs rejected at the CLI level to prevent path traversal and SSRF
+- [003-file-path-payload](docs/decisions/003-file-path-payload.md) — `--payload` accepts file path only
+- [004-argparse-only-cli](docs/decisions/004-argparse-only-cli.md) — stdlib `argparse`; no CLI framework deps
+- [005-skill-marketplace-publishing](docs/decisions/005-skill-marketplace-publishing.md) — GitHub-first distribution + vercel-labs/agent-skills registry
+- [006-logo-data-uri-only](docs/decisions/006-logo-data-uri-only.md) — Logo accepts only base64 data URIs; file paths/URLs rejected
 
 ---
 
 ## The `.ai/` Folder
 
-The `.ai/` folder (gitignored) contains agent planning artifacts. AI agents working on this project should read and update these files:
+`.ai/` (gitignored) contains agent planning artifacts. AI agents should read/update:
 
 | File | Purpose |
 |---|---|
-| `.ai/implementation-plan.md` | The current phased implementation plan. Read this before starting any work. |
-| `.ai/current-plan.md` | Active work-in-progress context for the current session. |
-| `.ai/memory.md` | Cross-session notes: patterns discovered, decisions made, gotchas encountered. |
-| `.ai/errors.md` | Log of errors encountered and how they were resolved. Update this when you fix a non-obvious bug. |
+| `.ai/implementation-plan.md` | Current phased plan. Read before starting work. |
+| `.ai/current-plan.md` | Active WIP context for current session. |
+| `.ai/memory.md` | Cross-session notes: patterns, decisions, gotchas. |
+| `.ai/errors.md` | Error log + resolutions. Update when fixing non-obvious bugs. |
