@@ -155,3 +155,11 @@
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
 }
+
+/* Page-break protection — keep tables intact across pages */
+.rfq-spec-table,
+.rfq-product-summary,
+.rfq-annexes__table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}

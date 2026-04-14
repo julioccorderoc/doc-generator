@@ -88,7 +88,8 @@ doc-generator/
 │
 ├── scripts/
 │   ├── generate.py              ← Thin CLI entrypoint: argparse + generation pipeline (~95 lines)
-│   └── encode_logo.py           ← Encodes a local image file to a base64 data URI and injects it into a payload
+│   ├── encode_logo.py           ← Encodes a local image file to a base64 data URI and injects it into a payload
+│   └── setup.sh                 ← Pre-syncs the Python venv (run once per session before first generation)
 │
 ├── builders/                    ← Context builder package — one module per doc type
 │   ├── __init__.py              ← DocTypeConfig dataclass + REGISTRY (single registration point)

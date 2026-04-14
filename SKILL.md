@@ -1,6 +1,11 @@
 ---
 name: doc-generator
 description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually"
+allowed-tools:
+  - Bash(DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator *)
+  - Bash(~/.agents/skills/doc-generator/scripts/setup.sh)
+  - Write(/tmp/doc_payload_*.json)
+  - Read(~/.agents/skills/doc-generator/references/*.md)
 ---
 
 # doc-generator
@@ -68,6 +73,16 @@ The required fields table above covers standard invocations. Only read the follo
 2. **`references/[doc_type].md`**: Read for document quirks, edge cases (annex tables, partial pricing, optional identifier columns), and a minimal payload example.
 
 ## Invocation
+
+### 0. Pre-sync dependencies (once per session)
+
+Run this once at the start of a session, before the first generation call:
+
+```bash
+~/.agents/skills/doc-generator/scripts/setup.sh
+```
+
+This ensures the Python virtual environment is ready. Subsequent calls in the same session skip this step. If you encounter `ModuleNotFoundError`, re-run this command.
 
 ### 1. Write the payload to a temp file
 
