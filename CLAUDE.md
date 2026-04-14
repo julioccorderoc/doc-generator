@@ -81,7 +81,7 @@ doc-generator/
 │
 ├── .github/
 │   └── workflows/
-│       └── sync-skill.yml       ← Auto-opens PR to vercel-labs/agent-skills when SKILL.md changes on master
+│       └── ci.yml               ← Runs pytest on every push/PR (ubuntu-latest)
 │
 ├── pyproject.toml               ← uv project manifest with dependencies (weasyprint, jinja2, pydantic)
 ├── uv.lock                      ← Locked dependency versions (auto-managed by uv)

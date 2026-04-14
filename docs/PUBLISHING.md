@@ -2,7 +2,7 @@
 
 This guide covers two things:
 
-1. **Publishing** — how to push the repo to GitHub and register the skill in the vercel-labs/agent-skills registry
+1. **Publishing** — how to push the repo to GitHub and share the skill
 2. **Team setup** — step-by-step instructions to share with coworkers so they can install and use the skill
 
 ---
@@ -35,89 +35,6 @@ npx skills add julioccorderoc/doc-generator
 ```
 
 For the full setup (CLI + skill), share the manual setup steps in Part 2 below.
-
-### Step 3 — Submit to the vercel-labs/agent-skills registry (optional, for public discoverability)
-
-This step lets anyone install the skill without knowing your GitHub username:
-
-```bash
-npx skills add agent-skills --skill doc-generator
-```
-
-**To submit:**
-
-1. Fork [github.com/vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) — done: `julioccorderoc/agent-skills` exists
-2. In your fork, create `skills/doc-generator/SKILL.md` with the contents of this repo's `SKILL.md`
-3. Open a PR to `vercel-labs/agent-skills` — automated via `sync-skill.yml` (see Step 4)
-4. Once merged, update the install command in `README.md`:
-
-   ```bash
-   npx skills add agent-skills --skill doc-generator
-   ```
-
-### Step 4 — Keep the registry in sync (after future SKILL.md changes)
-
-The workflow `.github/workflows/sync-skill.yml` is already live. Every push to `master` that touches `SKILL.md` automatically opens (or updates) a PR to `vercel-labs/agent-skills`.
-
-**Required secret:** `AGENT_SKILLS_PAT` in the doc-generator repo → Settings → Secrets → Actions.
-
-**Important:** Use a **classic PAT** (not fine-grained). Fine-grained tokens cannot create PRs on repos owned by other accounts (`vercel-labs`). A classic PAT with `repo` scope works for both pushing to your fork and opening cross-repo PRs.
-
-Token scopes needed:
-
-- Repository access: `julioccorderoc/agent-skills` (your fork)
-- Permission: `repo` (classic) — covers Contents write + Pull requests write
-
-The workflow:
-
-- Force-pushes to a `sync-doc-generator-YYYYMMDD` branch on your fork (safe: ephemeral sync branch)
-- Opens a PR to `vercel-labs/agent-skills`, or skips silently if one already exists for that branch
-
-```yaml
-name: Sync SKILL.md to agent-skills registry
-
-on:
-  push:
-    branches: [master]
-    paths: [SKILL.md]
-
-jobs:
-  open-sync-pr:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Clone agent-skills fork and update
-        env:
-          GH_TOKEN: ${{ secrets.AGENT_SKILLS_PAT }}
-        run: |
-          BRANCH="sync-doc-generator-$(date +%Y%m%d)"
-
-          git clone https://x-access-token:${GH_TOKEN}@github.com/julioccorderoc/agent-skills.git
-          cd agent-skills
-
-          # Create or reset the sync branch from main
-          git checkout -B "$BRANCH"
-
-          mkdir -p skills/doc-generator
-          cp ../SKILL.md skills/doc-generator/SKILL.md
-
-          git add skills/doc-generator/SKILL.md
-          git commit -m "sync: update doc-generator SKILL.md from source repo"
-          git push origin HEAD --force
-
-          gh pr create \
-            --repo vercel-labs/agent-skills \
-            --title "sync: update doc-generator SKILL.md" \
-            --body "Automated sync from https://github.com/julioccorderoc/doc-generator" \
-            --head "julioccorderoc:${BRANCH}" \
-            || echo "PR already open for ${BRANCH} — branch updated in place."
-```
 
 ---
 

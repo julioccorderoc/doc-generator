@@ -51,8 +51,7 @@ doc-generator/
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml               ← pytest on every push/PR
-│       └── sync-skill.yml       ← Auto-opens PR to vercel-labs/agent-skills when SKILL.md changes
+│       └── ci.yml               ← pytest on every push/PR
 │
 ├── scripts/
 │   ├── generate.py              # CLI: --doc_type, --payload, --preview, --output_name, --output_dir, --save_payload
