@@ -19,12 +19,10 @@ from builders._shared import (
     build_footer_text,
     build_line_items,
     build_line_items_meta,
+    build_theme_css,
     build_totals,
-    density_css,
-    font_family_css,
     get_css_path,
     parse_terms_sections,
-    primary_color_css,
 )
 
 _PO_CSS: str = (ASSETS_DIR / "purchase_order.css").read_text(encoding="utf-8")
@@ -71,31 +69,9 @@ _PARTIAL_PRICING_NOTE = (
 )
 
 
-def build_po_context(doc: PurchaseOrder) -> dict:
-    """Build the full Jinja2 template context for a Purchase Order."""
-    logo_data = resolve_logo(doc.logo)
-    line_items_meta = _build_po_line_items_meta(doc)
-    is_partial_pricing = line_items_meta["is_partial_pricing"]
-
-    # Auto-append estimation disclaimer when some lines lack a unit price
-    if is_partial_pricing:
-        notes = (doc.notes + "\n\n" + _PARTIAL_PRICING_NOTE) if doc.notes else _PARTIAL_PRICING_NOTE
-    else:
-        notes = doc.notes
-
-    subtotal_label = "Est. Subtotal *" if is_partial_pricing else "Subtotal"
-    grand_total_label = "Est. Grand Total *" if is_partial_pricing else "Grand Total"
-
+def _build_po_parties(doc: PurchaseOrder) -> dict:
+    """Return display-ready buyer + vendor blocks."""
     return {
-        # ── Header ────────────────────────────────────────────────────────
-        "po_number": doc.po_number,
-        "issue_date": format_date(doc.issue_date),
-        "delivery_date": format_date(doc.delivery_date) if doc.delivery_date else None,
-
-        # ── Header logo ───────────────────────────────────────────────────
-        "logo": logo_data,
-
-        # ── Parties ───────────────────────────────────────────────────────
         "buyer": {
             "name": doc.buyer.name,
             "address": doc.buyer.address,
@@ -110,6 +86,66 @@ def build_po_context(doc: PurchaseOrder) -> dict:
             "email": doc.vendor.email,
             "phone": doc.vendor.phone,
         },
+    }
+
+
+def _build_po_totals(doc: PurchaseOrder, line_items_meta: dict) -> dict:
+    """Return formatted totals plus the partial-pricing label overrides."""
+    is_partial_pricing = line_items_meta["is_partial_pricing"]
+    subtotal_label = "Est. Subtotal *" if is_partial_pricing else "Subtotal"
+    grand_total_label = "Est. Grand Total *" if is_partial_pricing else "Grand Total"
+    return {
+        **build_totals(doc),
+        "subtotal_label": subtotal_label,
+        "grand_total_label": grand_total_label,
+    }
+
+
+def _build_po_annex(doc: PurchaseOrder) -> dict:
+    """Return parsed T&C sections + tabular annexes for the template."""
+    if doc.annex_terms is True:
+        terms_sections = parse_terms_sections(_TERMS_PRESET)
+    elif isinstance(doc.annex_terms, str) and doc.annex_terms.strip():
+        terms_sections = parse_terms_sections(doc.annex_terms)
+    else:
+        terms_sections = None
+    return {
+        "terms_sections": terms_sections,
+        "annex_tables": [
+            {
+                "title": t.title,
+                "headers": t.headers,
+                "rows": t.rows,
+                "new_page": t.new_page,
+            }
+            for t in doc.annex_tables
+        ],
+    }
+
+
+def build_po_context(doc: PurchaseOrder) -> dict:
+    """Build the full Jinja2 template context for a Purchase Order."""
+    logo_data = resolve_logo(doc.logo)
+    line_items_meta = _build_po_line_items_meta(doc)
+    is_partial_pricing = line_items_meta["is_partial_pricing"]
+
+    # Auto-append estimation disclaimer when some lines lack a unit price
+    if is_partial_pricing:
+        notes = (doc.notes + "\n\n" + _PARTIAL_PRICING_NOTE) if doc.notes else _PARTIAL_PRICING_NOTE
+    else:
+        notes = doc.notes
+
+    return {
+        # ── Header ────────────────────────────────────────────────────────
+        "po_number": doc.po_number,
+        "issue_date": format_date(doc.issue_date),
+        "delivery_date": format_date(doc.delivery_date) if doc.delivery_date else None,
+
+        # ── Header logo ───────────────────────────────────────────────────
+        "logo": logo_data,
+
+        # ── Parties ───────────────────────────────────────────────────────
+        **_build_po_parties(doc),
 
         # ── Meta band ─────────────────────────────────────────────────────
         "product": doc.product,
@@ -121,9 +157,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         **line_items_meta,
 
         # ── Totals ────────────────────────────────────────────────────────
-        **build_totals(doc),
-        "subtotal_label": subtotal_label,
-        "grand_total_label": grand_total_label,
+        **_build_po_totals(doc, line_items_meta),
 
         # ── Notes ─────────────────────────────────────────────────────────
         "notes": notes,
@@ -131,30 +165,10 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         # ── Footer ────────────────────────────────────────────────────────
         "footer_text": build_footer_text(doc.buyer),
 
-        # ── T&C annex ─────────────────────────────────────────────────────
-        "terms_sections": (
-            parse_terms_sections(_TERMS_PRESET) if doc.annex_terms is True
-            else parse_terms_sections(doc.annex_terms) if isinstance(doc.annex_terms, str) and doc.annex_terms.strip()
-            else None
-        ),
-
-        # ── Tabular annexes ───────────────────────────────────────────────
-        "annex_tables": [
-            {
-                "title": t.title,
-                "headers": t.headers,
-                "rows": t.rows,
-                "new_page": t.new_page,
-            }
-            for t in doc.annex_tables
-        ],
+        # ── T&C annex + tabular annexes ───────────────────────────────────
+        **_build_po_annex(doc),
 
         # ── Template infrastructure ───────────────────────────────────────
         "css_path": get_css_path(),
-        "theme_css": Markup(  # nosec B704
-            _PO_CSS
-            + primary_color_css(doc.primary_color)
-            + font_family_css(doc.font_family)
-            + density_css(doc.doc_style)
-        ),
+        "theme_css": Markup(build_theme_css(_PO_CSS, doc)),  # nosec B704
     }

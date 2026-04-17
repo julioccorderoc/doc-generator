@@ -46,11 +46,17 @@ class DocTypeConfig:
                        display-ready context dict for the template.
         file_prefix:   Short uppercase prefix used in output filenames
                        (e.g. "PO" → PO_20260316_0001.pdf).
+        css_file:      Filename (relative to assets/) of the doc-type CSS.
+                       Declarative source of truth for which stylesheet a
+                       doc type uses. Today builders still load this file
+                       at module top; future work may switch the pipeline
+                       to inject the loaded CSS via the registry.
     """
     model: Type
     template: str
     build_context: ContextBuilder
     file_prefix: str
+    css_file: str
 
 
 # ── Document type registry ─────────────────────────────────────────────────
@@ -63,17 +69,20 @@ REGISTRY: dict[str, DocTypeConfig] = {
         template="purchase_order.html",
         build_context=build_po_context,
         file_prefix="PO",
+        css_file="purchase_order.css",
     ),
     "invoice": DocTypeConfig(
         model=Invoice,
         template="invoice.html",
         build_context=build_invoice_context,
         file_prefix="INV",
+        css_file="invoice.css",
     ),
     "request_for_quotation": DocTypeConfig(
         model=RequestForQuotation,
         template="request_for_quotation.html",
         build_context=build_rfq_context,
         file_prefix="RFQ",
+        css_file="request_for_quotation.css",
     ),
 }

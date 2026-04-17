@@ -83,14 +83,17 @@ def build_totals(doc) -> dict[str, bool | str]:
 def build_footer_text(party) -> str:
     """Build the one-line footer text from a party object (buyer or issuer).
 
-    Collapses multiline addresses to a single line. Phone and email are
-    included only when present. Returns a '·'-separated string for use
-    in the doc-footer bar.
+    Collapses multiline addresses to a single line. Address, phone, and
+    email are each included only when present (RFQ parties may have an
+    optional address). Returns a '·'-separated string for use in the
+    doc-footer bar.
     """
-    addr_oneline = ", ".join(
-        line.strip() for line in party.address.split("\n") if line.strip()
-    )
-    parts = [party.name, addr_oneline]
+    parts = [party.name]
+    if party.address:
+        addr_oneline = ", ".join(
+            line.strip() for line in party.address.split("\n") if line.strip()
+        )
+        parts.append(addr_oneline)
     if party.phone:
         parts.append(party.phone)
     if party.email:
@@ -160,49 +163,12 @@ def font_family_css(font_family: str | None) -> str:
 
 # ── Document density presets ──────────────────────────────────────────────────
 
-_COMPACT_CSS = """:root {
-  --font-size-base:             9pt;
-  --font-size-sm:               7.5pt;
-  --font-size-xs:               6.5pt;
-  --font-size-lg:               12pt;
-  --font-size-xl:               19pt;
-  --font-size-grand:            10pt;
-  --font-size-balance:          11pt;
-  --spacing-xs:                 3pt;
-  --spacing-sm:                 6pt;
-  --spacing-md:                 11pt;
-  --spacing-lg:                 17pt;
-  --spacing-xl:                 25pt;
-  --table-cell-padding:         4pt 6pt;
-  --header-padding:             12pt 15pt;
-  --header-logo-height:         38pt;
-  --table-cell-padding-compact: 3pt 4pt;
-  --table-cell-padding-dense:   2pt 3pt;
-  --font-size-dense:            6pt;
-}
-"""
-
-_COMFORTABLE_CSS = """:root {
-  --font-size-base:             11pt;
-  --font-size-sm:               9.5pt;
-  --font-size-xs:               8.5pt;
-  --font-size-lg:               16pt;
-  --font-size-xl:               25pt;
-  --font-size-grand:            12pt;
-  --font-size-balance:          15pt;
-  --spacing-xs:                 5pt;
-  --spacing-sm:                 10pt;
-  --spacing-md:                 17pt;
-  --spacing-lg:                 27pt;
-  --spacing-xl:                 40pt;
-  --table-cell-padding:         8pt 11pt;
-  --header-padding:             20pt 24pt;
-  --header-logo-height:         58pt;
-  --table-cell-padding-compact: 6pt 8pt;
-  --table-cell-padding-dense:   4pt 6pt;
-  --font-size-dense:            8pt;
-}
-"""
+# Density presets are stored as standalone CSS files in assets/density/ so
+# they can be edited as real CSS (with editor support, syntax checks, etc.)
+# instead of Python string literals. Read once at module load.
+_DENSITY_DIR = ASSETS_DIR / "density"
+_COMPACT_CSS: str = (_DENSITY_DIR / "compact.css").read_text(encoding="utf-8")
+_COMFORTABLE_CSS: str = (_DENSITY_DIR / "comfortable.css").read_text(encoding="utf-8")
 
 
 def density_css(style: str | None) -> str:
@@ -218,3 +184,22 @@ def density_css(style: str | None) -> str:
     if style == "comfortable":
         return _COMFORTABLE_CSS
     return ""
+
+
+# ── Theme CSS composition ─────────────────────────────────────────────────────
+
+def build_theme_css(type_css: str, doc) -> str:
+    """Combine doc-type CSS with per-document theme overrides.
+
+    Order: type CSS first, then color, font, density. Density is appended
+    last so its variables override anything defined earlier in the chain.
+    Theme attributes (`primary_color`, `font_family`, `doc_style`) are
+    fetched defensively via getattr so this helper works for any doc type
+    that mixes in some-but-not-all theme fields.
+    """
+    return (
+        type_css
+        + primary_color_css(getattr(doc, "primary_color", None))
+        + font_family_css(getattr(doc, "font_family", None))
+        + density_css(getattr(doc, "doc_style", "normal"))
+    )

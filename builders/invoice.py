@@ -18,11 +18,9 @@ from builders._shared import (
     build_footer_text,
     build_line_items,
     build_line_items_meta,
+    build_theme_css,
     build_totals,
-    density_css,
-    font_family_css,
     get_css_path,
-    primary_color_css,
 )
 from utils.paths import ASSETS_DIR
 
@@ -102,12 +100,7 @@ def build_invoice_context(doc: Invoice) -> dict:
         "footer_text": build_footer_text(doc.issuer),
 
         # ── Template infrastructure ───────────────────────────────────────
-        # theme_css: primary colour override (if any) + invoice component styles
+        # theme_css: invoice component styles + per-document theme overrides
         "css_path": get_css_path(),
-        "theme_css": Markup(  # nosec B704
-            primary_color_css(doc.primary_color)
-            + _INVOICE_CSS
-            + font_family_css(doc.font_family)
-            + density_css(doc.doc_style)
-        ),
+        "theme_css": Markup(build_theme_css(_INVOICE_CSS, doc)),  # nosec B704
     }

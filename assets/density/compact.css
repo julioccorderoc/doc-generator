@@ -1,0 +1,20 @@
+:root {
+  --font-size-base:             9pt;
+  --font-size-sm:               7.5pt;
+  --font-size-xs:               6.5pt;
+  --font-size-lg:               12pt;
+  --font-size-xl:               19pt;
+  --font-size-grand:            10pt;
+  --font-size-balance:          11pt;
+  --spacing-xs:                 3pt;
+  --spacing-sm:                 6pt;
+  --spacing-md:                 11pt;
+  --spacing-lg:                 17pt;
+  --spacing-xl:                 25pt;
+  --table-cell-padding:         4pt 6pt;
+  --header-padding:             12pt 15pt;
+  --header-logo-height:         38pt;
+  --table-cell-padding-compact: 3pt 4pt;
+  --table-cell-padding-dense:   2pt 3pt;
+  --font-size-dense:            6pt;
+}

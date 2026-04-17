@@ -15,7 +15,7 @@ from schemas.request_for_quotation import RequestForQuotation, RFQParty
 from utils.formatting import format_date
 from utils.logo import resolve_logo
 from utils.paths import ASSETS_DIR
-from builders._shared import density_css, font_family_css, get_css_path, primary_color_css
+from builders._shared import build_footer_text, build_theme_css, get_css_path
 
 
 _RFQ_CSS: str = (ASSETS_DIR / "request_for_quotation.css").read_text(encoding="utf-8")
@@ -30,21 +30,6 @@ def _build_party(party: RFQParty) -> dict:
         "email": party.email,
         "website": party.website,
     }
-
-
-def _build_footer_text(issuer: RFQParty) -> str:
-    """Build the one-line footer text from the issuer."""
-    parts = [issuer.name]
-    if issuer.address:
-        addr_oneline = ", ".join(
-            line.strip() for line in issuer.address.split("\n") if line.strip()
-        )
-        parts.append(addr_oneline)
-    if issuer.phone:
-        parts.append(issuer.phone)
-    if issuer.email:
-        parts.append(issuer.email)
-    return " · ".join(parts)
 
 
 def build_rfq_context(doc: RequestForQuotation) -> dict:
@@ -77,14 +62,6 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
             "website": doc.contact.website,
         }
 
-    # Theme CSS: RFQ-specific styles + optional primary colour override
-    theme_css = (
-        _RFQ_CSS
-        + primary_color_css(doc.primary_color)
-        + font_family_css(doc.font_family)
-        + density_css(doc.doc_style)
-    )
-
     return {
         # ── Header ────────────────────────────────────────────────────────
         "rfq_number": doc.rfq_number,
@@ -116,12 +93,12 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
         "contact": contact,
 
         # ── Footer ────────────────────────────────────────────────────────
-        "footer_text": _build_footer_text(doc.issuer),
+        "footer_text": build_footer_text(doc.issuer),
 
         # ── Logo ──────────────────────────────────────────────────────────
         "logo": logo_data,
 
         # ── Template infrastructure ───────────────────────────────────────
         "css_path": get_css_path(),
-        "theme_css": Markup(theme_css),  # nosec B704
+        "theme_css": Markup(build_theme_css(_RFQ_CSS, doc)),  # nosec B704
     }
