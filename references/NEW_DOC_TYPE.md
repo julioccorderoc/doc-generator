@@ -49,14 +49,17 @@ If any fail, stop and investigate.
 
 ## Files to create (in this exact order)
 
+**Total work: 4 new files + 1 registry edit** (`builders/__init__.py`). No other existing files change.
+
 ### 1. `schemas/[doc_type_slug].py`
 
 Single Source of Truth for payload structure. Write first.
 Pydantic v2 model. Follow `schemas/purchase_order.py` conventions:
 
 - `DocModel` base class
+- **Inherit shared mixins from `schemas/base.py`** instead of copy-pasting: `ThemeFieldsMixin` (gives you `logo`, `primary_color`, `font_family`, `doc_style` + their validators) and `MonetaryComputedMixin` (gives you `subtotal`, `tax_amount`, `grand_total`, `total_units`). Also reuse the shared `_validate_non_empty_string`, `_validate_tax_rate`, and `_validate_at_least_one` helpers from `base.py` before writing new ones.
 - `Money` type on all monetary fields
-- `@computed_field` + `@property` for derived values, `round_money()` on every monetary result
+- `@computed_field` + `@property` for any derived values **not** covered by the mixin; `round_money()` on every monetary result
 - `Field(default_factory=date.today)` for today's date
 - `Field(description="...")` extensively — documents what Claude should ask and how to format
 - `@field_validator(mode="after")` for user-friendly `ValueError` strings passed directly to user
@@ -86,15 +89,15 @@ Context builder `build_[doc_type_slug]_context(doc)`. Load CSS:
 _[DOC_TYPE_UPPER]_CSS: str = (ASSETS_DIR / "[doc_type_slug].css").read_text(encoding="utf-8")
 ```
 
-No raw `Decimal` or `date` in returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, `primary_color_css`, `font_family_css`, `density_css` from `builders._shared`. Include `"footer_text": build_footer_text(doc.<issuing_party>)` — footer renders automatically from `base.html` when present and non-empty.
+No raw `Decimal` or `date` in returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, and `build_theme_css` from `builders._shared`. `build_theme_css(_MY_CSS, doc)` is one call that composes primary colour, font family, and density preset for you — prefer it over chaining `primary_color_css`/`font_family_css`/`density_css` by hand. Density presets live in `assets/density/*.css` and are picked up automatically. Include `"footer_text": build_footer_text(doc.<issuing_party>)` — footer renders automatically from `base.html` when present and non-empty.
 
 ---
 
 ## Files to modify (exactly these, nothing else)
 
-### 6. `builders/__init__.py`
+### 6. `builders/__init__.py`  *(the single registry edit)*
 
-Add one `DocTypeConfig` entry to `REGISTRY`. One import each for new model and builder.
+Add one `DocTypeConfig` entry to `REGISTRY`. One import each for new model and builder. No other lines in this file change.
 
 ### 7. `tests/fixtures/sample_[doc_type_slug].json`
 

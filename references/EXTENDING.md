@@ -4,17 +4,17 @@ Complete developer guide for adding new document types.
 
 > **Running as coding agent session?** Copy [`references/NEW_DOC_TYPE.md`](NEW_DOC_TYPE.md), fill in placeholders, paste as opening prompt. Handles orient, implementation, verification, and acceptance in one shot.
 
-**Five files. No other existing files change.**
+**4 new files + 1 registry edit.** Steps 1–4 create new files; step 5 appends a single entry to the existing `builders/__init__.py` registry.
 
 ```text
-1. schemas/<doc_type>.py         → Pydantic v2 model (Single Source of Truth)
-2. references/<doc_type>.md      → Tiny quirk list and minimal JSON shape
-3. templates/<doc_type>.html     → Jinja2 template extending base.html
-4. builders/<doc_type>.py        → Context builder function (build_<doc_type>_context)
-5. builders/__init__.py          → One DocTypeConfig entry added to REGISTRY
+1. schemas/<doc_type>.py         → Pydantic v2 model (Single Source of Truth)        [NEW]
+2. references/<doc_type>.md      → Tiny quirk list and minimal JSON shape            [NEW]
+3. templates/<doc_type>.html     → Jinja2 template extending base.html               [NEW]
+4. builders/<doc_type>.py        → Context builder function (build_<doc_type>_context) [NEW]
+5. builders/__init__.py          → Add one DocTypeConfig entry to REGISTRY           [EDIT]
 ```
 
-Core engine (`generate.py`), base layout (`base.html`), and stylesheet (`style.css`) are never modified when adding doc types.
+Core engine (`generate.py`), base layout (`base.html`), stylesheet (`style.css`), and density presets (`assets/density/*.css`) are never modified when adding doc types.
 
 ---
 
@@ -24,14 +24,27 @@ Pydantic schema = **Single Source of Truth**. Write first.
 Model on `schemas/purchase_order.py` as reference. Key rules:
 
 - **`DocModel` base class** — all classes (including nested) inherit from `DocModel`, not `BaseModel`. Sets `populate_by_name = True`.
+- **Reuse mixins from `schemas/base.py`** — inherit instead of copy-pasting. `ThemeFieldsMixin` provides the standard `logo`, `primary_color`, `font_family`, `doc_style` fields and their validators. `MonetaryComputedMixin` provides the standard `subtotal`, `tax_amount`, `grand_total`, and `total_units` computed fields for any doc type with line items + tax. Compose them on the root model: `class MyDoc(DocModel, ThemeFieldsMixin, MonetaryComputedMixin): ...`. Reach for the shared `_validate_non_empty_string`, `_validate_tax_rate`, and `_validate_at_least_one` helpers in `base.py` before writing new validators.
 - **`Money` type** — every monetary field; never `float` or bare `Decimal`. Accepts `int`, `float`, `str`, or `Decimal` from JSON. See [001-decimal-for-money](../docs/decisions/001-decimal-for-money.md).
 - **Descriptions as documentation** — every field needs `Field(..., description="...")`. Describe meaning, constraints, when to ask.
 - **Friendly Validation Errors** — `ValueError` messages go directly to user via Claude. Make them conversational (e.g. `"The delivery date cannot be before the issue date."`).
-- **`@computed_field` + `@property`** — always call `round_money()` on monetary results; add `# type: ignore[prop-decorator]`. Computed fields silently ignored when present in payload — can never be injected.
 - **`@field_validator(mode="after")`** — single-field constraints. Always `@classmethod`.
 - **`@model_validator(mode="after")`** — cross-field constraints (e.g. `due_date >= issue_date`).
 - **Defaults** — `Field(default_factory=date.today, ...)` for today; `Field(default=Decimal("0.00"), ...)` (not `0.0`) for monetary defaults.
-- **Logo** — add `logo: Optional[str] = Field(default=None, ...)` at **root level** (not nested in party sub-model). Add `@field_validator` enforcing `data:image/[type];base64,[chars]` (or `None`). See `schemas/purchase_order.py` `PurchaseOrder.logo_format` for reference. `utils/logo.py` also validates at render time as defense-in-depth, but schema is primary enforcement.
+- **Logo** — covered by `ThemeFieldsMixin`. If you don't inherit the mixin, add `logo: Optional[str] = Field(default=None, ...)` at **root level** (not nested in party sub-model) and a `@field_validator` enforcing `data:image/[type];base64,[chars]` (or `None`). See `schemas/purchase_order.py` `PurchaseOrder.logo_format` for reference. `utils/logo.py` also validates at render time as defense-in-depth, but schema is primary enforcement.
+
+### Why computed fields (and how Pydantic handles them)
+
+Derived monetary values (`subtotal`, `tax_amount`, `grand_total`, line item `total`) are **always computed from the raw inputs** — never accepted from the payload. This guarantees a single source of truth: a malformed or tampered `subtotal` in the JSON cannot reach the PDF. Pydantic v2 silently ignores any extra keys whose names match `@computed_field` properties when validating input, then recomputes them from the validated raw fields. Use `MonetaryComputedMixin` to inherit the standard set, or write your own:
+
+```python
+@computed_field  # type: ignore[prop-decorator]
+@property
+def subtotal(self) -> Money:
+    return round_money(sum((item.total for item in self.line_items), Decimal("0")))
+```
+
+Always call `round_money()` on monetary results and add the `# type: ignore[prop-decorator]` comment.
 
 ---
 
@@ -73,7 +86,7 @@ Never add to `style.css`. Place doc-type CSS in `assets/<doc_type>.css`, load at
 _MY_CSS: str = (ASSETS_DIR / "<doc_type>.css").read_text(encoding="utf-8")
 ```
 
-Pass as `"theme_css": Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family) + density_css(doc.doc_style))`. All three helpers in `builders._shared` return `""` when field is `None` or `"normal"` — concatenation always safe. Density goes last (must override doc-type CSS variables). All CSS values use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as reference.
+Pass as `"theme_css": build_theme_css(_MY_CSS, doc)`. The single `build_theme_css()` helper in `builders._shared` composes the doc-type CSS with `primary_color_css`, `font_family_css`, and `density_css` in the correct order (density goes last so it overrides doc-type variables). Each underlying helper returns `""` when its field is `None` or `"normal"` so concatenation stays safe. `density_css()` reads its presets from `assets/density/<style>.css` — new doc types automatically inherit `compact` / `normal` / `comfortable` support with no extra code. All CSS values use `var(--)` from DESIGN_SYSTEM.md. See `assets/invoice.css` as reference.
 
 **Specificity note:** Base rule `.totals__table td:first-child` (0,1,2) sets muted color on first-column cells. Override by qualifying with `.totals__table` (0,2,1). See Specificity Rules in DESIGN_SYSTEM.md.
 
@@ -113,13 +126,13 @@ Model on `builders/purchase_order.py`. Context builder conventions:
 - **`css_path`** — always required: `get_css_path()` from `builders._shared`.
 - **Boolean flags** — compute `show_tax`, `show_shipping`, `has_buyer_id_column`, etc. here so templates have no logic.
 - **Shared helpers** — use `build_line_items`, `build_line_items_meta`, `build_totals` from `builders._shared`.
-- **`theme_css`** — `Markup(_MY_CSS + primary_color_css(doc.primary_color) + font_family_css(doc.font_family) + density_css(doc.doc_style))`. Import all three from `builders._shared`. Return `""` when `None`/`"normal"`. Density goes last.
+- **`theme_css`** — one call: `"theme_css": build_theme_css(_MY_CSS, doc)`. `build_theme_css` (from `builders._shared`) handles primary colour, font family, and density preset composition for you. The lower-level `primary_color_css` / `font_family_css` / `density_css` helpers stay available if you need bespoke composition.
 
 ---
 
 ## Step 5 — Register in `builders/__init__.py`
 
-One entry. Nothing else changes.
+The single edit. Append one `DocTypeConfig` entry to `REGISTRY` plus the matching imports — nothing else in the file changes.
 
 ```python
 # builders/__init__.py

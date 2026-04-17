@@ -121,8 +121,7 @@ doc-generator/
 │   ├── style.css                        ← Base stylesheet built entirely on CSS custom properties
 │   ├── purchase_order.css               ← PO-specific component styles (loaded by builders/purchase_order.py)
 │   ├── invoice.css                      ← Invoice-specific component styles (loaded by builders/invoice.py)
-│   ├── request_for_quotation.css        ← RFQ-specific component styles (loaded by builders/request_for_quotation.py)
-│   └── themes/                          ← Future: named theme override files
+│   └── request_for_quotation.css        ← RFQ-specific component styles (loaded by builders/request_for_quotation.py)
 │
 ├── references/
 │   ├── purchase_order.md            ← SOURCE OF TRUTH for the purchase_order doc type (see below)
