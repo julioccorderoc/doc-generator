@@ -341,8 +341,9 @@ def test_po_normal_density_no_override_in_theme_css():
     doc = PurchaseOrder(**load("sample_po.json"))
     with patch("builders.purchase_order.resolve_logo", return_value=None):
         ctx = build_po_context(doc)
-    # density CSS is empty for normal — no font-size-base override injected
-    assert "--font-size-base" not in ctx["theme_css"]
+    # density CSS is empty for normal — only the baked-in _PO_CSS :root block
+    # is present; no second override block from density_css.
+    assert ctx["theme_css"].count(":root {") == 1
 
 
 # ── PO builder: unit_price optional + pricing-state flags ────────────────────

@@ -19,20 +19,20 @@
 }
 
 .status-strip--paid {
-    background: #f0fdf4;
-    color: #15803d;
-    border-left: 3pt solid #16a34a;
+    background: var(--color-status-paid-bg);
+    color: var(--color-status-paid-text);
+    border-left: 3pt solid var(--color-status-paid-border);
 }
 
 .status-strip--partial {
-    background: #fffbeb;
-    color: #b45309;
-    border-left: 3pt solid #f59e0b;
+    background: var(--color-status-partial-bg);
+    color: var(--color-status-partial-text);
+    border-left: 3pt solid var(--color-status-partial-border);
 }
 
 /* Amount Paid row — green text both columns */
-.totals__table .totals__amount-paid td:first-child { color: #16a34a; }
-.totals__table .totals__amount-paid td:last-child  { color: #16a34a; font-weight: var(--font-weight-medium); }
+.totals__table .totals__amount-paid td:first-child { color: var(--color-status-paid-border); }
+.totals__table .totals__amount-paid td:last-child  { color: var(--color-status-paid-border); font-weight: var(--font-weight-medium); }
 
 /* Balance Due — 2pt accent rule above, bold primary, no background fill.
    Qualified with .totals__table (specificity 0,2,1) to beat the base

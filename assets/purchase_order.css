@@ -2,12 +2,13 @@
    purchase_order.css — PO-specific component styles
    ============================================================ */
 
-/* ── Density variables (overridden by density_css() in builders/_shared.py) */
+/* ── PO-specific density variables (overridden by density_css() in
+       builders/_shared.py at compact/comfortable). `--font-size-dense`
+       lives in style.css :root since it is not PO-specific. */
 
 :root {
     --table-cell-padding-compact: 4pt 6pt;
     --table-cell-padding-dense:   3pt 4pt;
-    --font-size-dense:            7pt;
 }
 
 /* ── PO-only identifier columns ─────────────────────────────── */
@@ -58,28 +59,28 @@
 .po-terms {
     break-before: page;
     page-break-before: always;
-    font-size: 7pt;
+    font-size: var(--font-size-xs);
     line-height: 1.35;
     color: var(--color-text);
 }
 
 .po-terms__heading {
-    font-size: 9pt;
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-bold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-primary);
-    margin-bottom: 4pt;
+    margin-bottom: var(--spacing-xs);
 }
 
 .po-terms__rule {
     border: none;
     border-top: 1pt solid var(--color-border);
-    margin-bottom: 8pt;
+    margin-bottom: var(--spacing-sm);
 }
 
 .po-terms__section {
-    margin-bottom: 5pt;
+    margin-bottom: var(--po-terms-section-gap);
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -87,7 +88,7 @@
 .po-terms__title {
     font-weight: var(--font-weight-bold);
     color: var(--color-text);
-    margin-bottom: 1pt;
+    margin-bottom: var(--po-terms-title-gap);
 }
 
 .po-terms__body {
@@ -96,18 +97,18 @@
 }
 
 .po-terms__footer {
-    margin-top: 10pt;
+    margin-top: var(--po-terms-footer-gap);
     font-style: italic;
     color: var(--color-text-muted);
-    font-size: 6.5pt;
+    font-size: var(--font-size-dense);
     border-top: 1pt solid var(--color-border-light);
-    padding-top: 4pt;
+    padding-top: var(--spacing-xs);
 }
 
 /* ── Tabular annex pages ────────────────────────────────── */
 
 .po-annex-table {
-    font-size: 8pt;
+    font-size: var(--font-size-sm);
     line-height: 1.35;
     color: var(--color-text);
 }

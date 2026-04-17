@@ -19,6 +19,14 @@
     --color-bg-table-head: #f0faf4;
     --color-bg-table-alt:  #f8fdfb;
 
+    /* Status badges (invoice) */
+    --color-status-paid-bg:         #f0fdf4;
+    --color-status-paid-text:       #15803d;
+    --color-status-paid-border:     #16a34a;
+    --color-status-partial-bg:      #fffbeb;
+    --color-status-partial-text:    #b45309;
+    --color-status-partial-border:  #f59e0b;
+
     /* Typography */
     --font-family:         "Helvetica Neue", Helvetica, Arial, sans-serif;
     --font-size-base:      10pt;
@@ -28,6 +36,7 @@
     --font-size-xl:        22pt;
     --font-size-grand:     11pt;
     --font-size-balance:   13pt;
+    --font-size-dense:     7pt;
     --font-weight-normal:  400;
     --font-weight-medium:  500;
     --font-weight-bold:    700;
@@ -38,17 +47,33 @@
     --spacing-md:          14pt;
     --spacing-lg:          22pt;
     --spacing-xl:          32pt;
+    --footer-reserve-space: 28pt;
 
     /* Table */
     --table-cell-padding:  6pt 8pt;
     --table-border:        1pt solid var(--color-border);
 
+    /* Line-items columns */
+    --col-num-width:  22pt;
+    --col-id-width:   60pt;
+    --col-unit-width: 28pt;
+
+    /* Totals block */
+    --totals-width:          200pt;
+    --totals-cell-padding:   4pt 6pt;
+
     /* Document header */
     --header-padding:      16pt 20pt;
     --header-logo-height:  48pt;
+    --logo-max-width:      140pt;
 
     /* Radius */
     --radius-sm:           2pt;
+
+    /* PO terms annex */
+    --po-terms-section-gap: 5pt;
+    --po-terms-title-gap:   1pt;
+    --po-terms-footer-gap:  10pt;
 }
 
 /* ── Page setup ──────────────────────────────────────────── */
@@ -72,7 +97,7 @@ body {
     color: var(--color-text);
     background: var(--color-bg-page);
     line-height: 1.4;
-    padding-bottom: 28pt; /* reserve space above the fixed footer */
+    padding-bottom: var(--footer-reserve-space); /* reserve space above the fixed footer */
 }
 
 /* ── Document header ─────────────────────────────────────── */
@@ -91,12 +116,12 @@ body {
 
 .doc-header__logo img {
     max-height: var(--header-logo-height);
-    max-width: 140pt;
+    max-width: var(--logo-max-width);
     object-fit: contain;
 }
 
 .doc-header__logo--placeholder {
-    width: 140pt;
+    width: var(--logo-max-width);
 }
 
 .doc-header__title {
@@ -292,13 +317,13 @@ thead {
 
 .line-items td.num {
     color: var(--color-text-muted);
-    width: 22pt;
+    width: var(--col-num-width);
 }
 
 .line-items td.buyer-id {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
-    width: 60pt;
+    width: var(--col-id-width);
 }
 
 .line-items td.description {
@@ -308,7 +333,7 @@ thead {
 .line-items td.unit {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
-    width: 28pt;
+    width: var(--col-unit-width);
 }
 
 .line-items td.total {
@@ -333,7 +358,7 @@ thead {
 
 .bottom-section__totals {
     flex-shrink: 0;
-    width: 200pt;
+    width: var(--totals-width);
 }
 
 /* ── Notes (inside bottom-section__notes) ────────────────── */
@@ -363,7 +388,7 @@ thead {
 }
 
 .totals__table td {
-    padding: 4pt 6pt;
+    padding: var(--totals-cell-padding);
 }
 
 .totals__table td:first-child {
