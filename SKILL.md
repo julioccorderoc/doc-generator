@@ -60,7 +60,7 @@ If user requests unsupported doc type, list what is available.
 Universal rules for payload construction:
 
 - **Addresses:** `\n` for line breaks (e.g. `"123 Main St\nSuite 4\nNew York, NY"`)
-- **Dates:** Always `"YYYY-MM-DD"`. If user provides relative time ("12 weeks", "in 3 months"), compute exact date from `issue_date` — never pass duration string.
+- **Dates:** Always `"YYYY-MM-DD"`. If user provides relative time ("12 weeks", "in 3 months"), compute exact date from `issue_date` — never pass duration string
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
 
 ### Data Boundary (Untrusted Input)
