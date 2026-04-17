@@ -15,7 +15,16 @@ from typing import Literal, Optional
 
 from pydantic import Field, computed_field, field_validator, model_validator
 
-from schemas.base import DocModel, Money, round_money, validate_font_family, validate_logo_format, validate_primary_color
+from schemas.base import (
+    DocModel,
+    MonetaryComputedMixin,
+    Money,
+    ThemeFieldsMixin,
+    round_money,
+    validate_at_least_one_line_item,
+    validate_non_empty_string,
+    validate_tax_rate,
+)
 from utils.constants import SUPPORTED_CURRENCIES
 
 
@@ -48,12 +57,7 @@ class Issuer(DocModel):
     email: Optional[str] = Field(default=None, description="Contact or billing email.")
     phone: Optional[str] = Field(default=None, description="Contact phone number.")
 
-    @field_validator("name", "address", mode="after")
-    @classmethod
-    def must_be_non_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("This field is required and cannot be blank.")
-        return v
+    _validate_required = field_validator("name", "address", mode="after")(validate_non_empty_string)
 
 
 class BillTo(DocModel):
@@ -63,12 +67,7 @@ class BillTo(DocModel):
     email: Optional[str] = Field(default=None, description="Contact email at the client.")
     phone: Optional[str] = Field(default=None, description="Contact phone number at the client.")
 
-    @field_validator("name", "address", mode="after")
-    @classmethod
-    def must_be_non_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("This field is required and cannot be blank.")
-        return v
+    _validate_required = field_validator("name", "address", mode="after")(validate_non_empty_string)
 
 
 class PaymentDetailItem(DocModel):
@@ -83,32 +82,21 @@ class PaymentDetailItem(DocModel):
         return v
 
 
-class Invoice(DocModel):
+class Invoice(ThemeFieldsMixin, MonetaryComputedMixin, DocModel):
     invoice_number: str = Field(..., description="Unique identifier for this invoice. Format is up to the issuer. Suggest sequential if not provided.")
     issue_date: date = Field(default_factory=date.today, description="Date the invoice is issued. Defaults to today. Format: YYYY-MM-DD.")
     due_date: Optional[date] = Field(default=None, description="Payment due date. Optional but strongly recommended. Format: YYYY-MM-DD.")
-    # keep in sync with utils.constants.SUPPORTED_CURRENCIES
-    # TODO: widen when SUPPORTED_CURRENCIES grows beyond ("USD",)
-    currency: Literal["USD"] = Field(default="USD", description="Currency code. Phase 2 supports USD only.")
+    currency: Literal[*SUPPORTED_CURRENCIES] = Field(default="USD", description="Currency code. Phase 2 supports USD only.")
     payment_terms: Optional[str] = Field(default=None, description="e.g. Net 30, Due on receipt, 50% upfront. Free text.")
     tax_rate: Money = Field(default=Decimal("0.00"), description="Tax rate as a decimal (e.g. 0.08 for 8%). Applied to subtotal. Must be between 0.0 and 1.0.")
     shipping_cost: Money = Field(default=Decimal("0.00"), description="Flat shipping or delivery fee added to the total. In USD.")
     notes: Optional[str] = Field(default=None, description="General notes, additional terms, or instructions. Renders at the bottom of the document.")
     paid: bool = Field(default=False, description="Whether the invoice has already been paid. If true, amount_paid should also be provided.")
     amount_paid: Money = Field(default=Decimal("0.00"), description="Amount already received. Meaningful only when paid is true. In USD.")
-    primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name.")
-    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
-    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
-    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Use scripts/encode_logo.py to encode — never pass a file path or URL.")
     issuer: Issuer = Field(..., description="The company sending the invoice.")
     bill_to: BillTo = Field(..., description="The client being billed.")
     line_items: list[LineItem] = Field(..., description="What is being invoiced. Minimum 1 item.")
     payment_details: list[PaymentDetailItem] = Field(default_factory=list, description="How to pay. An optional ordered list of name/value pairs.")
-
-    @field_validator("logo", mode="after")
-    @classmethod
-    def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        return validate_logo_format(v)
 
     @field_validator("invoice_number", mode="after")
     @classmethod
@@ -117,29 +105,8 @@ class Invoice(DocModel):
             raise ValueError("The invoice number is required and cannot be blank.")
         return v
 
-    @field_validator("primary_color", mode="after")
-    @classmethod
-    def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_primary_color(v)
-
-    @field_validator("font_family", mode="after")
-    @classmethod
-    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_font_family(v)
-
-    @field_validator("line_items", mode="after")
-    @classmethod
-    def at_least_one_line_item(cls, v: list[LineItem]) -> list[LineItem]:
-        if not v:
-            raise ValueError("At least one line item is required.")
-        return v
-
-    @field_validator("tax_rate", mode="after")
-    @classmethod
-    def tax_rate_in_range(cls, v: Decimal) -> Decimal:
-        if not (Decimal("0.0") <= v <= Decimal("1.0")):
-            raise ValueError("Tax rate must be a decimal between 0 and 1 (e.g. 0.08 for 8%).")
-        return v
+    _validate_line_items = field_validator("line_items", mode="after")(validate_at_least_one_line_item)
+    _validate_tax_rate = field_validator("tax_rate", mode="after")(validate_tax_rate)
 
     @field_validator("shipping_cost", "amount_paid", mode="after")
     @classmethod
@@ -153,29 +120,6 @@ class Invoice(DocModel):
         if self.due_date and self.due_date < self.issue_date:
             raise ValueError("The due date cannot be before the issue date.")
         return self
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def subtotal(self) -> Decimal:
-        return round_money(sum((item.total for item in self.line_items), Decimal("0")))
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def tax_amount(self) -> Decimal:
-        return round_money(self.subtotal * self.tax_rate)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def grand_total(self) -> Decimal:
-        return round_money(self.subtotal + self.tax_amount + self.shipping_cost)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def total_units(self) -> Decimal:
-        return sum(
-            (item.quantity for item in self.line_items if item.count_units),
-            Decimal("0"),
-        )
 
     @computed_field  # type: ignore[prop-decorator]
     @property

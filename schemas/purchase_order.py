@@ -15,7 +15,16 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, computed_field, field_validator, model_validator
 
-from schemas.base import DocModel, Money, round_money, validate_font_family, validate_logo_format, validate_primary_color
+from schemas.base import (
+    DocModel,
+    MonetaryComputedMixin,
+    Money,
+    ThemeFieldsMixin,
+    round_money,
+    validate_at_least_one_line_item,
+    validate_non_empty_string,
+    validate_tax_rate,
+)
 from utils.constants import SUPPORTED_CURRENCIES
 
 
@@ -58,12 +67,7 @@ class Buyer(DocModel):
     email: Optional[str] = Field(default=None, description="Contact email.")
     phone: Optional[str] = Field(default=None, description="Contact phone number.")
 
-    @field_validator("name", "address", mode="after")
-    @classmethod
-    def must_be_non_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("This field is required and cannot be blank.")
-        return v
+    _validate_required = field_validator("name", "address", mode="after")(validate_non_empty_string)
 
 
 class Vendor(DocModel):
@@ -73,12 +77,7 @@ class Vendor(DocModel):
     phone: Optional[str] = Field(default=None, description="Contact phone number.")
     contact_name: Optional[str] = Field(default=None, description="Name of the specific contact at the vendor. Displayed without 'Attn:' prefix.")
 
-    @field_validator("name", "address", mode="after")
-    @classmethod
-    def must_be_non_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("This field is required and cannot be blank.")
-        return v
+    _validate_required = field_validator("name", "address", mode="after")(validate_non_empty_string)
 
 
 class TableAnnex(DocModel):
@@ -98,33 +97,22 @@ class TableAnnex(DocModel):
         return self
 
 
-class PurchaseOrder(DocModel):
+class PurchaseOrder(ThemeFieldsMixin, MonetaryComputedMixin, DocModel):
     po_number: str = Field(..., description="Unique identifier for this PO. Format is up to the buyer (e.g. PO-2026-0042). Suggest sequential if not provided.")
     issue_date: date = Field(default_factory=date.today, description="Date the PO is issued. Defaults to today if not specified. Format: YYYY-MM-DD.")
     delivery_date: Optional[date] = Field(default=None, description="Expected delivery date. Optional but recommended. Format: YYYY-MM-DD.")
-    # keep in sync with utils.constants.SUPPORTED_CURRENCIES
-    # TODO: widen when SUPPORTED_CURRENCIES grows beyond ("USD",)
-    currency: Literal["USD"] = Field(default="USD", description="Currency code. Phase 1 supports USD only.")
+    currency: Literal[*SUPPORTED_CURRENCIES] = Field(default="USD", description="Currency code. Phase 1 supports USD only.")
     product: Optional[str] = Field(default=None, description="Product name for single-product POs. Displayed as the first item in the meta-band when provided.")
     payment_terms: Optional[str] = Field(default=None, description="e.g. Net 30, Due on receipt, 50% upfront. Free text.")
     shipping_method: Optional[str] = Field(default=None, description="e.g. FedEx Ground, FOB Destination, Will Call. Free text.")
     shipping_cost: Money = Field(default=Decimal("0.00"), description="Flat shipping fee to be added to the total. In USD.")
     tax_rate: Money = Field(default=Decimal("0.00"), description="Tax rate as a decimal (e.g. 0.08 for 8%). Applied to subtotal.")
     notes: Optional[str] = Field(default=None, description="General notes, terms, or instructions. Renders at the bottom of the document.")
-    primary_color: Optional[str] = Field(default=None, description="Brand color override. Must be a hex color (#RRGGBB) or a single-word CSS color name. Overrides header background.")
-    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
-    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
     annex_terms: Optional[Union[bool, str]] = Field(default=None, description="true = standard T&C; string = custom T&C text; null = no T&C page.")
     annex_tables: list[TableAnnex] = Field(default_factory=list, description="List of tabular annexes. Each renders on its own page with a title and a flexible-column table.")
-    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Use scripts/encode_logo.py to encode — never pass a file path or URL.")
     buyer: Buyer = Field(..., description="The company issuing the PO.")
     vendor: Vendor = Field(..., description="The supplier receiving the PO.")
     line_items: list[LineItem] = Field(..., description="What is being purchased. Minimum 1 item.")
-
-    @field_validator("logo", mode="after")
-    @classmethod
-    def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        return validate_logo_format(v)
 
     @field_validator("po_number", mode="after")
     @classmethod
@@ -132,16 +120,6 @@ class PurchaseOrder(DocModel):
         if not v.strip():
             raise ValueError("The PO number is required and cannot be blank.")
         return v
-
-    @field_validator("primary_color", mode="after")
-    @classmethod
-    def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_primary_color(v)
-
-    @field_validator("font_family", mode="after")
-    @classmethod
-    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_font_family(v)
 
     @field_validator("annex_terms", mode="before")
     @classmethod
@@ -152,19 +130,8 @@ class PurchaseOrder(DocModel):
             raise ValueError("annex_terms must not exceed 50000 characters")
         return v
 
-    @field_validator("line_items", mode="after")
-    @classmethod
-    def at_least_one_line_item(cls, v: list[LineItem]) -> list[LineItem]:
-        if not v:
-            raise ValueError("At least one line item is required.")
-        return v
-
-    @field_validator("tax_rate", mode="after")
-    @classmethod
-    def tax_rate_in_range(cls, v: Decimal) -> Decimal:
-        if not (Decimal("0.0") <= v <= Decimal("1.0")):
-            raise ValueError("Tax rate must be a decimal between 0 and 1 (e.g. 0.08 for 8%).")
-        return v
+    _validate_line_items = field_validator("line_items", mode="after")(validate_at_least_one_line_item)
+    _validate_tax_rate = field_validator("tax_rate", mode="after")(validate_tax_rate)
 
     @field_validator("shipping_cost", mode="after")
     @classmethod
@@ -178,29 +145,3 @@ class PurchaseOrder(DocModel):
         if self.delivery_date and self.delivery_date < self.issue_date:
             raise ValueError("The delivery date cannot be before the issue date.")
         return self
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def subtotal(self) -> Decimal:
-        return round_money(sum(
-            (item.total for item in self.line_items if item.total is not None),
-            Decimal("0"),
-        ))
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def tax_amount(self) -> Decimal:
-        return round_money(self.subtotal * self.tax_rate)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def grand_total(self) -> Decimal:
-        return round_money(self.subtotal + self.tax_amount + self.shipping_cost)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def total_units(self) -> Decimal:
-        return sum(
-            (item.quantity for item in self.line_items if item.count_units),
-            Decimal("0"),
-        )

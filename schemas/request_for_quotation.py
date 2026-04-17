@@ -10,11 +10,15 @@ computed fields — it is purely descriptive.
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import Field, field_validator, model_validator
 
-from schemas.base import DocModel, validate_font_family, validate_logo_format, validate_primary_color
+from schemas.base import (
+    DocModel,
+    ThemeFieldsMixin,
+    validate_non_empty_string,
+)
 
 
 class RFQAttribute(DocModel):
@@ -64,15 +68,10 @@ class RFQParty(DocModel):
     email: Optional[str] = Field(default=None, description="Email address.")
     website: Optional[str] = Field(default=None, description="Website URL.")
 
-    @field_validator("name", mode="after")
-    @classmethod
-    def name_non_empty(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("This field is required and cannot be blank.")
-        return v
+    _validate_required = field_validator("name", mode="after")(validate_non_empty_string)
 
 
-class RequestForQuotation(DocModel):
+class RequestForQuotation(ThemeFieldsMixin, DocModel):
     rfq_number: str = Field(..., description="Unique RFQ identifier (e.g. 'RFQ-2026-001').")
     issue_date: date = Field(default_factory=date.today, description="Date the RFQ is issued.")
     valid_until: Optional[date] = Field(default=None, description="Deadline for vendor to submit a quote; must be after issue_date. Only include when the user explicitly requests a submission deadline.")
@@ -90,32 +89,12 @@ class RequestForQuotation(DocModel):
     annexes: Optional[list[Annex]] = Field(default=None, description="Named references/attachments.")
     contact: Optional[RFQContact] = Field(default=None, description="Contact person for questions.")
 
-    logo: Optional[str] = Field(default=None, description="Base64 data URI (data:image/png;base64,...). Claude reads the file and encodes it. Never pass a file path/URL.")
-    primary_color: Optional[str] = Field(default=None, description="Color to override the document header. Hex color or CSS name.")
-    font_family: Optional[str] = Field(default=None, description="Font stack override, e.g. 'Georgia, serif'. Only set when the user explicitly requests a different font. Leave null otherwise.")
-    doc_style: Literal["compact", "normal", "comfortable"] = Field(default="normal", description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.")
-
     @field_validator("rfq_number", mode="after")
     @classmethod
     def rfq_number_non_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("The RFQ number is required and cannot be blank.")
         return v
-
-    @field_validator("logo", mode="after")
-    @classmethod
-    def logo_format(cls, v: Optional[str]) -> Optional[str]:
-        return validate_logo_format(v)
-
-    @field_validator("primary_color", mode="after")
-    @classmethod
-    def primary_color_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_primary_color(v)
-
-    @field_validator("font_family", mode="after")
-    @classmethod
-    def font_family_safe(cls, v: Optional[str]) -> Optional[str]:
-        return validate_font_family(v)
 
     @field_validator("product_name", mode="after")
     @classmethod
