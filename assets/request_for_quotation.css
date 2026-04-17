@@ -94,6 +94,8 @@
 
 .rfq-annexes {
     margin-bottom: var(--spacing-md);
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 .rfq-annexes__label {
@@ -134,6 +136,8 @@
     text-align: center;
     border-top: 1pt solid var(--color-border-light);
     padding-top: var(--spacing-sm);
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 .rfq-contact-block__label {
