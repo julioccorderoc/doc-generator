@@ -2,7 +2,7 @@
 name: doc-generator
 description: "Generates professional PDF business documents (purchase orders, invoices, requests for quotation). Use this skill when the user asks to create, generate, draft, or send a PO, invoice, bill, or RFQ, even if phrased casually"
 allowed-tools:
-  - Bash(DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator *)
+  - Bash(uv run --directory ~/.agents/skills/doc-generator *)
   - Bash(~/.agents/skills/doc-generator/scripts/setup.sh)
   - Write(/tmp/doc_payload_*.json)
   - Read(~/.agents/skills/doc-generator/references/*.md)
@@ -11,6 +11,8 @@ allowed-tools:
 # doc-generator
 
 Generates business documents. Covers trigger conditions, data collection, CLI invocation, and result presentation.
+
+> **macOS users:** Prepend `DYLD_LIBRARY_PATH=/opt/homebrew/lib` to every `uv run` command below (required by WeasyPrint's Pango/GObject deps). See [CLAUDE.md](CLAUDE.md) "How to Run Locally" for details.
 
 ## Trigger Conditions
 
@@ -105,7 +107,7 @@ Example path: `/tmp/doc_payload_<timestamp>.json`
 **Without logo**:
 
 ```bash
-DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator \
+uv run --directory ~/.agents/skills/doc-generator \
   python scripts/generate.py \
   --doc_type <doc_type_slug> \
   --payload <path_to_payload_file> \
@@ -117,14 +119,14 @@ DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-gene
 
 ```bash
 # Step 1: encode logo into payload (base64 never enters your context)
-DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator \
+uv run --directory ~/.agents/skills/doc-generator \
   python scripts/encode_logo.py \
   --image <path_to_image> \
   --payload <path_to_payload_file> \
   --out /tmp/payload_with_logo.json
 
 # Step 2: generate using enriched payload (use path printed by step 1)
-DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run --directory ~/.agents/skills/doc-generator \
+uv run --directory ~/.agents/skills/doc-generator \
   python scripts/generate.py \
   --doc_type <doc_type_slug> \
   --payload /tmp/payload_with_logo.json \
