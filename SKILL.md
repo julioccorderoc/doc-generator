@@ -136,11 +136,11 @@ uv run --directory ~/.agents/skills/doc-generator \
 
 Pass document number as `--output_name` so output file is named after document (e.g. `--output_name NS39` → `PO_NS39.pdf`). Use same identifier user provided or one you suggested for `po_number`, `invoice_number`, or `rfq_number`.
 
-`--output_dir "$(pwd)"` saves PDF in agent's current working directory. Omit only to save inside skill's internal `output/` folder.
+`--output_dir "$(pwd)"` saves PDF in agent's current working directory. Omit only to save inside skill's internal `output/` folder
 
 **`--save_payload`:** If user asks to keep/save JSON data alongside PDF, add `--save_payload`. Writes `.json` file (validated, with computed fields) next to PDF using same filename stem. Don't pass unless user requests it
 
-**Do not pass `--preview`** when running as skill (user opens file themselves).
+**Do not pass `--preview`** when running as skill (user opens file themselves)
 
 ### 3. Capture stdout and exit code
 
