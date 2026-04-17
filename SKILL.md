@@ -47,13 +47,13 @@ If user requests unsupported doc type, list what is available.
 
 ## Data Collection Protocol
 
-1. **Identify what's provided** — user may have given partial info inline (e.g. "Create a PO for Acme for 5 laptops").
-2. **Ask for all missing required fields in one pass** — never field by field. Group into single structured request.
-3. **Use smart defaults silently** — check Pydantic schema for `default`/`default_factory` values (e.g. `issue_date` defaults to today). Don't ask unless override needed. Suggest logical ID formats (like `PO-2026-001`) if omitted.
-4. **Never ask for computed fields** — any `@computed_field` in Pydantic schema (`subtotal`, `grand_total`, `tax_amount`, etc.) is calculated by Python. Never ask user for these.
-5. **Handle logo gracefully** — if user mentions logo/branding, ask for file path. Run `scripts/encode_logo.py --image <path> --payload <payload_file>` to encode before generating. If no mention, don't ask. Never use Read tool to base64-encode images.
-6. **Pass validation errors to user** — output error string, ask user to fix. Don't interpret yourself.
-7. **Generate without confirmation** — once all required data collected, build payload and invoke CLI immediately.
+1. **Identify what's provided** — user may have given partial info inline (e.g. "Create a PO for Acme for 5 laptops")
+2. **Ask for all missing required fields in one pass** — never field by field. Group into single structured request
+3. **Use smart defaults silently** — check Pydantic schema for `default`/`default_factory` values (e.g. `issue_date` defaults to today). Don't ask unless override needed. Suggest logical ID formats (like `PO-2026-001`) if omitted
+4. **Never ask for computed fields** — any `@computed_field` in Pydantic schema (`subtotal`, `grand_total`, `tax_amount`, etc.) is calculated by Python. Never ask user for these
+5. **Handle logo gracefully** — if user mentions logo/branding, ask for file path. Run `scripts/encode_logo.py --image <path> --payload <payload_file>` to encode before generating. If no mention, don't ask. Never use Read tool to base64-encode images
+6. **Pass validation errors to user** — output error string, ask user to fix. Don't interpret yourself
+7. **Generate without confirmation** — once all required data collected, build payload and invoke CLI immediately
 
 ### Field Encoding
 

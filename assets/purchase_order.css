@@ -9,6 +9,15 @@
 :root {
     --table-cell-padding-compact: 4pt 6pt;
     --table-cell-padding-dense:   3pt 4pt;
+
+    /* T&C annex — pinned to normal density regardless of doc_style,
+       since the T&C page always owns its own sheet. */
+    --po-terms-body-size:    7pt;
+    --po-terms-heading-size: 9pt;
+    --po-terms-footer-size:  6.5pt;
+    --po-terms-heading-gap:  4pt;
+    --po-terms-rule-gap:     8pt;
+    --po-terms-footer-pad:   4pt;
 }
 
 /* ── PO-only identifier columns ─────────────────────────────── */
@@ -59,24 +68,24 @@
 .po-terms {
     break-before: page;
     page-break-before: always;
-    font-size: var(--font-size-xs);
+    font-size: var(--po-terms-body-size);
     line-height: 1.35;
     color: var(--color-text);
 }
 
 .po-terms__heading {
-    font-size: var(--font-size-base);
+    font-size: var(--po-terms-heading-size);
     font-weight: var(--font-weight-bold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-primary);
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--po-terms-heading-gap);
 }
 
 .po-terms__rule {
     border: none;
     border-top: 1pt solid var(--color-border);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--po-terms-rule-gap);
 }
 
 .po-terms__section {
@@ -100,9 +109,9 @@
     margin-top: var(--po-terms-footer-gap);
     font-style: italic;
     color: var(--color-text-muted);
-    font-size: var(--font-size-dense);
+    font-size: var(--po-terms-footer-size);
     border-top: 1pt solid var(--color-border-light);
-    padding-top: var(--spacing-xs);
+    padding-top: var(--po-terms-footer-pad);
 }
 
 /* ── Tabular annex pages ────────────────────────────────── */
@@ -111,6 +120,8 @@
     font-size: var(--font-size-sm);
     line-height: 1.35;
     color: var(--color-text);
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 .po-annex-table--page-break {
