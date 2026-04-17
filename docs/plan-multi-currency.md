@@ -119,37 +119,25 @@ No other functions in `formatting.py` change.
 
 ---
 
-### Step 2 — `schemas/base.py`
+### Step 2 — `utils/constants.py` _(partially done)_
 
-Add shared constant (single source of truth for all schemas). Place after `round_money`, before `DocModel`:
+`SUPPORTED_CURRENCIES` already lives in `utils/constants.py` as `("USD",)`. Expand the tuple to include the new codes:
 
 ```python
-SUPPORTED_CURRENCIES: frozenset[str] = frozenset({"USD", "EUR", "GBP", "JPY", "CNY"})
+SUPPORTED_CURRENCIES: tuple[str, ...] = ("USD", "EUR", "GBP", "JPY", "CNY")
 ```
 
 ---
 
-### Step 3 — `schemas/purchase_order.py`
+### Step 3 — `schemas/purchase_order.py` _(done)_
 
-Import `SUPPORTED_CURRENCIES` from `schemas.base`, add field validator to `PurchaseOrder`:
-
-```python
-from schemas.base import DocModel, Money, round_money, SUPPORTED_CURRENCIES
-
-# Inside PurchaseOrder class:
-@field_validator("currency", mode="after")
-@classmethod
-def currency_supported(cls, v: str) -> str:
-    if v not in SUPPORTED_CURRENCIES:
-        raise ValueError(f"must be one of {sorted(SUPPORTED_CURRENCIES)}")
-    return v
-```
+The `validate_currency` helper in `schemas/base.py` and its wiring on `PurchaseOrder` (`_validate_currency = field_validator("currency", mode="after")(validate_currency)`) are already in place. Nothing to do here — expanding the tuple in Step 2 is picked up automatically.
 
 ---
 
-### Step 4 — `schemas/invoice.py`
+### Step 4 — `schemas/invoice.py` _(done)_
 
-Identical to Step 3: import `SUPPORTED_CURRENCIES`, add same `currency_supported` validator to `Invoice`.
+Same as Step 3: `Invoice._validate_currency` is already wired.
 
 ---
 
