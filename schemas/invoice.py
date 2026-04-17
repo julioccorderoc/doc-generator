@@ -16,6 +16,7 @@ from typing import Literal, Optional
 from pydantic import Field, computed_field, field_validator, model_validator
 
 from schemas.base import DocModel, Money, round_money, validate_font_family, validate_logo_format, validate_primary_color
+from utils.constants import SUPPORTED_CURRENCIES
 
 
 class LineItem(DocModel):
@@ -86,6 +87,8 @@ class Invoice(DocModel):
     invoice_number: str = Field(..., description="Unique identifier for this invoice. Format is up to the issuer. Suggest sequential if not provided.")
     issue_date: date = Field(default_factory=date.today, description="Date the invoice is issued. Defaults to today. Format: YYYY-MM-DD.")
     due_date: Optional[date] = Field(default=None, description="Payment due date. Optional but strongly recommended. Format: YYYY-MM-DD.")
+    # keep in sync with utils.constants.SUPPORTED_CURRENCIES
+    # TODO: widen when SUPPORTED_CURRENCIES grows beyond ("USD",)
     currency: Literal["USD"] = Field(default="USD", description="Currency code. Phase 2 supports USD only.")
     payment_terms: Optional[str] = Field(default=None, description="e.g. Net 30, Due on receipt, 50% upfront. Free text.")
     tax_rate: Money = Field(default=Decimal("0.00"), description="Tax rate as a decimal (e.g. 0.08 for 8%). Applied to subtotal. Must be between 0.0 and 1.0.")

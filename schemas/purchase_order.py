@@ -16,6 +16,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field, computed_field, field_validator, model_validator
 
 from schemas.base import DocModel, Money, round_money, validate_font_family, validate_logo_format, validate_primary_color
+from utils.constants import SUPPORTED_CURRENCIES
 
 
 class LineItem(DocModel):
@@ -101,6 +102,8 @@ class PurchaseOrder(DocModel):
     po_number: str = Field(..., description="Unique identifier for this PO. Format is up to the buyer (e.g. PO-2026-0042). Suggest sequential if not provided.")
     issue_date: date = Field(default_factory=date.today, description="Date the PO is issued. Defaults to today if not specified. Format: YYYY-MM-DD.")
     delivery_date: Optional[date] = Field(default=None, description="Expected delivery date. Optional but recommended. Format: YYYY-MM-DD.")
+    # keep in sync with utils.constants.SUPPORTED_CURRENCIES
+    # TODO: widen when SUPPORTED_CURRENCIES grows beyond ("USD",)
     currency: Literal["USD"] = Field(default="USD", description="Currency code. Phase 1 supports USD only.")
     product: Optional[str] = Field(default=None, description="Product name for single-product POs. Displayed as the first item in the meta-band when provided.")
     payment_terms: Optional[str] = Field(default=None, description="e.g. Net 30, Due on receipt, 50% upfront. Free text.")

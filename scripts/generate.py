@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from builders import REGISTRY
 from utils.paths import TEMPLATES_DIR
 from utils.file_naming import next_output_filename
 from utils.preview import open_preview
+from utils.constants import DEFAULT_MAX_PAYLOAD_BYTES
 
 
 # ── Jinja2 environment ─────────────────────────────────────────────────────
@@ -128,9 +130,14 @@ def main() -> int:
         print(f"Payload file not found: {args.payload}")
         return 1
 
-    _MAX_PAYLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
-    if payload_path.stat().st_size > _MAX_PAYLOAD_BYTES:
-        print("Payload file exceeds the 10 MB limit.")
+    _max_bytes_env = os.environ.get("DOCGEN_MAX_PAYLOAD_BYTES")
+    try:
+        _max_payload_bytes = int(_max_bytes_env) if _max_bytes_env else DEFAULT_MAX_PAYLOAD_BYTES
+    except ValueError:
+        print(f"Invalid DOCGEN_MAX_PAYLOAD_BYTES: {_max_bytes_env!r}. Must be an integer.")
+        return 1
+    if payload_path.stat().st_size > _max_payload_bytes:
+        print(f"Payload file exceeds the {_max_payload_bytes} byte limit.")
         return 1
 
     try:
