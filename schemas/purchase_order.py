@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Literal, Optional, Union
+from typing import Optional, Union
 
 from pydantic import Field, computed_field, field_validator, model_validator
 
@@ -22,10 +22,10 @@ from schemas.base import (
     ThemeFieldsMixin,
     round_money,
     validate_at_least_one_line_item,
+    validate_currency,
     validate_non_empty_string,
     validate_tax_rate,
 )
-from utils.constants import SUPPORTED_CURRENCIES
 
 
 class LineItem(DocModel):
@@ -101,7 +101,7 @@ class PurchaseOrder(ThemeFieldsMixin, MonetaryComputedMixin, DocModel):
     po_number: str = Field(..., description="Unique identifier for this PO. Format is up to the buyer (e.g. PO-2026-0042). Suggest sequential if not provided.")
     issue_date: date = Field(default_factory=date.today, description="Date the PO is issued. Defaults to today if not specified. Format: YYYY-MM-DD.")
     delivery_date: Optional[date] = Field(default=None, description="Expected delivery date. Optional but recommended. Format: YYYY-MM-DD.")
-    currency: Literal[*SUPPORTED_CURRENCIES] = Field(default="USD", description="Currency code. Phase 1 supports USD only.")
+    currency: str = Field(default="USD", description="Currency code. Phase 1 supports USD only.")
     product: Optional[str] = Field(default=None, description="Product name for single-product POs. Displayed as the first item in the meta-band when provided.")
     payment_terms: Optional[str] = Field(default=None, description="e.g. Net 30, Due on receipt, 50% upfront. Free text.")
     shipping_method: Optional[str] = Field(default=None, description="e.g. FedEx Ground, FOB Destination, Will Call. Free text.")
@@ -132,6 +132,7 @@ class PurchaseOrder(ThemeFieldsMixin, MonetaryComputedMixin, DocModel):
 
     _validate_line_items = field_validator("line_items", mode="after")(validate_at_least_one_line_item)
     _validate_tax_rate = field_validator("tax_rate", mode="after")(validate_tax_rate)
+    _validate_currency = field_validator("currency", mode="after")(validate_currency)
 
     @field_validator("shipping_cost", mode="after")
     @classmethod

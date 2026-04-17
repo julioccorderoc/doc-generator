@@ -20,6 +20,8 @@ from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field, computed_field, field_validator
 
+from utils.constants import SUPPORTED_CURRENCIES
+
 
 def _coerce_decimal(v: object) -> Decimal:
     """Coerce numeric input to Decimal via string to preserve precision.
@@ -80,6 +82,13 @@ def validate_tax_rate(v: Decimal) -> Decimal:
     """Tax rate must be expressed as a fraction in [0, 1]."""
     if not (Decimal("0.0") <= v <= Decimal("1.0")):
         raise ValueError("Tax rate must be a decimal between 0 and 1 (e.g. 0.08 for 8%).")
+    return v
+
+
+def validate_currency(v: str) -> str:
+    """Reject any currency code not in ``SUPPORTED_CURRENCIES``."""
+    if v not in SUPPORTED_CURRENCIES:
+        raise ValueError(f"currency must be one of {sorted(SUPPORTED_CURRENCIES)}")
     return v
 
 
