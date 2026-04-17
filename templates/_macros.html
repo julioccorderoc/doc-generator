@@ -1,0 +1,60 @@
+{# ─────────────────────────────────────────────────────────────
+   Shared Jinja macros for doc templates.
+   Not a renderable template (underscore prefix convention).
+   Macros present already-formatted data; they do no computation.
+───────────────────────────────────────────────────────────── #}
+
+{# Document masthead: logo (or placeholder) + type label + number + date.
+   Used by purchase_order.html, invoice.html, request_for_quotation.html. #}
+{% macro render_header(logo, logo_alt, type_label, number, issue_date) -%}
+<div class="doc-header">
+  {# Left: logo or empty spacer #}
+  <div class="doc-header__logo">
+    {% if logo %}
+    <img src="{{ logo }}" alt="{{ logo_alt }} logo">
+    {% else %}
+    <div class="doc-header__logo--placeholder"></div>
+    {% endif %}
+  </div>
+
+  {# Right: document type, number, date #}
+  <div class="doc-header__title">
+    <div class="doc-header__type">{{ type_label }}</div>
+    <div class="doc-header__number">{{ number }}</div>
+    <div class="doc-header__date">{{ issue_date }}</div>
+  </div>
+</div>
+{%- endmacro %}
+
+
+{# Address-block party column for PO (Vendor/Buyer) and Invoice (From/Bill To).
+   Party shape: name, address, optional contact_name/email/phone.
+   RFQ uses a different party shape (website, no contact_name) and is
+   rendered inline there — not via this macro. #}
+{% macro render_standard_party(label, party) -%}
+<div class="address-block__party">
+  <div class="address-block__label">{{ label }}</div>
+  <div class="address-block__name">{{ party.name }}</div>
+  <div class="address-block__detail">{{ party.address | nl2br }}</div>
+  {% if party.contact_name or party.email or party.phone %}
+  <div class="address-block__contact">
+    {% if party.contact_name %}{{ party.contact_name }}{% endif %}
+    {% if party.contact_name and (party.email or party.phone) %} &nbsp;·&nbsp; {% endif %}
+    {% if party.email %}{{ party.email }}{% endif %}
+    {% if party.email and party.phone %} &nbsp;·&nbsp; {% endif %}
+    {% if party.phone %}{{ party.phone }}{% endif %}
+  </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+
+{# Optional Notes block used in the bottom-section of PO and Invoice.
+   Renders nothing when notes is falsy. RFQ uses a different wrapper
+   (inline margin style) and inlines its own notes markup. #}
+{% macro render_notes(notes) -%}
+{% if notes %}
+<div class="notes__label">Notes</div>
+<div class="notes__text">{{ notes }}</div>
+{% endif %}
+{%- endmacro %}

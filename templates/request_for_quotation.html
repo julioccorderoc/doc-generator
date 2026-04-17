@@ -1,23 +1,8 @@
 {% extends "base.html" %}
+{% import "_macros.html" as m %}
 
 {% block header %}
-<div class="doc-header">
-  {# Left: issuer logo or empty spacer #}
-  <div class="doc-header__logo">
-    {% if logo %}
-    <img src="{{ logo }}" alt="{{ issuer.name }} logo">
-    {% else %}
-    <div class="doc-header__logo--placeholder"></div>
-    {% endif %}
-  </div>
-
-  {# Right: document type, RFQ number, date #}
-  <div class="doc-header__title">
-    <div class="doc-header__type">Request for Quotation</div>
-    <div class="doc-header__number">{{ rfq_number }}</div>
-    <div class="doc-header__date">{{ issue_date }}</div>
-  </div>
-</div>
+{{ m.render_header(logo, issuer.name, "Request for Quotation", rfq_number, issue_date) }}
 {% endblock %}
 
 {% block content %}
@@ -33,6 +18,8 @@
 {% endif %}
 
 {# ── Address block: Issuer (left) · Vendor (right, optional) #}
+{# RFQ party shape differs from PO/Invoice (no contact_name, optional website,
+   optional right party for broadcast mode) — rendered inline, not via macro. #}
 <div class="address-block">
 
   <div class="address-block__party">
@@ -121,6 +108,8 @@
 {% endfor %}
 
 {# ── Notes ───────────────────────────────────────────────── #}
+{# RFQ wraps notes in a margin-styled container — differs from PO/Invoice,
+   which use the bottom-section layout. Rendered inline, not via macro. #}
 {% if notes %}
 <div class="bottom-section__notes" style="margin-bottom: var(--spacing-md);">
   <div class="notes__label">Notes</div>
