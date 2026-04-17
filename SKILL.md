@@ -10,9 +10,9 @@ allowed-tools:
 
 # doc-generator
 
-Generates business documents. Covers trigger conditions, data collection, CLI invocation, and result presentation.
+Generates business documents. Covers trigger conditions, data collection, CLI invocation, and result presentation
 
-> **macOS users:** Prepend `DYLD_LIBRARY_PATH=/opt/homebrew/lib` to every `uv run` command below (required by WeasyPrint's Pango/GObject deps). See [CLAUDE.md](CLAUDE.md) "How to Run Locally" for details.
+> **macOS users:** Prepend `DYLD_LIBRARY_PATH=/opt/homebrew/lib` to every `uv run` command below (required by WeasyPrint's Pango/GObject deps). See [CLAUDE.md](CLAUDE.md) "How to Run Locally" for details
 
 ## Trigger Conditions
 
@@ -138,7 +138,7 @@ Pass document number as `--output_name` so output file is named after document (
 
 `--output_dir "$(pwd)"` saves PDF in agent's current working directory. Omit only to save inside skill's internal `output/` folder.
 
-**`--save_payload`:** If user asks to keep/save JSON data alongside PDF, add `--save_payload`. Writes `.json` file (validated, with computed fields) next to PDF using same filename stem. Don't pass unless user requests it.
+**`--save_payload`:** If user asks to keep/save JSON data alongside PDF, add `--save_payload`. Writes `.json` file (validated, with computed fields) next to PDF using same filename stem. Don't pass unless user requests it
 
 **Do not pass `--preview`** when running as skill (user opens file themselves).
 
@@ -176,8 +176,8 @@ Highlight grand total and balance due:
 
 ### On unknown doc_type
 
-> That document type is not currently supported. Supported types: `purchase_order`, `invoice`, `request_for_quotation`.
+> That document type is not currently supported. Supported types: `purchase_order`, `invoice`, `request_for_quotation`
 
 ## Error Handling
 
-If CLI exits with code 1, read `references/ERRORS.md` for full error pattern → response mapping. Covers validation errors (translate to plain language, ask user to correct) and setup failures (explain fix, ask confirmation, retry automatically).
+If CLI exits with code 1, read `references/ERRORS.md` for full error pattern → response mapping. Covers validation errors (translate to plain language, ask user to correct) and setup failures (explain fix, ask confirmation, retry automatically)
