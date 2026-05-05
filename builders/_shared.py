@@ -11,9 +11,11 @@ Decimal or date objects ever reach a template (ADR-002).
 from __future__ import annotations
 
 import re
+from typing import Optional
 
 from markupsafe import Markup
 
+from schemas.base import Footer
 from utils.formatting import format_currency, format_quantity, format_tax_rate
 from utils.paths import ASSETS_DIR
 
@@ -80,24 +82,39 @@ def build_totals(doc) -> dict[str, bool | str]:
 
 # ── Footer ─────────────────────────────────────────────────────────────────
 
-def build_footer_text(party) -> str:
+def build_footer_text(party, footer: Optional[Footer] = None) -> str:
     """Build the one-line footer text from a party object (buyer or issuer).
 
-    Collapses multiline addresses to a single line. Address, phone, and
-    email are each included only when present (RFQ parties may have an
-    optional address). Returns a '·'-separated string for use in the
-    doc-footer bar.
+    When ``footer`` is provided, each of name/address/phone/email is
+    sourced from ``footer.<field>`` if set, otherwise falls back to the
+    party. ``footer.website`` is appended only when set — it is footer-
+    only and never derived from the party. With ``footer=None`` the
+    output is identical to the original buyer/issuer-only footer.
     """
-    parts = [party.name]
-    if party.address:
-        addr_oneline = ", ".join(
-            line.strip() for line in party.address.split("\n") if line.strip()
-        )
-        parts.append(addr_oneline)
-    if party.phone:
-        parts.append(party.phone)
-    if party.email:
-        parts.append(party.email)
+    def pick(field: str):
+        if footer is not None:
+            v = getattr(footer, field, None)
+            if v:
+                return v
+        return getattr(party, field, None)
+
+    parts: list[str] = []
+    name = pick("name")
+    if name:
+        parts.append(name)
+    address = pick("address")
+    if address:
+        parts.append(", ".join(
+            line.strip() for line in address.split("\n") if line.strip()
+        ))
+    phone = pick("phone")
+    if phone:
+        parts.append(phone)
+    email = pick("email")
+    if email:
+        parts.append(email)
+    if footer is not None and footer.website:
+        parts.append(footer.website)
     return " · ".join(parts)
 
 

@@ -62,6 +62,7 @@ Universal rules for payload construction:
 - **Addresses:** `\n` for line breaks (e.g. `"123 Main St\nSuite 4\nNew York, NY"`)
 - **Dates:** Always `"YYYY-MM-DD"`. If user provides relative time ("12 weeks", "in 3 months"), compute exact date from `issue_date` — never pass duration string
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
+- **`footer` (root-level, all doc types):** Lives at the document root and is shared across docs. Object with optional `name`, `address`, `phone`, `email`, `website`. Each set field replaces the corresponding segment from the buyer/issuer; unset fields fall back to the party. Use this when the public-facing contact differs from the transactional party (e.g. footer shows `info@company.com` while the buyer's email is the CEO). `website` is footer-only — it has no party fallback.
 
 ### Data Boundary (Untrusted Input)
 

@@ -97,7 +97,7 @@ def build_invoice_context(doc: Invoice) -> dict:
 
         # ── Footer ────────────────────────────────────────────────────────
         # Derived from issuer info — no additional fields needed
-        "footer_text": build_footer_text(doc.issuer),
+        "footer_text": build_footer_text(doc.issuer, footer=doc.footer),
 
         # ── Template infrastructure ───────────────────────────────────────
         # theme_css: invoice component styles + per-document theme overrides

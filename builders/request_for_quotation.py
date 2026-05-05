@@ -93,7 +93,7 @@ def build_rfq_context(doc: RequestForQuotation) -> dict:
         "contact": contact,
 
         # ── Footer ────────────────────────────────────────────────────────
-        "footer_text": build_footer_text(doc.issuer),
+        "footer_text": build_footer_text(doc.issuer, footer=doc.footer),
 
         # ── Logo ──────────────────────────────────────────────────────────
         "logo": logo_data,

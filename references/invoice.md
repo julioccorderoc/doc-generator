@@ -48,3 +48,21 @@ The universal data collection workflow and field encoding rules are in `SKILL.md
 - **Addresses:** Use `\n` for line breaks (e.g. `"123 Main St\nSuite 4\nNew York, NY"`).
 - **Dates:** Always `"YYYY-MM-DD"` string format.
 - **Money:** Numbers, not strings. `10.00`, not `"$10.00"`.
+
+---
+
+## Footer override
+
+Optional root-level `footer` object. Each set field replaces the corresponding segment of the page-footer line; unset fields fall back to the issuer. Use this when `issuer.email` is a personal contact but the footer should show a public address.
+
+```json
+{
+  "invoice_number": "INV-2026-0001",
+  "issuer": { "name": "Acme", "address": "...", "email": "damon@acme.com" },
+  "bill_to": { "name": "...", "address": "..." },
+  "footer": { "email": "info@acme.com", "website": "https://acme.com" },
+  "line_items": [{ "description": "...", "quantity": 1, "unit_price": 10.00 }]
+}
+```
+
+The issuer block in the body still shows `damon@acme.com`; only the footer line is overridden.

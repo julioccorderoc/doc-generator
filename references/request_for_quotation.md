@@ -47,6 +47,24 @@ The universal data collection workflow and field encoding rules are in `SKILL.md
 
 ---
 
+## Footer override
+
+Optional root-level `footer` object. Each set field replaces the corresponding segment of the page-footer line; unset fields fall back to the issuer. Use this when `issuer.email` is a personal contact but the footer should show a public address.
+
+```json
+{
+  "rfq_number": "RFQ-2026-0001",
+  "issuer": { "name": "Acme", "email": "damon@acme.com" },
+  "product_name": "...",
+  "footer": { "email": "info@acme.com", "website": "https://acme.com" },
+  "spec_sections": [{ "rows": [{ "label": "...", "value": "..." }] }]
+}
+```
+
+The issuer block in the body still shows `damon@acme.com`; only the footer line is overridden.
+
+---
+
 ## Layout Notes
 
 - Each spec section renders as its own visual block: a **section heading** (`.section-group__heading` from `style.css`) followed by a separate **table** with its own `<thead>`.

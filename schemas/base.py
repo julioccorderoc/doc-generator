@@ -105,6 +105,22 @@ class DocModel(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class Footer(DocModel):
+    """Optional override for the page-footer line.
+
+    Each field, when set, replaces the corresponding segment from the
+    transactional party (buyer/issuer). Fields left as ``None`` fall back
+    to the party value. ``website`` is footer-only — it is appended to
+    the line when provided and never derived from the party.
+    """
+
+    name: Optional[str] = Field(default=None, description="Override for the company name segment of the footer.")
+    address: Optional[str] = Field(default=None, description="Override for the address segment. Multiline addresses are collapsed to one line.")
+    phone: Optional[str] = Field(default=None, description="Override for the phone segment of the footer.")
+    email: Optional[str] = Field(default=None, description="Override for the email segment of the footer. Use this for a public-facing address (e.g. info@x.com) when the buyer/issuer email is a personal contact.")
+    website: Optional[str] = Field(default=None, description="Public website URL appended to the footer line. Footer-only — no party fallback.")
+
+
 # ── Reusable mixins ───────────────────────────────────────────────────────────
 
 class ThemeFieldsMixin(BaseModel):
@@ -130,6 +146,10 @@ class ThemeFieldsMixin(BaseModel):
     doc_style: Literal["compact", "normal", "comfortable"] = Field(
         default="normal",
         description="Page density preset. 'compact' fits more content per page; 'comfortable' adds more whitespace for readability. Default: 'normal'.",
+    )
+    footer: Optional[Footer] = Field(
+        default=None,
+        description="Override for the page-footer line. Any field left None falls back to the buyer/issuer.",
     )
 
     @field_validator("logo", mode="after")

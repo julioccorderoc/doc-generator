@@ -415,3 +415,124 @@ def test_po_builder_annex_table_new_page_in_context():
         ctx = build_po_context(doc)
     # logistics fixture has no new_page set — should default to False
     assert ctx["annex_tables"][0]["new_page"] is False
+
+
+# ── Footer override — applies to all three doc types ─────────────────────────
+
+def _build_po_ctx(raw):
+    doc = PurchaseOrder(**raw)
+    with patch("builders.purchase_order.resolve_logo", return_value=None):
+        return build_po_context(doc)
+
+
+def _build_invoice_ctx(raw):
+    doc = Invoice(**raw)
+    with patch("builders.invoice.resolve_logo", return_value=None):
+        return build_invoice_context(doc)
+
+
+def _build_rfq_ctx(raw):
+    doc = RequestForQuotation(**raw)
+    with patch("builders.request_for_quotation.resolve_logo", return_value=None):
+        return build_rfq_context(doc)
+
+
+# PO: no footer / full footer / partial footer
+
+def test_po_footer_absent_falls_back_to_buyer():
+    ctx = _build_po_ctx(load("sample_po.json"))
+    assert ctx["buyer"]["name"] in ctx["footer_text"]
+
+
+def test_po_footer_full_override_in_footer_text_only():
+    raw = load("sample_po.json")
+    raw["footer"] = {
+        "name": "Public Co",
+        "address": "1 Public Plaza",
+        "phone": "555-0000",
+        "email": "info@public.co",
+        "website": "https://public.co",
+    }
+    ctx = _build_po_ctx(raw)
+    assert ctx["footer_text"] == (
+        "Public Co · 1 Public Plaza · 555-0000 · info@public.co · https://public.co"
+    )
+    # Buyer block unchanged
+    assert ctx["buyer"]["name"] == raw["buyer"]["name"]
+    assert ctx["buyer"]["email"] == raw["buyer"].get("email")
+
+
+def test_po_footer_partial_override_email_only():
+    raw = load("sample_po.json")
+    raw["buyer"]["email"] = "damon@x.com"
+    raw["footer"] = {"email": "info@x.com"}
+    ctx = _build_po_ctx(raw)
+    assert "info@x.com" in ctx["footer_text"]
+    assert "damon@x.com" not in ctx["footer_text"]
+    assert ctx["buyer"]["email"] == "damon@x.com"
+
+
+# Invoice: no footer / full footer / partial footer
+
+def test_invoice_footer_absent_falls_back_to_issuer():
+    ctx = _build_invoice_ctx(load("sample_invoice.json"))
+    assert ctx["issuer"]["name"] in ctx["footer_text"]
+
+
+def test_invoice_footer_full_override_in_footer_text_only():
+    raw = load("sample_invoice.json")
+    raw["footer"] = {
+        "name": "Public Co",
+        "address": "1 Public Plaza",
+        "phone": "555-0000",
+        "email": "info@public.co",
+        "website": "https://public.co",
+    }
+    ctx = _build_invoice_ctx(raw)
+    assert ctx["footer_text"] == (
+        "Public Co · 1 Public Plaza · 555-0000 · info@public.co · https://public.co"
+    )
+    assert ctx["issuer"]["name"] == raw["issuer"]["name"]
+
+
+def test_invoice_footer_partial_override_email_only():
+    raw = load("sample_invoice.json")
+    raw["issuer"]["email"] = "damon@x.com"
+    raw["footer"] = {"email": "info@x.com"}
+    ctx = _build_invoice_ctx(raw)
+    assert "info@x.com" in ctx["footer_text"]
+    assert "damon@x.com" not in ctx["footer_text"]
+    assert ctx["issuer"]["email"] == "damon@x.com"
+
+
+# RFQ: no footer / full footer / partial footer
+
+def test_rfq_footer_absent_falls_back_to_issuer():
+    ctx = _build_rfq_ctx(load("sample_rfq.json"))
+    assert ctx["issuer"]["name"] in ctx["footer_text"]
+
+
+def test_rfq_footer_full_override_in_footer_text_only():
+    raw = load("sample_rfq.json")
+    raw["footer"] = {
+        "name": "Public Co",
+        "address": "1 Public Plaza",
+        "phone": "555-0000",
+        "email": "info@public.co",
+        "website": "https://public.co",
+    }
+    ctx = _build_rfq_ctx(raw)
+    assert ctx["footer_text"] == (
+        "Public Co · 1 Public Plaza · 555-0000 · info@public.co · https://public.co"
+    )
+    assert ctx["issuer"]["name"] == raw["issuer"]["name"]
+
+
+def test_rfq_footer_partial_override_email_only():
+    raw = load("sample_rfq.json")
+    raw["issuer"]["email"] = "damon@x.com"
+    raw["footer"] = {"email": "info@x.com"}
+    ctx = _build_rfq_ctx(raw)
+    assert "info@x.com" in ctx["footer_text"]
+    assert "damon@x.com" not in ctx["footer_text"]
+    assert ctx["issuer"]["email"] == "damon@x.com"

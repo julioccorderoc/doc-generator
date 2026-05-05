@@ -163,7 +163,7 @@ def build_po_context(doc: PurchaseOrder) -> dict:
         "notes": notes,
 
         # ── Footer ────────────────────────────────────────────────────────
-        "footer_text": build_footer_text(doc.buyer),
+        "footer_text": build_footer_text(doc.buyer, footer=doc.footer),
 
         # ── T&C annex + tabular annexes ───────────────────────────────────
         **_build_po_annex(doc),

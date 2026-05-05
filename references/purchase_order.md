@@ -85,3 +85,21 @@ Each entry in `annex_tables` is a `TableAnnex` object:
 > **Column count note:** Wide tables (8+ columns) may overflow the page width. This is the user's responsibility — no validation is enforced.
 
 Both `annex_terms` and `annex_tables` can coexist on the same PO. Rendering order: T&C (`annex_terms`) first, then each `TableAnnex` in list order.
+
+---
+
+## Footer override
+
+Optional root-level `footer` object. Each set field replaces the corresponding segment of the page-footer line; unset fields fall back to the buyer. Use this when `buyer.email` is a personal contact (e.g. CEO) but the footer should show a public address.
+
+```json
+{
+  "po_number": "PO-2026-0042",
+  "buyer": { "name": "Acme", "address": "...", "email": "damon@acme.com" },
+  "vendor": { "name": "...", "address": "..." },
+  "footer": { "email": "info@acme.com", "website": "https://acme.com" },
+  "line_items": [{ "description": "...", "quantity": 1 }]
+}
+```
+
+The buyer block in the body still shows `damon@acme.com`; only the footer line is overridden.
