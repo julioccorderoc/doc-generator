@@ -152,7 +152,9 @@ Subtle full-width bar pinned to bottom of every page via `position: fixed; botto
 - **Content:** `footer_text` — single `·`-separated line from issuing party data: `name · address (single line) · phone · email`. Phone/email included only when present.
 - **Body padding:** `padding-bottom: 28pt` on `body` reserves space so content never flows behind footer.
 
-Footer renders automatically — `base.html`'s default `{% block footer %}` outputs bar when `footer_text` is defined and non-empty. Needs no user-provided fields — `build_footer_text(party)` in `builders._shared` derives everything from party object. Override `{% block footer %}` only to suppress or customise.
+Footer renders automatically — `base.html`'s default `{% block footer %}` outputs the bar when `footer_text` is defined and non-empty. Needs no user-provided fields — `build_footer_text(party, footer=doc.footer)` in `builders._shared` derives the line from the issuing party (buyer/issuer). Override `{% block footer %}` only to suppress or customise.
+
+**Optional `footer` override.** A root-level `footer` object (inherited by every doc type via `ThemeFieldsMixin`) tunes individual footer segments: `name`, `address`, `phone`, `email`, `website`. Each field that is **set** replaces the corresponding party-derived segment; fields left **unset** fall back to the party. `website` is footer-only — appended when set, never derived from the party. Use it when the body should keep a personal contact (e.g. `buyer.email = damon@…`) while the footer shows a public address (`footer.email = info@…`). Absent → the footer line is byte-identical to the party-only default.
 
 ---
 

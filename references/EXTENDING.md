@@ -76,7 +76,7 @@ Read [`references/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) before writing markup/CSS
 
 Every template starts with `{% extends "base.html" %}`. `base.html` provides `<html>/<head>/<body>`, `style.css` link, optional inline `<style>{{ theme_css }}</style>`, and three override blocks: `{% block header %}`, `{% block content %}`, `{% block footer %}`.
 
-Footer renders automatically: `base.html` outputs `<div class="doc-footer">{{ footer_text }}</div>` when `footer_text` is defined and non-empty. Add `"footer_text": build_footer_text(doc.<issuing_party>)` to context builder — `build_footer_text` is in `builders._shared`. No `{% block footer %}` override needed. Override only to suppress (`{% block footer %}{% endblock %}`) or customise.
+Footer renders automatically: `base.html` outputs `<div class="doc-footer">{{ footer_text }}</div>` when `footer_text` is defined and non-empty. Add `"footer_text": build_footer_text(doc.<issuing_party>, footer=doc.footer)` to the context builder — `build_footer_text` is in `builders._shared`, and the optional `footer` field is inherited for free via `ThemeFieldsMixin`. Each set `footer` subfield (`name`/`address`/`phone`/`email`/`website`) overrides that segment; unset subfields fall back to the party (`website` is footer-only). No `{% block footer %}` override needed. Override only to suppress (`{% block footer %}{% endblock %}`) or customise.
 
 ### 3.2 Doc-type-specific styles
 

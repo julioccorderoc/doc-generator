@@ -89,7 +89,7 @@ Context builder `build_[doc_type_slug]_context(doc)`. Load CSS:
 _[DOC_TYPE_UPPER]_CSS: str = (ASSETS_DIR / "[doc_type_slug].css").read_text(encoding="utf-8")
 ```
 
-No raw `Decimal` or `date` in returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, and `build_theme_css` from `builders._shared`. `build_theme_css(_MY_CSS, doc)` is one call that composes primary colour, font family, and density preset for you — prefer it over chaining `primary_color_css`/`font_family_css`/`density_css` by hand. Density presets live in `assets/density/*.css` and are picked up automatically. Include `"footer_text": build_footer_text(doc.<issuing_party>)` — footer renders automatically from `base.html` when present and non-empty.
+No raw `Decimal` or `date` in returned dict. Use `build_line_items`, `build_line_items_meta`, `build_totals`, `get_css_path`, and `build_theme_css` from `builders._shared`. `build_theme_css(_MY_CSS, doc)` is one call that composes primary colour, font family, and density preset for you — prefer it over chaining `primary_color_css`/`font_family_css`/`density_css` by hand. Density presets live in `assets/density/*.css` and are picked up automatically. Include `"footer_text": build_footer_text(doc.<issuing_party>, footer=doc.footer)` — footer renders automatically from `base.html` when present and non-empty. The optional `footer` override is inherited for free via `ThemeFieldsMixin`: each set subfield (`name`/`address`/`phone`/`email`/`website`) overrides that footer segment, while unset subfields fall back to the party.
 
 ---
 
